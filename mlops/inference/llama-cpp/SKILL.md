@@ -197,7 +197,7 @@ llm = Llama.from_pretrained(
 
 - `https://huggingface.co/api/models/<repo>/tree/main?recursive=true`
 
-对 `unsloth/Qwen3.6-35B-A3B-GGUF` 这样的仓库，local-app 页面可能显示 `UD-Q4_K_M`、`UD-Q5_K_M`、`UD-Q6_K`、`Q8_0` 等量化 chip。而 tree API 会带字节大小暴露诸如 `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`、`Qwen3.6-35B-A3B-Q8_0.gguf` 的确切文件路径。用 tree API 把量化标签变成确切文件名。
+对 `unsloth/Qwen3.6-35B-A3B-GGUF` 这样的仓库，local-app 页面可能显示 `UD-Q4_K_M`、`UD-Q5_K_M`、`UD-Q6_K`、`Q8_0` 等量化 chip，而 tree API 会带字节大小暴露诸如 `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`、`Qwen3.6-35B-A3B-Q8_0.gguf` 的确切文件路径。用 tree API 把量化标签变成确切文件名。
 
 ## 搜索模式
 

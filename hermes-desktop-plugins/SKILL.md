@@ -7,7 +7,7 @@ metadata:
   hermes:
     tags: [desktop, plugins, ui, extension]
     category: productivity
-    related_skills: [hermes-context-engine-plugins]
+    related_skills: []
 ---
 
 # Hermes Desktop Plugins Skill
@@ -21,11 +21,6 @@ system (`~/.hermes/plugins/`) is otherwise documented separately.
 
 Full human reference (every export, area payloads, backend, security):
 `website/docs/developer-guide/desktop-plugin-sdk.md`.
-
-Not this skill: a `context.engine` plugin (wrapping `ContextEngine`, owning
-compression/context lifecycle) belongs to `hermes-context-engine-plugins`;
-a headless Python plugin under `~/.hermes/plugins/` without desktop UI uses
-the general plugin system, not this SDK.
 
 ## When to Use
 

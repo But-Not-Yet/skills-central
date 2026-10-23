@@ -1,0 +1,47 @@
+% Known-good ctexart preamble for Chinese academic documents. XeLaTeX ONLY.
+% Compile recipe (Chinese paths break latexmk):
+%   cp <chinese-path>.tex /tmp/latex_build/main.tex
+%   cd /tmp/latex_build && xelatex -interaction=nonstopmode main.tex  (x3 passes)
+%   cp main.pdf <original-dir>/<new-name>.pdf
+\documentclass[UTF8,11pt,a4paper]{ctexart}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,longtable,array,multirow}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{algorithm,algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{caption,subcaption}
+\usepackage{tabularx}
+\usepackage{cite}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.8cm,bottom=2.8cm}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=green!50!black,urlcolor=blue!60!black}
+
+\newtheorem{theorem}{定理}[section]
+\newtheorem{proposition}[theorem]{命题}
+\newtheorem{definition}[theorem]{定义}
+\newtheorem{assumption}[theorem]{假设}
+\newtheorem{remark}[theorem]{注}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{green!50!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    language=Python,
+    showstringspaces=false
+}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\SE}{\text{SE}}
+\DeclareMathOperator*{\argmin}{arg\,min}   % NOT built-in — required before first use

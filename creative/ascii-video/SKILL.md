@@ -1,6 +1,6 @@
 ---
 name: ascii-video
-description: "制作 ASCII 视频时使用。只要要把视频 / 音频 / 图片转成彩色 ASCII 字符视频（MP4/GIF/序列帧），或做音频可视化、生成式 ASCII 动画。矩阵风效果，就主动加载，即使用户只说「做个 ASCII 动画」。"
+description: "制作 ASCII 视频时使用。只要要把视频 / 音频 / 图片转成彩色 ASCII 字符视频（MP4/GIF/序列帧），或做音频可视化、生成式 ASCII 动画、矩阵风效果，就主动加载，即使用户只说「做个 ASCII 动画」。"
 platforms: [linux, macos, windows]
 ---
 
@@ -8,11 +8,11 @@ platforms: [linux, macos, windows]
 
 ## 何时使用
 
-当用户要求：ASCII 视频、文字艺术视频、终端风视频、字符艺术动画、复古文字可视化、ASCII 音频可视化。把视频转成 ASCII art、矩阵风效果，或任何动态 ASCII 输出时使用。
+当用户要求：ASCII 视频、文字艺术视频、终端风视频、字符艺术动画、复古文字可视化、ASCII 音频可视化、把视频转成 ASCII art、矩阵风效果，或任何动态 ASCII 输出时使用。
 
 ## 内容概览
 
-适用于任何格式的 ASCII art 视频制作流水线。把视频 / 音频 / 图片 / 生成式输入转成彩色 ASCII 字符视频输出（MP4、GIF、图片序列）。涵盖：视频转 ASCII、音频反应式音乐可视化、生成式 ASCII art 动画、视频 + 音频混合反应式、文本 / 歌词叠加。实时终端渲染。
+适用于任何格式的 ASCII art 视频制作流水线。把视频 / 音频 / 图片 / 生成式输入转成彩色 ASCII 字符视频输出（MP4、GIF、图片序列）。涵盖：视频转 ASCII、音频反应式音乐可视化、生成式 ASCII art 动画、视频 + 音频混合反应式、文本 / 歌词叠加、实时终端渲染。
 
 ## 创作标准
 
@@ -136,15 +136,15 @@ INPUT → ANALYZE → SCENE_FN → TONEMAP → SHADE → ENCODE
 单个 Python 文件。组件（附参考）：
 
 1. **硬件检测 + 质量档** —— `references/optimization.md`
-2. **输入加载器** —— 取决于模式。`references/inputs.md`
+2. **输入加载器** —— 取决于模式；`references/inputs.md`
 3. **特征分析器** —— 音频 FFT、视频亮度，或合成
-4. **网格 + 渲染器** —— 带位图缓存的多密度网格。`references/architecture.md`
-5. **字符调色板** —— 每项目多个。`references/architecture.md` § Palettes
-6. **配色系统** —— HSV + 离散 RGB + 调和生成。`references/architecture.md` § Color
-7. **scene 函数** —— 各自返回 `canvas (uint8 H,W,3)`。`references/scenes.md`
-8. **Tonemap** —— 自适应亮度归一化。`references/composition.md`
-9. **Shader 流水线** —— `ShaderChain` + `FeedbackBuffer`。`references/shaders.md`
-10. **scene 表 + 调度器** —— 时间 → scene 函数 + 配置。`references/scenes.md`
+4. **网格 + 渲染器** —— 带位图缓存的多密度网格；`references/architecture.md`
+5. **字符调色板** —— 每项目多个；`references/architecture.md` § Palettes
+6. **配色系统** —— HSV + 离散 RGB + 调和生成；`references/architecture.md` § Color
+7. **scene 函数** —— 各自返回 `canvas (uint8 H,W,3)`；`references/scenes.md`
+8. **Tonemap** —— 自适应亮度归一化；`references/composition.md`
+9. **Shader 流水线** —— `ShaderChain` + `FeedbackBuffer`；`references/shaders.md`
+10. **scene 表 + 调度器** —— 时间 → scene 函数 + 配置；`references/scenes.md`
 11. **并行编码器** —— N-worker 片段渲染，配合 ffmpeg 管道
 12. **Main** —— 编排整条流水线
 
@@ -217,7 +217,7 @@ macOS 上的 Pillow：`textbbox()` 返回的高度不对。改用 `font.getmetri
 
 ## 创作发散（仅在用户要求实验性 / 创意 / 独特输出时使用）
 
-若用户要求创意、实验、出人意料或不循常规的输出，选择最契合的策略。并在生成代码*之前*推演其步骤。
+若用户要求创意、实验、出人意料或不循常规的输出，选择最契合的策略，并在生成代码*之前*推演其步骤。
 
 - **强制关联（Forced Connections）** —— 当用户想要跨领域灵感（「让它看起来有机」「工业美学」）
 - **概念融合（Conceptual Blending）** —— 当用户点名两个事物来结合（「海洋遇上音乐」「太空 + 书法」）
@@ -225,7 +225,7 @@ macOS 上的 Pillow：`textbbox()` 返回的高度不对。改用 `font.getmetri
 
 ### 强制关联
 1. 选一个与视觉目标无关的领域（天气系统、微生物学、建筑、流体力学、纺织编织）
-2. 列出其核心视觉 / 结构元素（侵蚀 → 逐步显露。有丝分裂 → 分裂复制。编织 → 互锁图案）
+2. 列出其核心视觉 / 结构元素（侵蚀 → 逐步显露；有丝分裂 → 分裂复制；编织 → 互锁图案）
 3. 把这些元素映射到 ASCII 字符与动画模式上
 4. 综合——「侵蚀」或「结晶」在字符网格里长什么样？
 

@@ -1,6 +1,6 @@
 ---
 name: songwriting-and-ai-music
-description: "写歌与做 AI 音乐时使用。只要要写歌词、把歌改写成 parody，或为 Suno 写 style / metatag 提示词，就主动加载。即使用户只说「帮我写首歌」或「做个音乐」。涵盖作词技巧与本地开源生成方案。"
+description: "写歌与做 AI 音乐时使用。只要要写歌词、把歌改写成 parody，或为 Suno 写 style / metatag 提示词，就主动加载，即使用户只说「帮我写首歌」或「做个音乐」。涵盖作词技巧与本地开源生成方案。"
 version: 1.0.0
 author: Teknium (teknium1), Hermes Agent
 license: MIT

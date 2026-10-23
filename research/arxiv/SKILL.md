@@ -263,7 +263,7 @@ curl -s "https://api.semanticscholar.org/graph/v1/author/search?query=Yann+LeCun
 arXiv 的边缘（Fastly/Varnish）通过返回 HTTP **406**（而非 429/503）来执行 IP 突发配额，
 响应体为空且无 `Retry-After`。诊断方法是重复同一个请求：若一个带完美 headers/编码的裸请求
 也在 200/406 之间随机跳变，那就是限流 — 改 UA headers 与 URL 编码都**没用**。重试模式：
-把 406 当 429 处理 — 从 ≥60s 起的指数退避（上限 ~240s，加 jitter），最多约 6 次。
+把 406 当 429 处理 — 从 ≥60s 起的指数退避（上限 ~240s，加 jitter），最多约 6 次；
 在窗口期内猛敲重试会延长窗口，所以两次尝试之间要静默等待，而不是紧密重试。
 
 ## 备注

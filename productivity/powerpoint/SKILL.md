@@ -18,7 +18,7 @@ metadata:
 
 ## 何时使用
 
-只要以任何方式涉及 .pptx 或 .potx 文件——作为输入、输出或两者——就用本 skill：创建幻灯片、pitch deck 或演示文稿。从任何 .pptx 读取或抽取文字。编辑已有演示文稿。合并或拆分幻灯片文件。处理模板（.potx）、版式、演讲备注或批注。只要用户提到「deck」「slides」「presentation」，或引用某个 .pptx/.potx 文件名，就触发。
+只要以任何方式涉及 .pptx 或 .potx 文件——作为输入、输出或两者——就用本 skill：创建幻灯片、pitch deck 或演示文稿；从任何 .pptx 读取或抽取文字；编辑已有演示文稿；合并或拆分幻灯片文件；处理模板（.potx）、版式、演讲备注或批注。只要用户提到「deck」「slides」「presentation」，或引用某个 .pptx/.potx 文件名，就触发。
 
 ## 前置条件
 
@@ -37,7 +37,7 @@ macOS：`brew install libreoffice poppler`。生成的演示文稿里的图标�
 |---|---|
 | **创建**新演示文稿 | 写一个 `pptxgenjs` 脚本——见下方坑 |
 | **编辑**已有演示文稿，或基于模板构建 | unzip → 改 `ppt/slides/slideN.xml` → zip |
-| **读取**内容 | `markitdown deck.pptx`（每张幻灯片一个块，位于 `<!-- Slide number: N -->` 标记下）。可视化网格：`python scripts/thumbnail.py deck.pptx` |
+| **读取**内容 | `markitdown deck.pptx`（每张幻灯片一个块，位于 `<!-- Slide number: N -->` 标记下）；可视化网格：`python scripts/thumbnail.py deck.pptx` |
 
 ## 脚本
 
@@ -48,13 +48,12 @@ macOS：`brew install libreoffice poppler`。生成的演示文稿里的图标�
 | `scripts/thumbnail.py deck.pptx [prefix]` | 每张幻灯片带标签的网格，用于挑选模板版式。仅 `.pptx`。务必传 `prefix`——它默认 `thumbnails`，会覆盖同目录下其他演示文稿做的网格 |
 | `scripts/add_slide.py unpacked/ slide2.xml [--after slideN.xml]` | 复制一张幻灯片（或 `slideLayoutN.xml`）并处理全部包内簿记。也直接接受 `.pptx`，配 `-o out.pptx` |
 | `scripts/clean.py unpacked/` | 删除不再被引用的幻灯片、媒体与关系。要在 `<p:sldIdLst>` 定稿**之后**运行 |
-| `scripts/office/validate.py deck.pptx [--original src.pptx]` | Schema、关系、内容类型、图表与幻灯片检查。每个失败都指明其修法。任何基于模板的演示文稿都传 `--original`——它把 schema 检查对齐到模板基线，这样模板自身的 XSD 错误不会被当成你的 |
+| `scripts/office/validate.py deck.pptx [--original src.pptx]` | Schema、关系、内容类型、图表与幻灯片检查；每个失败都指明其修法。任何基于模板的演示文稿都传 `--original`——它把 schema 检查对齐到模板基线，这样模板自身的 XSD 错误不会被当成你的 |
 | `scripts/office/soffice.py --headless --convert-to pdf deck.pptx` | LibreOffice 包装器——裸 `soffice` 在沙箱环境里会卡住 |
-| `scripts/geometry_check.py deck.pptx [--edge 0.5] [--gap 0.3]` | 渲染前 EMU 级布局 lint：越边、文本互撞、块间隙过小（见「几何 QA」） |
 
 ## 用 pptxgenjs 创建——坑
 
-写脚本并 `require('pptxgenjs')`。API 模型已知。以下是易踩的雷：
+写脚本并 `require('pptxgenjs')`。API 模型已知；以下是易踩的雷：
 
 - **在添加幻灯片前先设 `pres.layout`。** 默认画布是 `LAYOUT_16x9` = **10" × 5.625"**，不是 13.3" 宽。越过边缘的坐标会被写入而非裁剪——形状只是不在幻灯片上。（`LAYOUT_WIDE` 是 13.3" × 7.5"。）
 - **十六进制颜色：绝不带 `#`，绝不用 8 位。** `color: "FF0000"`。`"#FF0000"` 和把 alpha 烤进十六进制（`"00000020"`）**都会损坏文件**。做半透明：填充与图片用 `transparency: 0-100`，阴影用 `opacity: 0.0-1.0`——两者在对方身上会被静默忽略。
@@ -67,7 +66,7 @@ macOS：`brew install libreoffice poppler`。生成的演示文稿里的图标�
 - **不支持渐变填充**——改用一张渐变图当背景。
 - **文本框有内置内边距**——凡是要让文字与同一 x 上的形状、线条或图标对齐，就设 `margin: 0`。
 - **演讲备注写进 `slide.addNotes("...")`**（纯文本，每张幻灯片一次），绝不要写在幻灯片上的文本框里。
-- **图表保持原生。** PowerPoint 能做的图都用 `addChart()`（组合图传 `{type, data, options}` 数组）。库没有暴露的 PowerPoint 原生特性（趋势线、误差棒），自己算出额外系列或对生成的 OOXML 做后处理。不要退而用一张渲染图。只有 PowerPoint 没有原生形式的图类型（桑基图、关系网络图、弦图）才作为图片放进去。
+- **图表保持原生。** PowerPoint 能做的图都用 `addChart()`（组合图传 `{type, data, options}` 数组）。库没有暴露的 PowerPoint 原生特性（趋势线、误差棒），自己算出额外系列或对生成的 OOXML 做后处理——不要退而用一张渲染图。只有 PowerPoint 没有原生形式的图类型（桑基图、关系网络图、弦图）才作为图片放进去。
 - **默认图表渲染得很朴素**——没有标题、没有数据标签、配色过时。设 `showTitle` + `title`、`showValue: true` + `dataLabelPosition`、取自你配色的 `chartColors: [...]`，并让边框安静下来（`catAxisLabelColor`/`valAxisLabelColor`、`valGridLine: { color, size }`、`catGridLine: { style: "none" }`，单系列时 `showLegend: false`）。
 - **在堆积条形图或柱状图上，`dataLabelPosition` 必须是 `ctr`、`inEnd` 或 `inBase`。** `outEnd` **会损坏文件**。
 - **使用 `secondaryValAxis`/`secondaryCatAxis` 的组合系列，需要在图表选项上同时有 `valAxes` 与 `catAxes`，各两项。** 缺了它们，pptxgenjs 会写出它从未声明的轴 *id*，PowerPoint 会**丢弃该图表**并报告文件损坏。只提供 `valAxes` 不够。
@@ -77,7 +76,7 @@ macOS：`brew install libreoffice poppler`。生成的演示文稿里的图标�
 
 ## 编辑已有演示文稿与模板
 
-先选版式：`python scripts/thumbnail.py template.pptx template-thumbs` 会写出每张幻灯片带标签的网格，并打印它创建的文件——`template-thumbs.jpg`。超过 12 张幻灯片会拆成 `template-thumbs-N.jpg`。**务必传第二个参数，以该演示文稿命名。** 它默认 `thumbnails`，因此在同一目录里做两份演示文稿的缩略图会静默互相覆盖网格（仅用于模板分析——视觉 QA 需要 [转换为图片](#converting-to-images) 的全分辨率渲染。它只接受 `.pptx`，所以先把 `.potx` 复制成一个 `.pptx` 文件名）。配合 `markitdown` 把每个内容章节映射到某张模板幻灯片上，并变换版式。不要把每个章节都放在同一张标题加项目符号的幻灯片上。
+先选版式：`python scripts/thumbnail.py template.pptx template-thumbs` 会写出每张幻灯片带标签的网格，并打印它创建的文件——`template-thumbs.jpg`，超过 12 张幻灯片会拆成 `template-thumbs-N.jpg`。**务必传第二个参数，以该演示文稿命名。** 它默认 `thumbnails`，因此在同一目录里做两份演示文稿的缩略图会静默互相覆盖网格（仅用于模板分析——视觉 QA 需要 [转换为图片](#converting-to-images) 的全分辨率渲染；它只接受 `.pptx`，所以先把 `.potx` 复制成一个 `.pptx` 文件名）。配合 `markitdown` 把每个内容章节映射到某张模板幻灯片上，并变换版式——不要把每个章节都放在同一张标题加项目符号的幻灯片上。
 
 ```bash
 python3 -c "import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall('unpacked')" deck.pptx
@@ -89,18 +88,18 @@ python scripts/clean.py unpacked/                                     # after de
 python scripts/office/validate.py out.pptx --original deck.pptx
 ```
 
-- **所有结构工作——增、删、重排——都在编辑任何幻灯片内容之前做完。** `add_slide.py` 逐字节复制幻灯片文件，所以在你编辑之后再复制，克隆的是编辑过的内容。而 `clean.py` 会删除任何不在 `<p:sldIdLst>` 里的幻灯片，包括你刚写的那张。
-- **绝不要手工复制幻灯片文件**——`add_slide.py` 会做完新幻灯片所需的全部登记并报告它造了什么。它也直接对文件操作：`add_slide.py deck.pptx slide2.xml -o out.pptx`——**务必传 `-o`，否则它会就地重写输入演示文稿。** 复制出的幻灯片仍然*引用*其来源的图表/SmartArt/嵌入对象部件，而非克隆它们。所以编辑其中一张的图表会改变另一张。
-- **如果你用 `python-pptx`**，有三件事它做不到：复制幻灯片（它唯一的入口是 `add_slide(layout)`）。通过 `text_frame.text = "..."` 保留格式（那会把段落坍缩成单个无样式 run——改为赋值 `run.text`）。读取多数模板美术用的 SVG/EMF（`add_picture` 会抛 `UnidentifiedImageError`）。
+- **所有结构工作——增、删、重排——都在编辑任何幻灯片内容之前做完。** `add_slide.py` 逐字节复制幻灯片文件，所以在你编辑之后再复制，克隆的是编辑过的内容；而 `clean.py` 会删除任何不在 `<p:sldIdLst>` 里的幻灯片，包括你刚写的那张。
+- **绝不要手工复制幻灯片文件**——`add_slide.py` 会做完新幻灯片所需的全部登记并报告它造了什么。它也直接对文件操作：`add_slide.py deck.pptx slide2.xml -o out.pptx`——**务必传 `-o`，否则它会就地重写输入演示文稿。** 复制出的幻灯片仍然*引用*其来源的图表/SmartArt/嵌入对象部件，而非克隆它们，所以编辑其中一张的图表会改变另一张。
+- **如果你用 `python-pptx`**，有三件事它做不到：复制幻灯片（它唯一的入口是 `add_slide(layout)`）；通过 `text_frame.text = "..."` 保留格式（那会把段落坍缩成单个无样式 run——改为赋值 `run.text`）；读取多数模板美术用的 SVG/EMF（`add_picture` 会抛 `UnidentifiedImageError`）。
 - 旧版 `.ppt` 必须先转换：`python scripts/office/soffice.py --headless --convert-to pptx file.ppt`。`.potx` 模板的解包与打包方式相同——输出保留 `.potx` 扩展名。
 - 要复用模板里的某个图标或图片，复制一张已包含它的幻灯片或版式。
 
 填写模板时：
 
 - 若你脚本化 XML 变换，用 `defusedxml.minidom` 解析——让 OOXML 经 `xml.etree.ElementTree` 往返会改写命名空间前缀并损坏演示文稿。
-- **模板槽位 ≠ 源条目。** 若模板展示 4 位团队成员而你只有 3 位，就删掉第 4 位的整个组（图片 + 文本框），而不只是其文字。然后在 QA 里检查有无孤立视觉元素。
+- **模板槽位 ≠ 源条目。** 若模板展示 4 位团队成员而你只有 3 位，就删掉第 4 位的整个组（图片 + 文本框），而不只是其文字——然后在 QA 里检查有无孤立视觉元素。
 - 每个列表项一个 `<a:p>`——绝不把多项拼进一个段落。复制相邻的 `<a:pPr>` 以保留间距，并在标题、章节标题与行内标签（`Status:`、`Owner:`）的 `<a:rPr>` 上设 `b="1"`。
-- 让项目符号继承自版式。只在需要覆盖时添加 `<a:buChar>`、`<a:buAutoNum>`（编号）或 `<a:buNone>`——绝不在文字里写字面的 `•`。
+- 让项目符号继承自版式；只在需要覆盖时添加 `<a:buChar>`、`<a:buAutoNum>`（编号）或 `<a:buNone>`——绝不在文字里写字面的 `•`。
 - 带前后空格的文字，其 `<a:t>` 需要 `xml:space="preserve"`。
 
 ## 设计思路
@@ -113,7 +112,6 @@ python scripts/office/validate.py out.pptx --original deck.pptx
 - **主导胜过均等**：应有一种颜色主导（60-70% 视觉权重），配 1-2 种辅助色调和一种锐利的强调色。绝不要让所有颜色权重相等。
 - **明暗对比**：标题页与结论页用深色背景，内容页用浅色（「三明治」结构）。或者通篇坚持深色以营造高级感。
 - **坚持一个视觉母题**：挑*一个*独特元素并重复它——圆角图片框、彩色圆圈里的图标。把它贯穿每张幻灯片。**不要把色条或强调条纹当母题**（见「避免」清单）。
-- **调性看场合，系统必须统一**：先判断这个 deck 投给什么场合——课程作业 pitch 不是董事会汇报，研究生作业的活气来自口语化正文、第一人称吐槽、道具感卡片，硬套商务汇报腔会被顶回「太正式」。用户点名的调性优先于「避免」清单里的反 AI 默认（调性被认可时，暖底、标题短线都可用）。但调性一换就整套换：**首尾每张幻灯片共用同一套标题栏/标题/落地栏/卡片规则**，版式在系统内变化，只允许封面与收尾页在颜色上略变——每张幻灯片各长一个样子就是「风格不统一」被退回的标准成因。
 
 ### 配色方案
 
@@ -136,8 +134,6 @@ python scripts/office/validate.py out.pptx --original deck.pptx
 
 **每张幻灯片都需要视觉元素**——图片、图表、图标或形状。纯文字幻灯片转瞬即忘。
 
-**真照片自己找，别留空位**：只要图不是只存在于用户手里（自家往事、自家道具实拍），就自己找一张真 CC 授权照片（Wikimedia Commons，可商用）放进页面，作者＋作品名＋许可证放署名页或页脚。检索参数、许可证核验与限速坑见 `references/image-sourcing.md`。只有该组才有的实物（道具照、报名表码）才许留 dashed NOTE 占位并注明「不许编造」；网图当配图时，正文与脚注要写明它是示意、不对应讲者要讲的故事。
-
 **版式选项：**
 - 两栏（左文右插图）
 - 图标 + 文字行（彩色圆圈里的图标、粗体标题、下方描述）
@@ -155,13 +151,13 @@ python scripts/office/validate.py out.pptx --original deck.pptx
 
 ### 字体排印
 
-**你写进 .pptx 的字体名由用户的 PowerPoint 渲染，而非本环境。** 你的视觉 QA 经 LibreOffice 渲染，它会替换掉自己没有的字体——而对某些字体，替代字宽度不同。所以你的 QA 预览可能显示真实演示文稿并不会有的文字溢出（或恰好放得下）。为让你的 QA 可信：
+**你写进 .pptx 的字体名由用户的 PowerPoint 渲染，而非本环境。** 你的视觉 QA 经 LibreOffice 渲染，它会替换掉自己没有的字体——而对某些字体，替代字宽度不同，所以你的 QA 预览可能显示真实演示文稿并不会有的文字溢出（或恰好放得下）。为让你的 QA 可信：
 
 - **安全字体**（在 QA 中按真实宽度渲染*且*随 Office 附带）：**Arial、Calibri、Cambria、Times New Roman、Courier New、Bookman Old Style、Century Schoolbook**。正文以及任何讲究放得下与否的地方都用这些。
-- **零 QA 风险又有个性的标题**。把安全清单里的衬线标题（Cambria、Bookman Old Style、Century Schoolbook）配上安全清单里的无衬线正文（Calibri 或 Arial）。
-- **若用户要求安全清单之外的字体**（如 Georgia 或 Trebuchet MS）：在用户要求处照用，但给那些容器留额外余量（约 10%）。且不要相信那些元素的 QA 文字适配。
-- **QA 不可靠的字体**（替代字宽度不同——溢出检查可能出错）：Georgia、Trebuchet MS、Impact、Arial Black、Garamond、Consolas、Palatino Linotype。Calibri Light 的替换随环境而异。视为 QA 不可靠。
-- **绝不要默认用 Aptos**——Office 2023 年后的默认字体在这里没有度量兼容的替代字*且*在较旧的 Office 安装中缺失。所以两头都不可靠。
+- **零 QA 风险又有个性的标题**：把安全清单里的衬线标题（Cambria、Bookman Old Style、Century Schoolbook）配上安全清单里的无衬线正文（Calibri 或 Arial）。
+- **若用户要求安全清单之外的字体**（如 Georgia 或 Trebuchet MS）：在用户要求处照用，但给那些容器留额外余量（约 10%），且不要相信那些元素的 QA 文字适配。
+- **QA 不可靠的字体**（替代字宽度不同——溢出检查可能出错）：Georgia、Trebuchet MS、Impact、Arial Black、Garamond、Consolas、Palatino Linotype。Calibri Light 的替换随环境而异；视为 QA 不可靠。
+- **绝不要默认用 Aptos**——Office 2023 年后的默认字体在这里没有度量兼容的替代字*且*在较旧的 Office 安装中缺失，所以两头都不可靠。
 
 | 元素 | 字号 |
 |---------|------|
@@ -179,18 +175,18 @@ python scripts/office/validate.py out.pptx --original deck.pptx
 ### 避免（常见错误）
 
 - **不要重复同一版式**——在各幻灯片间变换栏目、卡片与标注
-- **不要居中正文**——段落与列表左对齐。只居中标题
+- **不要居中正文**——段落与列表左对齐；只居中标题
 - **不要吝惜字号对比**——标题需要 36pt+ 才能从 14-16pt 正文中跳出来
 - **不要默认用蓝**——挑反映具体主题的颜色
 - **不要随意混用间距**——选定 0.3" 或 0.5" 的间隙并一致使用
 - **不要只精心打扮一张幻灯片而其余留白**——要么全力投入，要么通篇简洁
-- **不要做纯文字幻灯片**——加图片、图标、图表或视觉元素。避免朴素的标题加项目符号
-- **不要忘了文本框内边距**——把线条或形状与文字边缘对齐时，在文本框上设 `margin: 0`。或把形状偏移以抵掉内边距。
+- **不要做纯文字幻灯片**——加图片、图标、图表或视觉元素；避免朴素的标题加项目符号
+- **不要忘了文本框内边距**——把线条或形状与文字边缘对齐时，在文本框上设 `margin: 0`，或把形状偏移以抵掉内边距
 - **不要用低对比元素**——图标*和*文字都需要对背景有强对比
-- **绝不要在标题下加强调线**——这是 AI 生成幻灯片的标志。改用空白或背景色
-- **绝不要加装饰性色条或强调条纹**——这包括：横跨幻灯片宽度的页眉/页脚条。沿幻灯片某条边向下的竖直侧边条纹、沿卡片或内容块某条边的细强调条纹。以及矩形上的「单边框」。它们读起来像 AI 生成的填充物。若想区分某张卡片，用微妙的背景淡色、投影或图标——而不是边缘条纹。
-- **不要默认用米色/奶油色背景**——未指定背景时，用白色（`FFFFFF`）或用户的品牌配色。避免 `F5F5DC`、`FAF0E6`、`FAEBD7`、`FFF8E1` 之类暖中性默认色。
-- **不要交付超出形状的文字**——若文字放不下，就缩小字号、拆到多张幻灯片，或放大容器。绝不要让内容被截断或溢出边界。
+- **绝不要在标题下加强调线**——这是 AI 生成幻灯片的标志；改用空白或背景色
+- **绝不要加装饰性色条或强调条纹**——这包括：横跨幻灯片宽度的页眉/页脚条、沿幻灯片某条边向下的竖直侧边条纹、沿卡片或内容块某条边的细强调条纹，以及矩形上的「单边框」。它们读起来像 AI 生成的填充物。若想区分某张卡片，用微妙的背景淡色、投影或图标——而不是边缘条纹。
+- **不要默认用米色/奶油色背景**——未指定背景时，用白色（`FFFFFF`）或用户的品牌配色；避免 `F5F5DC`、`FAF0E6`、`FAEBD7`、`FFF8E1` 之类暖中性默认色。
+- **不要交付超出形状的文字**——若文字放不下，就缩小字号、拆到多张幻灯片，或放大容器；绝不要让内容被截断或溢出边界。
 
 ## QA（必需）
 
@@ -212,8 +208,6 @@ markitdown output.pptx | grep -iE "\bx{3,}\b|lorem|ipsum|\bTODO|\[insert|this.*(
 
 若 grep 有结果，先修好再宣告成功。
 
-**带引用/数据的 deck 再跑「必命中」核对**：把全部必须出现的数字、单位、来源代号、限定语列成清单，对 markitdown 输出逐个 grep 确认存在且没串位（各组统计各归各页、`percentage points` 与 `percent` 不互串、believed 类限定语不丢）。整篇看着没问题不算数。
-
 ### 文件 QA（必需）
 
 ```bash
@@ -221,21 +215,13 @@ python scripts/office/validate.py output.pptx                      # built from 
 python scripts/office/validate.py output.pptx --original src.pptx  # built from a template
 ```
 
-**若演示文稿来自模板，务必传 `--original`。** 模板本身可能含有 XSD 拒绝的部件，所以裸跑可能报告你从未造成的失败。而真正的回归可能藏在其间。`--original` 会把 schema 与幻灯片检查对齐到模板基线。结构检查——关系、内容类型、图表——忽略 `--original`，无论如何都会报告模板继承来的问题。所以要就事论事地看它们。
+**若演示文稿来自模板，务必传 `--original`。** 模板本身可能含有 XSD 拒绝的部件，所以裸跑可能报告你从未造成的失败——而真正的回归可能藏在其间。`--original` 会把 schema 与幻灯片检查对齐到模板基线。结构检查——关系、内容类型、图表——忽略 `--original`，无论如何都会报告模板继承来的问题，所以要就事论事地看它们。
 
-pptxgenjs 会产出 PowerPoint 拒绝打开、而其他所有工具都接受的图表 XML：python-pptx 能打开那些演示文稿，LibreOffice 能渲染。XSD 也能通过。每个失败都指明其修法。要在生成器里修复并重建。
-
-### 几何 QA（渲染前，先跑）
-
-```bash
-python scripts/geometry_check.py output.pptx            # --edge/--gap 改尺子
-```
-
-直接从 pptx XML 解析每个形状的 EMU 坐标、算旋转后的包围盒，在渲染之前报出坐标级可证的硬伤：越出页边、两个文本框互撞、纵向成块间隙过小。文字坐在带填充的卡片上被当作同一视觉单元，骑跨卡片边缘的数字徽章这类设计不会误报。本步的 flag 是**候选项**：设计成对的小间隙（标题栏↔标题、大数字↔注释）要结合渲染图复核，只有渲染图上看着挤的才改。
+pptxgenjs 会产出 PowerPoint 拒绝打开、而其他所有工具都接受的图表 XML：python-pptx 能打开那些演示文稿，LibreOffice 能渲染，XSD 也能通过。每个失败都指明其修法。要在生成器里修复并重建。
 
 ### 视觉 QA
 
-把幻灯片转成图片（见 [转换为图片](#converting-to-images)），用 `vision_analyze` 逐张检查。盯着生成代码久了，你往往看到的是预期的而非实际渲染的。所以要用新鲜的眼光看图（`delegate_task` 子代理很适合干这个）。要查找的用户可见缺陷：
+把幻灯片转成图片（见 [转换为图片](#converting-to-images)），用 `vision_analyze` 逐张检查。盯着生成代码久了，你往往看到的是预期的而非实际渲染的，所以要用新鲜的眼光看图（`delegate_task` 子代理很适合干这个）。要查找的用户可见缺陷：
 
 - **文字溢出或在框/幻灯片边界被截断——先查这个。** 它是最常见的缺陷，且总是用户可见。（对预览器按「字体排印」一节渲染不可靠的字体，预览是近似的：相信你留出的约 10% 余量，而不是它表面的适配。）
 - 元素重叠（文字穿过形状、线条穿过文字、元素堆叠）

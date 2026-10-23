@@ -1,6 +1,6 @@
 ---
 name: meeting-action-items
-description: "把会议记录/转写整理成带引用的决策、负责人与工单时使用。只要涉及从会议里提取 action items、跟进事项、决策或协调项目看板，就主动加载。即使用户只是说「这场会讲了啥、谁负责」。不用于获取会议录音或转写（用 teams-meeting-pipeline）。"
+description: "把会议记录/转写整理成带引用的决策、负责人与工单时使用。只要涉及从会议里提取 action items、跟进事项、决策或协调项目看板，就主动加载，即使用户只是说「这场会讲了啥、谁负责」。不用于获取会议录音或转写（用 teams-meeting-pipeline）。"
 version: 0.1.0
 author: Ben Barclay (benbarclay), Hermes Agent
 license: MIT
@@ -13,7 +13,7 @@ metadata:
 
 # 会议行动项
 
-把已有的转写或会议记录变成可问责的后续落实。`teams-meeting-pipeline` 能取回 Teams 产物。本 skill 从记录/转写内容已就绪时开始，来源不限。
+把已有的转写或会议记录变成可问责的后续落实。`teams-meeting-pipeline` 能取回 Teams 产物；本 skill 从记录/转写内容已就绪时开始，来源不限。
 
 ## 何时使用
 
@@ -50,8 +50,8 @@ metadata:
 | 字段 | 规则 |
 |---|---|
 | outcome | 具体结果，而非含糊议题 |
-| owner | 明确署名的负责人。否则 `unresolved` |
-| due date | 明确日期或 `unresolved`。绝不臆造 |
+| owner | 明确署名的负责人；否则 `unresolved` |
+| due date | 明确日期或 `unresolved`；绝不臆造 |
 | dependency | 必须先发生什么 |
 | acceptance | 可观察的完成条件 |
 | source | 转写/笔记引用 |
@@ -81,7 +81,7 @@ metadata:
 ## 验证
 
 - [ ] 每个决策与行动都能追溯到引文、时间戳或笔记引用。
-- [ ] 未臆造负责人或期限。未定值清晰可见。
-- [ ] 创建之前已搜索既有记录。新建与更新被区分开。
+- [ ] 未臆造负责人或期限；未定值清晰可见。
+- [ ] 创建之前已搜索既有记录；新建与更新被区分开。
 - [ ] 未经明确批准不发布任何工单、任务或消息。
 - [ ] 每次批准的写入都从提供方读回。

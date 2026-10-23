@@ -1,6 +1,6 @@
 ---
 name: touchdesigner-mcp
-description: "通过 twozero MCP 控制 TouchDesigner 时使用。只要要在 TD 里搭实时视觉 / 生成艺术 / 音频反应 / VJ 装置网络并操作节点，就主动加载。即使用户只说「用 TD 做个视觉效果」。提供 36 个 MCP 工具与验证过的 GLSL 配方。"
+description: "通过 twozero MCP 控制 TouchDesigner 时使用。只要要在 TD 里搭实时视觉 / 生成艺术 / 音频反应 / VJ 装置网络并操作节点，就主动加载，即使用户只说「用 TD 做个视觉效果」。提供 36 个 MCP 工具与验证过的 GLSL 配方。"
 version: 1.1.0
 author: kshitijk4poor
 license: MIT

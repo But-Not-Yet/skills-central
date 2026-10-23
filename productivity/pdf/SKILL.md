@@ -1,6 +1,6 @@
 ---
 name: pdf
-description: "创建、合并、拆分、填写、加密 PDF 时使用。只要涉及 PDF 的合并/拆分/旋转、水印、表单填写、加密解密或提取文字表格，就主动加载。即使用户只是提到一个 .pdf 文件。不用于扫描件重度 OCR（用 ocr-and-documents）或自然语言改字（用 nano-pdf）。"
+description: "创建、合并、拆分、填写、加密 PDF 时使用。只要涉及 PDF 的合并/拆分/旋转、水印、表单填写、加密解密或提取文字表格，就主动加载，即使用户只是提到一个 .pdf 文件。不用于扫描件重度 OCR（用 ocr-and-documents）或自然语言改字（用 nano-pdf）。"
 version: 1.0.0
 author: Anthropic (adapted by Nous Research)
 license: Proprietary. LICENSE.txt has complete terms
@@ -14,11 +14,11 @@ metadata:
 
 # PDF 技能
 
-创建、合并、拆分、变换并保护 PDF 文件——合并、页面操作、表单填写、水印、加密以及文字/表格抽取。扫描文档的重度文字抽取优先用 `ocr-and-documents` skill。对现有 PDF 文字做自然语言编辑优先用 `nano-pdf`。
+创建、合并、拆分、变换并保护 PDF 文件——合并、页面操作、表单填写、水印、加密以及文字/表格抽取。扫描文档的重度文字抽取优先用 `ocr-and-documents` skill；对现有 PDF 文字做自然语言编辑优先用 `nano-pdf`。
 
 ## 何时使用
 
-只要用户想对 PDF 文件做任何事就用本 skill：读取或抽取文字/表格、合并多个 PDF、拆分 PDF、旋转页面。添加水印、创建新 PDF、填写 PDF 表单、加密/解密、抽取图片，或对扫描件 PDF 做 OCR。只要用户提到 .pdf 文件或要求生成一份，就用本 skill。
+只要用户想对 PDF 文件做任何事就用本 skill：读取或抽取文字/表格、合并多个 PDF、拆分 PDF、旋转页面、添加水印、创建新 PDF、填写 PDF 表单、加密/解密、抽取图片，或对扫描件 PDF 做 OCR。只要用户提到 .pdf 文件或要求生成一份，就用本 skill。
 
 ## 前置条件
 

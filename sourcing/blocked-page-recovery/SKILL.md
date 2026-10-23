@@ -122,7 +122,6 @@ rejects them automatically; reject them manually too:
 - **AMP caches** (`*.cdn.ampproject.org`) mostly return a ~300-byte
   `<title>Redirecting</title>` meta-refresh stub pointing back at the
   original (blocked) URL. Treating that as success creates a fetch loop.
-- **ctext.org poisons scrapers on purpose**. When it identifies a bot it returns HTTP 200 with an anti-scraping notice that explicitly states scraped data "will intermittently intentionally return corrupted data." A 200 body from ctext is never citable as classical-text evidence — consult a dictionary/reference work instead, and mark the etymology 未核验 if it cannot be confirmed.
 - **Rate-limit bodies**: archive.today 429 pages are multi-KB HTML. Check for
   the target's actual content (title words, expected strings), not just size.
 

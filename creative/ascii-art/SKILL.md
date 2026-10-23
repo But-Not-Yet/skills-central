@@ -79,7 +79,7 @@ curl -s "https://asciified.thelicato.io/api/v2/fonts"
 
 - 在 text 参数中把空格 URL 编码为 `+`
 - 响应就是纯文本 ASCII art——没有 JSON 包裹，可直接展示
-- 字体名区分大小写。用 fonts 端点获取确切名称
+- 字体名区分大小写；用 fonts 端点获取确切名称
 - 任何带 curl 的终端都能用——无需 Python 或 pip
 
 ## 工具 3：Cowsay（消息艺术）
@@ -189,7 +189,7 @@ toilet -F list                          # List available filters
 
 `crop`、`gay`（彩虹）、`metal`、`flip`、`flop`、`180`、`left`、`right`、`border`
 
-**注意**：toilet 通过 ANSI 转义码输出颜色——在终端中有效。但并非所有场景都能渲染（例如纯文本文件、部分聊天平台）。
+**注意**：toilet 通过 ANSI 转义码输出颜色——在终端中有效，但并非所有场景都能渲染（例如纯文本文件、部分聊天平台）。
 
 ## 工具 6：图片转 ASCII Art
 

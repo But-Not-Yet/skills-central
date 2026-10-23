@@ -1,6 +1,6 @@
 ---
 name: popular-web-designs
-description: "生成模仿知名网站的 HTML/CSS 时使用。只要要做像 Stripe、Linear、Vercel 等真实产品那种风格的页面、落地页或仪表盘，就主动加载。即使用户只说「做个网页」。收录 54 套真实 design system。"
+description: "生成模仿知名网站的 HTML/CSS 时使用。只要要做像 Stripe、Linear、Vercel 等真实产品那种风格的页面、落地页或仪表盘，就主动加载，即使用户只说「做个网页」。收录 54 套真实 design system。"
 version: 1.0.0
 author: Hermes Agent + Teknium (design systems sourced from VoltAgent/awesome-design-md)
 license: MIT
@@ -20,11 +20,11 @@ triggers:
 
 # Popular Web Designs
 
-54 套真实世界的 design system，供生成 HTML/CSS 时直接使用。每套模板完整捕捉某个站点的视觉语言：调色板、字体层级、组件样式、间距系统、阴影、响应式行为。以及带精确 CSS 取值的实用 agent prompt。
+54 套真实世界的 design system，供生成 HTML/CSS 时直接使用。每套模板完整捕捉某个站点的视觉语言：调色板、字体层级、组件样式、间距系统、阴影、响应式行为，以及带精确 CSS 取值的实用 agent prompt。
 
 ## 相关设计 skill
 
-- **`claude-design`** —— 用于设计*过程与品味*（界定 brief、产出变体、验证本地 HTML 制品、避免 AI 设计套路）。当用户想要一个精心设计、风格仿照某知名品牌的页面时，与本 skill 搭配：`claude-design` 驱动工作流。本 skill 提供视觉词汇。
+- **`claude-design`** —— 用于设计*过程与品味*（界定 brief、产出变体、验证本地 HTML 制品、避免 AI 设计套路）。当用户想要一个精心设计、风格仿照某知名品牌的页面时，与本 skill 搭配：`claude-design` 驱动工作流，本 skill 提供视觉词汇。
 - **`design-md`** —— 当交付物是正式的 DESIGN.md token 规格文件、而非渲染好的制品时使用。
 
 ## 使用方法
@@ -99,7 +99,7 @@ triggers:
 | IBM Plex Sans/Mono | IBM Plex Sans/Mono | Google Fonts 上有 |
 | Rubik (Sentry) | Rubik | Google Fonts 上有 |
 
-当模板的 CDN 字体与原字体一致（Inter、IBM Plex、Rubik、Geist）时，无替代损失。当使用替代字体（Circular 用 DM Sans、sohne-var 用 Source Sans 3）时，严格遵循模板的字重、字号与字距取值。它们承载的视觉识别比具体字体本身更多。
+当模板的 CDN 字体与原字体一致（Inter、IBM Plex、Rubik、Geist）时，无替代损失。当使用替代字体（Circular 用 DM Sans、sohne-var 用 Source Sans 3）时，严格遵循模板的字重、字号与字距取值——它们承载的视觉识别比具体字体本身更多。
 
 ## 设计目录
 

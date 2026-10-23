@@ -6,8 +6,8 @@
 
 | 事 | 位置 | 要点 |
 |---|---|---|
-| config → 引擎 | `agent/agent_init.py` `_select_context_engine` | `context.engine` 串 → `load_context_engine`。值为 `compressor` 短路返回 None（内置） |
-| 发现路径 | `plugins/context_engine/__init__.py` | 先 bundled `plugins/context_engine/<name>/`，后用户 `$HERMES_HOME/plugins/<name>/`。`_is_context_engine_dir` 只查 `__init__.py` 是否含 `register_context_engine`/`ContextEngine` 字样 |
+| config → 引擎 | `agent/agent_init.py` `_select_context_engine` | `context.engine` 串 → `load_context_engine`；值为 `compressor` 短路返回 None（内置） |
+| 发现路径 | `plugins/context_engine/__init__.py` | 先 bundled `plugins/context_engine/<name>/`，后用户 `$HERMES_HOME/plugins/<name>/`；`_is_context_engine_dir` 只查 `__init__.py` 是否含 `register_context_engine`/`ContextEngine` 字样 |
 | 装载用户引擎 | 同上 | 用户引擎走 `user_plugin_host().load_instance(..., capture="register_context_engine", base_ref="agent.context_engine:ContextEngine")` |
 | 注入绑定 | `agent/agent_init.py` | `getattr(engine,"bind_session_state")` 并调 `(session_db=, session_id=)` |
 | 模型/阈值 | `agent/agent_init.py` | 写 `engine.model_thresholds`、调 `engine.update_model(model=,context_length=,base_url=,api_key=,provider=,api_mode=)` |
@@ -17,15 +17,15 @@
 
 | 钩子 | 调用点 | 提交/返回契约 |
 |---|---|---|
-| `prune_tool_results_only` | `agent/turn_preflight.py` | 返回 `(msgs, n)`。**只在「`n` 非零 且 `msgs is not 原对象`」时换列表**。只换内存，不重建 conversation_history |
-| `select_context` | `agent/conversation_loop.py` | 先过 `_engine_overrides_hook`。返回 None 或非法值 → 原样放行（fail-open）。非空 dict 列表才替换 |
-| `should_compress_info` | 宿主多处。内置在 `agent/context_compressor.py` | 返回 `(bool, reason|None)`。有 reason 宿主会 warning 而非静默跳过 |
-| 压缩参数过滤 | `agent/conversation_compression.py` | `inspect.signature`。有 VAR_KEYWORD 放行全部，否则按参数名交集 |
+| `prune_tool_results_only` | `agent/turn_preflight.py` | 返回 `(msgs, n)`；**只在「`n` 非零 且 `msgs is not 原对象`」时换列表**。只换内存，不重建 conversation_history |
+| `select_context` | `agent/conversation_loop.py` | 先过 `_engine_overrides_hook`；返回 None 或非法值 → 原样放行（fail-open）；非空 dict 列表才替换 |
+| `should_compress_info` | 宿主多处；内置在 `agent/context_compressor.py` | 返回 `(bool, reason|None)`；有 reason 宿主会 warning 而非静默跳过 |
+| 压缩参数过滤 | `agent/conversation_compression.py` | `inspect.signature`；有 VAR_KEYWORD 放行全部，否则按参数名交集 |
 
 ## 思考字段两步过滤
 
-- `agent/context_engine.py` 的 `select_context` docstring：宿主在 **prompt cache-control 与每个请求 sanitizer 之前**跑它。替换列表会从改动点起重推导 cache 断点。
-- `agent/message_sanitization.py` `apply_reasoning_content_policy`：严格侧 `pop("reasoning_content")`。回显侧要求每条 assistant 带它（空串 400，用单空格补）。
+- `agent/context_engine.py` 的 `select_context` docstring：宿主在 **prompt cache-control 与每个请求 sanitizer 之前**跑它；替换列表会从改动点起重推导 cache 断点。
+- `agent/message_sanitization.py` `apply_reasoning_content_policy`：严格侧 `pop("reasoning_content")`；回显侧要求每条 assistant 带它（空串 400，用单空格补）。
 - Anthropic 原生用 `thinking`/`redacted_thinking` 块，规则不同：先前 assistant 的块必须原样回传、API 校验未改动。剥旧思考在原生路由会 400。
 
 ## 审查清单模板

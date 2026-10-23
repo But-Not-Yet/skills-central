@@ -1,6 +1,6 @@
 ---
 name: sketch
-description: "快速做可丢弃的 HTML 设计草案时使用。只要要一次给出 2-3 个 UI 变体做并排比较（「先看几个方向」「A 和 B 哪个好」），就主动加载。即使用户只说「草拟个界面」。不用于要交付的生产级组件或成品页（考虑 claude-design）。"
+description: "快速做可丢弃的 HTML 设计草案时使用。只要要一次给出 2-3 个 UI 变体做并排比较（「先看几个方向」「A 和 B 哪个好」），就主动加载，即使用户只说「草拟个界面」。不用于要交付的生产级组件或成品页（考虑 claude-design）。"
 version: 1.0.1
 author: Hermes Agent (adapted from gsd-build/get-shit-done)
 license: MIT
@@ -26,9 +26,9 @@ metadata:
 
 ## 若用户装了完整的 GSD 系统
 
-若 `gsd-sketch` 作为同级 skill 出现（通过 `npx get-shit-done-cc --hermes` 安装），你可以用 **`gsd-sketch`** 获得更完整的工作流。带 MANIFEST 的持久化 `.planning/sketches/`、frontier mode 分析、跨历次 sketch 的一致性审计，以及与 GSD 其余部分的集成。本 skill 是轻量独立版——一次性草拟，不带状态机制。
+若 `gsd-sketch` 作为同级 skill 出现（通过 `npx get-shit-done-cc --hermes` 安装），你可以用 **`gsd-sketch`** 获得更完整的工作流：带 MANIFEST 的持久化 `.planning/sketches/`、frontier mode 分析、跨历次 sketch 的一致性审计，以及与 GSD 其余部分的集成。本 skill 是轻量独立版——一次性草拟，不带状态机制。
 
-> **注意：** 上游 GSD 项目（[gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done)）在 GitHub 上已**归档 / 不再维护**。npm 包（`get-shit-done-cc`）仍可安装，但请把它当作一个已归档的社区项目。这个独立的 `sketch` skill 才是维护中的路径，无需额外依赖。
+> **注意：** 上游 GSD 项目（[gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done)）在 GitHub 上已**归档 / 不再维护**。npm 包（`get-shit-done-cc`）仍可安装，但请把它当作一个已归档的社区项目——这个独立的 `sketch` skill 才是维护中的路径，无需额外依赖。
 
 ## 核心方法
 
@@ -42,7 +42,7 @@ intake  →  variants  →  head-to-head  →  pick winner (or iterate)
 
 1. **感觉。** 「它该给人什么感觉？形容词、情绪、氛围。」——*「平静、编辑风、像 Linear」*比*「极简」*信息量大得多。
 2. **参考。** 「哪些应用、网站或产品捕捉到了你想象中的感觉？」——真实参考胜过抽象描述。
-3. **核心动作。** 「用户在这个界面上做的最重要的一件事是什么？」——所有变体都应很好地服务于此。否则它们只是装饰。
+3. **核心动作。** 「用户在这个界面上做的最重要的一件事是什么？」——所有变体都应很好地服务于此；否则它们只是装饰。
 
 每个回答后简短复述，再问下一个。若用户一开始就把三者都给了，直接跳到变体。
 
@@ -87,14 +87,14 @@ sketches/
 
 在浏览器中打开它。若看起来有问题，先修好再给用户看。
 
-**视觉验证变体——用 Hermes 的浏览器工具。** 不要只写 HTML 就指望它能渲染。加载每个变体并实际查看：
+**视觉验证变体——用 Hermes 的浏览器工具。** 不要只写 HTML 就指望它能渲染；加载每个变体并实际查看：
 
 ```
 browser_navigate(url="file:///absolute/path/to/sketches/001-calm-editorial/index.html")
 browser_vision(question="Does this layout look clean and readable? Any visible bugs (overlapping text, unstyled elements, broken images)?")
 ```
 
-`browser_vision` 返回对页面实际内容的 AI 描述，外加一张截图路径。能抓出纯源码检查漏掉的布局 bug（例如静默失败的字体导入、塌陷的 flex 容器）。修好后重新导航，直到每个变体看起来都对。
+`browser_vision` 返回对页面实际内容的 AI 描述，外加一张截图路径——能抓出纯源码检查漏掉的布局 bug（例如静默失败的字体导入、塌陷的 flex 容器）。修好后重新导航，直到每个变体看起来都对。
 
 **默认 CSS reset + 系统字体栈**，便于快速起步：
 
@@ -191,8 +191,8 @@ One sentence on the principle driving this variant.
 - **一致性缺口** —— 来自不同草案的两个胜出变体各自做了独立选择，却还没被组合到一起
 - **未草拟的界面** —— 被提及但从未探索
 - **状态覆盖** —— happy path 已草拟，但空 / 加载 / 错误 / 1000 项状态没有
-- **响应式缺口** —— 只在一个视口验证过。在移动端 / 超宽屏还成立吗？
-- **交互模式** —— 静态布局已有。转场、拖拽、滚动行为没有
+- **响应式缺口** —— 只在一个视口验证过；在移动端 / 超宽屏还成立吗？
+- **交互模式** —— 静态布局已有；转场、拖拽、滚动行为没有
 
 提出 2-4 个命名候选。让用户挑。
 
@@ -217,4 +217,4 @@ browser_vision(question="How does this look? Any obvious layout issues?")
 
 ## 出处
 
-改编自 GSD（Get Shit Done）项目的 `/gsd-sketch` 工作流——MIT © 2025 Lex Christopherson（[gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done)）。上游 GSD 仓库现已在 GitHub 上**归档 / 不再维护**。`get-shit-done-cc` npm 包仍可安装（`npx get-shit-done-cc --hermes --global`），并附带持久化 sketch 状态。主题 / 变体模式参考与一致性审计工作流，但请把它当作已归档的社区项目。
+改编自 GSD（Get Shit Done）项目的 `/gsd-sketch` 工作流——MIT © 2025 Lex Christopherson（[gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done)）。上游 GSD 仓库现已在 GitHub 上**归档 / 不再维护**；`get-shit-done-cc` npm 包仍可安装（`npx get-shit-done-cc --hermes --global`），并附带持久化 sketch 状态、主题 / 变体模式参考与一致性审计工作流，但请把它当作已归档的社区项目。

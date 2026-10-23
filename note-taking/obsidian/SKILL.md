@@ -21,7 +21,7 @@ metadata:
 
 惯例是用 `OBSIDIAN_VAULT_PATH` 环境变量记录库路径，例如放在 `${HERMES_HOME:-~/.hermes}/.env` 里。若未设置，退回 `~/Documents/Obsidian Vault`。
 
-文件工具**不展开 shell 变量**。不要把含 `$OBSIDIAN_VAULT_PATH` 的路径传给 `read_file`、`write_file`、`patch` 或 `search_files`。先把库路径解析出来，再传具体绝对路径。库路径可能含空格——这也是优先用文件工具而非 shell 命令的另一个理由。
+文件工具**不展开 shell 变量**。不要把含 `$OBSIDIAN_VAULT_PATH` 的路径传给 `read_file`、`write_file`、`patch` 或 `search_files`；先把库路径解析出来，再传具体绝对路径。库路径可能含空格——这也是优先用文件工具而非 shell 命令的另一个理由。
 
 若库路径未知，可以用 `terminal` 去解析 `OBSIDIAN_VAULT_PATH` 或检查回退路径是否存在。**路径一旦确定，就切回文件工具。**
 

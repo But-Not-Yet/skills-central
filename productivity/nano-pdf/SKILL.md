@@ -14,7 +14,7 @@ metadata:
 
 # nano-pdf
 
-用自然语言指令编辑 PDF：指向某一页，描述要改什么即可。结构性 PDF 工作（合并、拆分、表单、水印、创建）见 `pdf` skill。扫描件文字提取见 `ocr-and-documents`。
+用自然语言指令编辑 PDF：指向某一页，描述要改什么即可。结构性 PDF 工作（合并、拆分、表单、水印、创建）见 `pdf` skill；扫描件文字提取见 `ocr-and-documents`。
 
 ## 前置条件
 
@@ -50,4 +50,4 @@ nano-pdf edit contract.pdf 2 "Change the client name from 'Acme Corp' to 'Acme I
 - 页码是 0-based 还是 1-based 取决于版本——若改到了错误的页，用 ±1 重试
 - 编辑后务必核验输出 PDF（用 `read_file` 检查文件大小，或打开它）
 - 该工具底层用 LLM——需要 API key（用 `nano-pdf --help` 查配置）
-- 适合文字修改。复杂版式改动可能需要别的方案
+- 适合文字修改；复杂版式改动可能需要别的方案

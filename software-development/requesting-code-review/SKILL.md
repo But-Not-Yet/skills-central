@@ -118,7 +118,7 @@ which go && go vet ./... 2>&1 | tail -10
 
 ## Step 5 — Independent reviewer subagent（独立审查子代理）
 
-**仅限交互式会话。** 一次性运行（`hermes chat -q`、`--oneshot`、基准测试台）里没人接裁决。而且一个全新子代理要重新付出整个系统提示加一遍仓库重读的代价：跳过 Step 5 与 7。把 Step 4 清单自己套到 diff 上，跑测试，直接去 Step 8。
+**仅限交互式会话。** 一次性运行（`hermes chat -q`、`--oneshot`、基准测试台）里没人接裁决，而且一个全新子代理要重新付出整个系统提示加一遍仓库重读的代价：跳过 Step 5 与 7，把 Step 4 清单自己套到 diff 上，跑测试，直接去 Step 8。
 
 直接调 `delegate_task`——它在 execute_code 或脚本里**不可用**。
 

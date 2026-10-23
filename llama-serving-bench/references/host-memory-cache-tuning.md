@@ -2,60 +2,35 @@
 
 ## 何时使用
 
-推理服务（llama.cpp lazy/ncmoe、Strata 等锁页 MoE 引擎）出现长上下文请求 0 复用、parking/skip parking 日志刷屏、MemAvailable 踩线时。或需要把冷会话缓存编排进 swap、给服务设 cgroup 内存压力时。
+推理服务（llama.cpp lazy/ncmoe、Strata 等锁页 MoE 引擎）出现长上下文请求 0 复用、parking/skip parking 日志刷屏、MemAvailable 踩线时；或需要把冷会话缓存编排进 swap、给服务设 cgroup 内存压力时。
 
 适用于把 MoE 专家锁页驻留 RAM、会话/KV 缓存放 anon 内存的推理服务。三个动作：诊断缓存为何失效、用 cgroup 内存压力把冷缓存编排进 swap、验证没伤到热页。
 
 ## 缓存失效诊断（先量化，再下结论）
 
-1. 从引擎日志统计 prompt 行：`prompt N tokens = A reused + B read`，累计 reused/read 算总体命中率。**总体命中率高 ≠ 缓存健康**——失效常集中在长 prompt 区间：按 prompt 长度分桶看 reused=0 的分布。0 复用聚集在哪一档，失效点就在哪一档。
+1. 从引擎日志统计 prompt 行：`prompt N tokens = A reused + B read`，累计 reused/read 算总体命中率。**总体命中率高 ≠ 缓存健康**——失效常集中在长 prompt 区间：按 prompt 长度分桶看 reused=0 的分布，0 复用聚集在哪一档，失效点就在哪一档。
 2. 命中率断层与 parking 日志对齐：`skip parking (...)` 次数 vs 成功 parked 次数。skip 之后紧跟的 prompt 行就是全量重读（长上下文一次重读可达百秒级）。
 3. 闸门算术用活体 `/proc/meminfo` 验：准入条件是 `MemAvailable ≥ 快照字节 + min_free 保底`。快照字节按引擎日志的 `need ... MiB` 读，别用估算。差几百 MiB 的临界失败是常态——余量薄的机器会间歇性踩线。
-4. 根因模式（判定前先对照）：引擎常有两道闸串着——第一道按缓存自身预算逐出。第二道问宿主机真实空闲内存。**第二道判决是终审、不回头调第一道**，就是「缓存里明明有可腾的内存，快照仍被扔」的根因。上游修复思路是逐出-重试循环（逐一个 parked、查一次 /proc/meminfo、再判）。16 MiB 段级分配一释放立即回到内核可见，无需等待间隔。
+4. 根因模式（判定前先对照）：引擎常有两道闸串着——第一道按缓存自身预算逐出，第二道问宿主机真实空闲内存。**第二道判决是终审、不回头调第一道**，就是「缓存里明明有可腾的内存，快照仍被扔」的根因。上游修复思路是逐出-重试循环（逐一个 parked、查一次 /proc/meminfo、再判），16 MiB 段级分配一释放立即回到内核可见，无需等待间隔。
 
 ## cgroup 内存压力编排（把冷缓存放进 swap，不改代码）
 
 前提事实链，逐项核验后再动手：
 - 服务在 systemd 下跑（`/proc/<pid>/cgroup` 归到 system.slice/<unit>）→ `systemctl set-property <unit> MemoryHigh=...` **不重启即生效**。
-- 「锁页」的效力分两档，宣称前必须实测：`mlock()` 是机制禁止换出。**`cudaHostRegister` 类驱动注册不是硬锁**——注册区是普通可回收 anon。别拿 GUP 的通则套驱动实现（本机实测注册 arena 被换出数 GB）。核验方法：读 `/proc/<pid>/smaps` 该映射自己的 `Swap:` 行——非 0 即无硬锁。`VmLck` 只计 `mlock()`，驱动 pin 不计入，**VmLck=0 不代表没锁**——一切以 smaps Swap 行实测为准。
-- Linux 没有「单个堆分配指到 swap」的手段。等价手段是 cgroup 压力：kswapd 只能回收 anon，锁页区不在可回收池里，挤压方向被强制约束。
+- `cudaHostRegister`/`pin_user_pages` 锁页的专家区不可换出（GUP 长期引用期间内核禁止解除映射换页）——不是优先级低，是机制禁止。注意 `VmLck` 计数器只计 `mlock()` 系统调用，驱动 pin 不计入，**VmLck=0 不代表没锁**。
+- Linux 没有「单个堆分配指到 swap」的手段；等价手段是 cgroup 压力：kswapd 只能回收 anon，锁页区不在可回收池里，挤压方向被强制约束。
 
-**MemoryHigh 定标（关键算术，先核前提）**：可回收池 ≈ 进程全部 anon——驱动注册的专家 arena 是普通 anon（见上）。若它是不干活的死重，有效余量 = X − arena，远小于直觉。设 X 意味着必须挤 `RSS − X`。「挤出量 < 冷缓存体积」只是**必要条件**：刚 fault 回的页落在 inactive 表头、accessed 位未积累。压力够时下一轮扫描即被换出（refault 循环）。充分条件还要求峰值瞬态（快照写入、KV 全速增长期）也在余量内。**单点失败不外推全参数空间**——每个候选档位单独过峰值瞬态。拿一档的失败宣称「任何压缩手法都撞墙」是无核数的全称断言。
+**MemoryHigh 定标（关键算术）**：可回收池 ≈ 进程 RSS − 锁页体积（用 smaps 逐映射实测，别用 RSS 减报告值猜）。设 X 意味着 kswapd 必须挤 `RSS − X`。X 必须满足：挤出的量 < 冷缓存体积——差额会吃进活动会话的 KV，那才是真热页（每秒被摸几千次），被换出即 decode thrash。热页保护只是尽力而为：accessed 位只有近因一个比特，压力足够时会穿透 active list；anon 页没有文件页的 workingset/refault 保护，高压下更早被牺牲。宁可设松一档，靠验证读数收紧。
 
-**为什么值得做**：冷缓存进 swap 后 MemAvailable 抬升 → 闸门通过、快照不丢。下次恢复 = 顺序读快照（秒级），对比全量重读长上下文（百秒级）约几十倍。与上游补丁互补：swap 保住快照，补丁兜 swap 也不够时的最坏情况。
+**为什么值得做**：冷缓存进 swap 后 MemAvailable 抬升 → 闸门通过、快照不丢；下次恢复 = 顺序读快照（秒级），对比全量重读长上下文（百秒级）约几十倍。与上游补丁互补：swap 保住快照，补丁兜 swap 也不够时的最坏情况。
 
 **陷阱**：
 - `MemoryMax` 别设——低于 RSS 的硬顶会触发 OOM kill 生产服务。只用 MemoryHigh（软压，挤不动就忍着）。
-- 快照保存本身分配新页，高压下新写的快照页可能立即被换出——这正是「缓存住 swap」的目标态。不是故障。
-
-## 实测边界与 thrash 诊断（本路线被证伪过的形态）
-
-本路线在「RAM 大头被驱动注册 arena 占住 + 双长会话负载」的形态上被证伪：紧档直接 refault 风暴。松档常态可过、快照写入峰值复发。根因不是档位没调好——arena 是可回收 anon 死重，有效余量装不下峰值工作区，数学无解。**出现这种形态时改走应用层溢出**（已实施并演进，教训在案）：把冷条目序列化落盘而非丢弃。失败一律 fail-open 回退丢弃、绝不卡死请求。第一代「RAM 预算 + 溢出层」的结构教训：**写盘预检若 = 停车闸门条件再加任何余量。则闸门拒绝的瞬间写盘必拒**（预检恒比闸门严），兜底在其唯一有意义的场景（低内存）结构性失效。写盘预检只准查写入本身的真余量。该设计最终被「盘上权威单层」取代（快照只住盘、RAM 零常驻、无准入闸），诊断面见下节。
-
-**thrash 指纹判别（一次命令包）**：
-- `vmstat 1 3`：si 大、so=0 = 纯 fault-in（一次性恢复，等搬完即可）。**si+so 同向大流量 = churn 循环**（刚 fault 回的页再被换出），立即撤压（MemoryHigh=infinity），多留一分钟都是 GB 级无效 IO。
-- `/proc/pressure/memory` full 值高 + cgroup `memory.stat` 里 `pgscan_direct` ≫ `pgscan_kswapd`：真凶是分配路径的直接回收（进程 D 状态），不是 kswapd（kswapd0 CPU 反而低）。
-- `workingset_refault_anon` 用**窗口化差分**读速率，累计值冒充速率是虚高证据。
-- 归因到映射：`/proc/<pid>/smaps` 逐映射读 `Swap:` 行，先看大块 anon 区间换出了多少。
-
-**系统地板账**：`MemAvailable` ≠ RAM 总量 − 引擎用量。buff/cache、其他进程、内核保留都要扣——「余量 0.5G」这类结论必须在 `free -m` 实读上算。不能在引擎自身的用量解剖表上算。
+- 快照保存本身分配新页，高压下新写的快照页可能立即被换出——这正是「缓存住 swap」的目标态，不是故障。
 
 ## 验证四连（设完必跑，缺一不可）
 
-1. **前提探针先做**：设限后立即读专家 arena 映射的 `Swap:` 行——非 0 = 驱动注册未构成内核硬锁，本路线前提已破。撤销 MemoryHigh 并改走应用层溢出。确为 0 才继续三连。
+1. smaps 逐映射核验：换出页必须落在缓存段的地址区间，**专家锁页区 VmSwap 必须为 0**——有异常立即 `systemctl set-property <unit> MemoryHigh=infinity` 撤销。
 2. 复跑长上下文会话，确认 parking 闸门日志从 skip 变通过、重读消失。
 3. decode tok/s 对照基线，回退即活动 KV 被误伤，放宽一档重来。
 4. 结论落盘运维账本，参数变更记录在案（值、理由、验证读数）。
-
-## 盘上权威会话缓存诊断（disk-authoritative 时代）
-
-单层化后（快照只住盘、RAM 零常驻、park-on-displacement——被顶替才落盘、回归才读盘、活跃期零缓存 IO）。日志面与失效模式都变了。
-
-- **日志面**：`parked N tokens to disk in X ms`（只在切换事件）、`restored from file (N tokens, X ms)` + 紧随的 `restored M tokens (checkpoint)`（M≈N 为健康。M 崩到单个检查点粒度 = 恢复失败回退）。`skip parking` 应结构性绝迹——再出现就是新回归，先查是不是新代码引入的兜底路径。
-- **结构不可能性的算术证明**：怀疑某兜底路径「从不生效」时先从日志行做算术。若写盘预检条件 = 闸门条件再加余量，则「闸门拒」的任何瞬间写盘必拒，无需读码即可定罪。再用代码行号补证据。
-- **生命周期泄漏签名**：manifest 记录字节与盘上 `du` 实占分叉（如记录 10GB / 盘 31GB）= 文件只在启动清理。成功路径不回收（restore 弹记录、supersede 替代都删文件才算闭合）。用泄漏速率对 `df` 余量算「见底时钟」，修复卡带时钟排优先级。
-- **rewind 盲区**：prompt 比缓存快照短（用户回退/编辑消息）时，带「严格前缀」守卫（`n >= prompt.size() → 失败`）的复核函数必炸。若再把复核 miss 当损坏处理，会删掉完好档。prefix-cache 类机制的验收必须含 rewind 轴：min(prompt, 快照) 前缀逐 token 比较 + 恢复态截断到 prompt 边界 + miss 不删档（文件无辜）。
-- **park 劣化线索**：park 耗时随时间翻倍（如 1.2s→3.4s）先查目录膨胀与盘压力（`du`/`df` 趋势），再查代码。文件只增不删的泄漏会让 IO 面一起退化。时序规格线实测参考：恢复 ≤1.5s/3GB、park ≤1.2s/3GB（盘写 3.6-5GB/s、读 4GB/s 的机器）。
-- **盘满 = 缓存被饿，不是被清**：三签名同出现——park 行 `WARNING: the park write failed (session file: not enough disk space (... MiB free)); the outgoing conversation is dropped`。entries 计数不增Req、段层 `parked 0 segment(s) (0 already on disk, N failed)`——判 `df` 缓档的持着那档，引擎不破。fail-open 逐请求扔活对话，段层冻结到成功写那代，后续长 prompt 全重读从旧档根。修复 = 清余量（删死会话的 parked 档、段层有目录预算但文件层常缺——动手前核源码）或挂档到余量分区。改引擎码不。
-- **复用停落在网格点的三分**：reused 恒恰落在 16K 网格（32768/49152 = 检查点/段边界）= prompt 前缀在该网格点开下分叉。段 key 回放不了之下点。判三态再下结论：reused≈0（头分叉/重启）、网格截（深分叉）、full reuse（健康）。分叉定位：客户端把轮请求快照 collector 落盘（每轮 history_len + 历史 sha256），history_len 大降两轮 = 中间会话压缩重写。message 列表 pair-wise 比对找 first differing index，char offset = 前序消息总_len + 内偏移。
-- **deprecated 告不等于回归**：盘权威化后 `--conversation-cache-mib/--conversation-cache-slots` 告 deprecated——mib 只还顶暂 K/V、slots 被忽略。WARN 是正常态，不记新回归。核「配置生效」用 boot cmdline 的 dir/seg-budget 参数，不用 RAM 参数数。

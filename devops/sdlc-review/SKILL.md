@@ -165,8 +165,6 @@ Do not edit the implementation while acting as reviewer. Request changes and let
 - **Skipping prior rounds:** Re-review must confirm both the requested corrections and preservation of previously passing behavior.
 - **Using blockers for ordinary rework:** Correctable defects belong in `kanban_request_changes`; reserve `kanban_block` for genuine external blockers or human decisions.
 - **Completing without evidence:** Every approval summary must name the checks or artifacts actually inspected.
-- **Library complete ≠ guard effective:** When a handoff says "new module + CLI + N tests green", inspect the call sites. A lock/checker that is not called by the dispatcher, card creation, or worker flow is a library, not a guard. Approve the card's stated scope if it only promised the module, but do not report the original risk as fixed; record the missing integration as a follow-up. Read `known_limits`/comments for "not wired" claims and map them to the acceptance criteria.
-- **判决的回应（执行者侧）**：收到带指针的指控时逐条回原文件 grep，再三分类判决——字段实存（带指针反驳）/ 措辞过宽（认措辞、驳实质）/ 真缺（认账补指针）；不整批认、不整批驳。指控本身的证据链也要复核：指控可能引错行号、或只 grep 了中间文件而没追到最终产物（2026-10-09 实例：检察官指控「0.3757 无指针」只 grep 了判决书，训练 JSON 里该字段实存——三条击落带指针、两条认账的混合判决才是合格回应）。证据指针必须与断言同域：一行“文件存在”不能证明“提取器产生了某个数字”；同一指针服务两条不同断言就是证据链断裂，标待核。
 
 ## Verification
 

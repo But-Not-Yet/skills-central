@@ -1,6 +1,6 @@
 ---
 name: maps
-description: "查地理编码、POI、路线、距离与时区时使用（OpenStreetMap/OSRM）。只要涉及地点坐标、附近搜索、导航、行程时间或时区，就主动加载。即使用户只是发来一个位置坐标或问「附近有什么」。"
+description: "查地理编码、POI、路线、距离与时区时使用（OpenStreetMap/OSRM）。只要涉及地点坐标、附近搜索、导航、行程时间或时区，就主动加载，即使用户只是发来一个位置坐标或问「附近有什么」。"
 version: 1.2.0
 author: Mibayy
 license: MIT
@@ -85,7 +85,7 @@ swimming_pool, post_office, convenience_store, bakery, bookshop, laundry,
 car_wash, car_rental, bicycle_rental, taxi, veterinary, zoo, playground,
 stadium, nightclub.
 
-每条结果包含：`name`、`address`、`lat`/`lon`、`distance_m`、`maps_url`（可点击的 Google Maps 链接）、`directions_url`（从搜索点出发的 Google Maps 路线）。以及可得的推广标签——`cuisine`、`hours`（opening_hours）、`phone`、`website`。
+每条结果包含：`name`、`address`、`lat`/`lon`、`distance_m`、`maps_url`（可点击的 Google Maps 链接）、`directions_url`（从搜索点出发的 Google Maps 路线），以及可得的推广标签——`cuisine`、`hours`（opening_hours）、`phone`、`website`。
 
 ### distance — 行程距离与时间
 
@@ -141,7 +141,7 @@ python3 $MAPS bbox 40.75 -74.00 40.77 -73.98 restaurant --limit 20
 python3 $MAPS nearby 36.17 -115.14 cafe --radius 1500
 ```
 
-把结果以编号列表呈现，含名称、距离与 `maps_url` 字段，让用户在聊天里得到可点击打开的链接。对于「现在开门吗」的问题，查 `hours` 字段。若缺失或不清，用 `web_search` 核实，因为 OSM 的营业时间由社区维护，未必总是最新的。
+把结果以编号列表呈现，含名称、距离与 `maps_url` 字段，让用户在聊天里得到可点击打开的链接。对于「现在开门吗」的问题，查 `hours` 字段；若缺失或不清，用 `web_search` 核实，因为 OSM 的营业时间由社区维护，未必总是最新的。
 
 ## 工作流示例
 
@@ -165,7 +165,7 @@ python3 $MAPS nearby 36.17 -115.14 cafe --radius 1500
 - Nominatim 服务条款：最多 1 req/s（脚本自动处理）
 - `nearby` 需要 lat/lon 或 `--near "<address>"`——二者取其一
 - OSRM 的路由覆盖以欧洲和北美最好
-- Overpass API 在高峰时段可能较慢。脚本会自动
+- Overpass API 在高峰时段可能较慢；脚本会自动
   在镜像之间回退（overpass-api.de → overpass.kumi.systems）
 - `distance` 与 `directions` 用 `--to` 标志指定目的地（非位置参数）
 - 若仅有邮编在全球范围内结果含糊，请加上国家/州

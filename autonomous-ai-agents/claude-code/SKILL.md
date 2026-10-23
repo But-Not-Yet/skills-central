@@ -275,7 +275,7 @@ terminal(command="claude -p 'task' --fallback-model haiku --max-turns 5", timeou
 |------|--------|
 | `--model <alias>` | 模型选择：`sonnet`、`opus`、`haiku`，或类似 `claude-sonnet-4-6` 的完整名 |
 | `--effort <level>` | 推理深度：`low`、`medium`、`high`、`xhigh`、`max` |
-| `--max-turns <n>` | 限制 agentic 循环次数（仅 print mode。防止失控） |
+| `--max-turns <n>` | 限制 agentic 循环次数（仅 print mode；防止失控） |
 | `--max-budget-usd <n>` | 以美元为上限限制 API 花费（仅 print mode） |
 | `--fallback-model <model>` | 默认模型过载时自动回退（仅 print mode） |
 | `--betas <betas...>` | 在 API 请求中携带的 Beta headers（仅 API key 用户） |
@@ -374,7 +374,7 @@ mcp__<server>__{tool}   # Specific MCP tool
 | Command | 用途 |
 |---------|---------|
 | `/help` | 显示所有命令（含自定义与 MCP 命令） |
-| `/compact [focus]` | 压缩上下文以省 token。CLAUDE.md 在压缩后保留。例如 `/compact focus on auth logic` |
+| `/compact [focus]` | 压缩上下文以省 token；CLAUDE.md 在压缩后保留。例如 `/compact focus on auth logic` |
 | `/clear` | 清空对话历史以全新开始 |
 | `/context` | 以彩色网格可视化上下文用量并给出优化提示 |
 | `/cost` | 查看 token 用量，含按模型与缓存命中细分 |
@@ -407,7 +407,7 @@ mcp__<server>__{tool}   # Specific MCP tool
 | `/mcp` | 管理 MCP server 的交互式 UI |
 | `/add-dir` | 添加额外工作目录（对 monorepo 有用） |
 | `/usage` | 显示套餐限额与限流状态 |
-| `/voice` | 启用按键说话语音模式（20 种语言。按住 Space 录音，松开发送） |
+| `/voice` | 启用按键说话语音模式（20 种语言；按住 Space 录音，松开发送） |
 | `/release-notes` | 版本发行说明的交互式选择器 |
 
 ### 自定义斜杠命令
@@ -500,7 +500,7 @@ terminal(command="claude -p 'Review this PR thoroughly' --from-pr 42 --max-turns
 ```
 terminal(command="claude -w feature-x --tmux", workdir="/path/to/repo")
 ```
-在 `.claude/worktrees/feature-x` 创建隔离 git worktree，并为其创建 tmux 会话。可用时使用 iTerm2 原生分屏。加 `--tmux=classic` 使用传统 tmux。
+在 `.claude/worktrees/feature-x` 创建隔离 git worktree，并为其创建 tmux 会话。可用时使用 iTerm2 原生分屏；加 `--tmux=classic` 使用传统 tmux。
 
 ## 并行 Claude 实例
 
@@ -675,7 +675,7 @@ terminal(command="claude --bare -p 'Query database' --mcp-config mcp-servers.jso
 
 ### MCP 限制与调优
 - **工具描述：** 每个 server 的工具描述与 server 指令上限 2KB
-- **结果大小：** 默认有上限。用 `maxResultSizeChars` 注解可为大输出放宽到最多 **500K** 字符
+- **结果大小：** 默认有上限；用 `maxResultSizeChars` 注解可为大输出放宽到最多 **500K** 字符
 - **输出 token：** `export MAX_MCP_OUTPUT_TOKENS=50000` —— 限制 MCP server 输出以防上下文被淹没
 - **传输方式：** `stdio`（本地进程）、`http`（远程）、`sse`（server-sent events）
 
@@ -707,7 +707,7 @@ terminal(command="tmux capture-pane -t dev -p -S -10")
 | `ANTHROPIC_API_KEY` | 用于认证的 API key（OAuth 的替代） |
 | `CLAUDE_CODE_EFFORT_LEVEL` | 默认 effort：`low`、`medium`、`high`、`max` 或 `auto` |
 | `MAX_THINKING_TOKENS` | 限制思考 token（设为 `0` 完全禁用思考） |
-| `MAX_MCP_OUTPUT_TOKENS` | 限制 MCP server 输出（默认值不定。例如设为 `50000`） |
+| `MAX_MCP_OUTPUT_TOKENS` | 限制 MCP server 输出（默认值不定；例如设为 `50000`） |
 | `CLAUDE_CODE_NO_FLICKER=1` | 启用 alt-screen 渲染以消除终端闪烁 |
 | `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | 出于安全从子进程中剥离凭证 |
 
@@ -722,13 +722,13 @@ terminal(command="tmux capture-pane -t dev -p -S -10")
 7. 只需分析已知内容时，**用管道输入**而非让 Claude 读文件。
 8. 简单任务**用 `--model haiku`**（更便宜），复杂多步工作用 `--model opus`。
 9. print mode 中**用 `--fallback-model haiku`** 优雅处理模型过载。
-10. **为不同任务开新会话** —— 会话持续 5 小时。全新上下文更高效。
+10. **为不同任务开新会话** —— 会话持续 5 小时；全新上下文更高效。
 11. CI 中**用 `--no-session-persistence`** 避免磁盘上累积保存的会话。
 
 ## 陷阱与坑
 
 1. **交互模式必须用 tmux** —— Claude Code 是完整 TUI 应用。在 Hermes terminal 中单用 `pty=true` 也能work，但 tmux 提供用于监控的 `capture-pane` 和用于输入的 `send-keys`，这对编排至关重要。
-2. **`--dangerously-skip-permissions` 警告对话框默认为「No, exit」** —— 该默认是安全答案。只有当你刻意在隔离环境中 opt-in bypass 时才发送 Down 再 Enter。Print mode（`-p`）完全跳过该对话框。
+2. **`--dangerously-skip-permissions` 警告对话框默认为「No, exit」** —— 该默认是安全答案；只有当你刻意在隔离环境中 opt-in bypass 时才发送 Down 再 Enter。Print mode（`-p`）完全跳过该对话框。
 3. **`--max-budget-usd` 最低约 $0.05** —— 仅系统提示缓存创建就花这么多。设得更低会立即报错。
 4. **`--max-turns` 仅限 print mode** —— 交互式会话中会被忽略。
 5. **Claude 可能用 `python` 而非 `python`** —— 在没有 `python` symlink 的系统上，Claude 的 bash 命令首次会失败，但会自我纠正。
@@ -750,5 +750,5 @@ terminal(command="tmux capture-pane -t dev -p -S -10")
 6. **留意 `❯` 提示符** —— 表示 Claude 在等待输入（已完成或在提问）
 7. **清理 tmux 会话** —— 完成后杀掉以免资源泄漏
 8. **向用户报告结果** —— 完成后总结 Claude 做了什么、改了什么
-9. **不要杀掉慢会话** —— Claude 可能在做多步工作。改为检查进度
+9. **不要杀掉慢会话** —— Claude 可能在做多步工作；改为检查进度
 10. **用 `--allowedTools`** —— 把能力限制到任务真正所需

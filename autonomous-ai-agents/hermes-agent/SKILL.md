@@ -211,4 +211,3 @@ terminal(command="tmux new-session -d -s resumed 'hermes --resume 20260225_14305
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
 - **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
 - **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway.
-- **execute_code's interpreter is Hermes's bundled tool Python (`~/.hermes/tools/python-*`), not the system Python** — packages imported there (torch build flavor, CUDA vs ROCm, installed libs) describe only the tool environment. Before asserting machine capability, query the system interpreter (`/usr/bin/python3 -c "import torch; print(torch.version.hip)"`) or the package manager (`dpkg -l`); reporting hardware/library state from tool-environment imports misinforms the user.

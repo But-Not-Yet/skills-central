@@ -13,7 +13,7 @@ metadata:
 
 # Spike（抛弃式验证实验）
 
-用户想在真正开工前**把一个想法摸清楚**时用本技能——验证可行性、比较方案。或暴露那些再多调研也回答不了的未知。Spike 生来就是一次性的。一旦把它的债还清，就把它扔掉。
+用户想在真正开工前**把一个想法摸清楚**时用本技能——验证可行性、比较方案，或暴露那些再多调研也回答不了的未知。Spike 生来就是一次性的。一旦把它的债还清，就把它扔掉。
 
 用户说这类话时加载它："let me try this"、"I want to see if X works"、"spike this out"、"before I commit to Y"、"quick prototype of Z"、"is this even possible?" 或 "compare A vs B"。
 
@@ -25,7 +25,7 @@ metadata:
 
 ## If the user has the full GSD system installed（用户装了完整 GSD 系统时）
 
-若 `gsd-spike` 作为兄弟技能出现（经 `npx get-shit-done-cc --hermes` 安装），当用户想要完整 GSD 工作流时，优先用 **`gsd-spike`**。持久的 `.planning/spikes/` 状态、跨会话的 MANIFEST 追踪、Given/When/Then 裁决格式，以及与 GSD 其余部分集成的提交模式。本技能是给没有（或不想用）完整系统的用户的轻量独立版。
+若 `gsd-spike` 作为兄弟技能出现（经 `npx get-shit-done-cc --hermes` 安装），当用户想要完整 GSD 工作流时，优先用 **`gsd-spike`**：持久的 `.planning/spikes/` 状态、跨会话的 MANIFEST 追踪、Given/When/Then 裁决格式，以及与 GSD 其余部分集成的提交模式。本技能是给没有（或不想用）完整系统的用户的轻量独立版。
 
 ## Core method（核心方法）
 
@@ -131,7 +131,7 @@ delegate_task(tasks=[
 ])
 ```
 
-每个子代理返回自己的裁决。你来写正面对比。
+每个子代理返回自己的裁决；你来写正面对比。
 
 ### 5. Verdict（裁决）
 
@@ -179,7 +179,7 @@ delegate_task(tasks=[
 若已有若干 spike，用户问 "what should I spike next?"，就遍历已有目录找：
 
 - **集成风险** —— 两个已验证的 spike 触及同一资源，却是各自独立测的
-- **数据交接** —— spike A 的输出曾被认为与 spike B 的输入兼容。从未被证明
+- **数据交接** —— spike A 的输出曾被认为与 spike B 的输入兼容；从未被证明
 - **愿景缺口** —— 被假定但未验证的能力
 - **替代方法** —— 对 PARTIAL 或 INVALIDATED 的 spike 换角度
 
@@ -194,4 +194,4 @@ delegate_task(tasks=[
 
 ## Attribution（出处）
 
-改编自 GSD（Get Shit Done）项目的 `/gsd-spike` 工作流 —— MIT © 2025 Lex Christopherson（[gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done)）。完整的 GSD 系统提供持久化的 spike 状态、MANIFEST 追踪，以及与更广大的规格驱动开发流水线的集成。用 `npx get-shit-done-cc --hermes --global` 安装。
+改编自 GSD（Get Shit Done）项目的 `/gsd-spike` 工作流 —— MIT © 2025 Lex Christopherson（[gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done)）。完整的 GSD 系统提供持久化的 spike 状态、MANIFEST 追踪，以及与更广大的规格驱动开发流水线的集成；用 `npx get-shit-done-cc --hermes --global` 安装。

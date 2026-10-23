@@ -85,7 +85,7 @@ metadata:
 | Experiments | 是 | "突出了结果 1、2、3 — 需要就重排" |
 | Related Work | 是 | "引用了论文 X、Y、Z — 补上我遗漏的" |
 
-**仅在以下情况停下来要输入**：目标 venue 不明、有多种互相矛盾的说法、结果似不完整。用户明确要求先审。
+**仅在以下情况停下来要输入**：目标 venue 不明、有多种互相矛盾的说法、结果似不完整、用户明确要求先审。
 
 ---
 
@@ -442,8 +442,8 @@ make_charts.py                 # Visualization
 | **标注员类型** | 专家、众包工人、终端用户 | 与论断所需相匹配 |
 | **量表** | Likert（1-5）、成对比较、排序 | 对 LLM 输出，成对比较比 Likert 更可靠 |
 | **样本量** | 每位标注员及总条目数 | 做功效分析，或至少 100 条目、3+ 标注员 |
-| **一致性指标** | Cohen's kappa、Krippendorff's alpha、ICC | >2 位标注员用 Krippendorff's alpha。也要报原始一致性 |
-| **平台** | Prolific、MTurk、内部团队 | 质量用 Prolific。规模用 MTurk。领域专长用内部 |
+| **一致性指标** | Cohen's kappa、Krippendorff's alpha、ICC | >2 位标注员用 Krippendorff's alpha；也要报原始一致性 |
+| **平台** | Prolific、MTurk、内部团队 | 质量用 Prolific；规模用 MTurk；领域专长用内部 |
 
 **标注指南清单：**
 ```
@@ -661,7 +661,7 @@ Baseline & 85.2 & 45ms \\
 
 ### 第 4.6 步：写实验日志（通往写作的桥）
 
-进入论文写作前，先创建一份把结果与文字桥接起来的结构化实验日志。这是实验与写作之间最重要的一条结缔组织 — 没有它。写作 agent 就得从原始结果文件里重新推导故事。
+进入论文写作前，先创建一份把结果与文字桥接起来的结构化实验日志。这是实验与写作之间最重要的一条结缔组织 — 没有它，写作 agent 就得从原始结果文件里重新推导故事。
 
 **创建 `experiment_log.md`**，结构如下：
 
@@ -767,7 +767,7 @@ Frontier (S4.6)   │ Excellent  │ Good      │ Small  │ Only with constrai
 |---------|-----------|-----|
 | 不收敛（A 从不胜出） | 20+ 轮里 A 胜率 <15% | 给任务加范围约束 |
 | 综合漂移 | 字数无界增长 | 约束结构与交付物 |
-| 退化到不如单轮 | 基线得分高于迭代输出 | 切回单轮。模型可能太弱 |
+| 退化到不如单轮 | 基线得分高于迭代输出 | 切回单轮；模型可能太弱 |
 | 过拟合（代码） | 公开测试通过率高、私有测试低 | 用结构化分析，而非只看测试反馈 |
 | 评委坏掉 | 解析失败使评委数降到 3 以下 | 先修解析器再继续 |
 
@@ -810,7 +810,7 @@ Frontier (S4.6)   │ Excellent  │ Good      │ Small  │ Only with constrai
 
 **最关键的一条洞见**：论文不是实验的集合 — 它是由证据支撑、有一个明确贡献的故事。
 
-每篇成功的 ML 论文都围绕 Neel Nanda 所说的「叙事」：一个简短、严谨、基于证据的技术故事。带一个读者在意的 takeaway。
+每篇成功的 ML 论文都围绕 Neel Nanda 所说的「叙事」：一个简短、严谨、基于证据的技术故事，带一个读者在意的 takeaway。
 
 **三大支柱（到引言结束必须清清楚楚）：**
 
@@ -968,7 +968,7 @@ LaTeX Quality Checklist (verify after every edit):
 - 概念大纲或伪代码
 - 列出所有超参
 - 足以复现的架构细节
-- 呈现最终设计决策。消融放到实验部分
+- 呈现最终设计决策；消融放到实验部分
 
 ### 第 5.5 步：实验与结果
 
@@ -1538,7 +1538,7 @@ with plt.style.context(['science', 'no-latex']):
 
 ### 第 6.1 步：模拟评审（集成模式）
 
-从多个视角生成评审。来自自动化研究流水线（尤其是 SakanaAI 的 AI-Scientist）的关键洞见：**带 meta-reviewer 的集成评审。产出的反馈远比单轮评审校准得好。**
+从多个视角生成评审。来自自动化研究流水线（尤其是 SakanaAI 的 AI-Scientist）的关键洞见：**带 meta-reviewer 的集成评审，产出的反馈远比单轮评审校准得好。**
 
 **第 1 步：生成 N 份独立评审**（N=3-5）
 
@@ -1618,7 +1618,7 @@ Check for:
 For each issue, specify the page number and exact location.
 ```
 
-这能抓住文本评审抓不到的问题：坐标轴标签读不清的图、离首次引用有 3 页之遥的图。图 2 与图 5 调色板不一致，或明显宽于一栏的表。
+这能抓住文本评审抓不到的问题：坐标轴标签读不清的图、离首次引用有 3 页之遥的图、图 2 与图 5 调色板不一致，或明显宽于一栏的表。
 
 ### 第 6.1c 步：论断核验轮
 
@@ -1725,7 +1725,7 @@ Anonymization Checklist:
 - [ ] Supplementary materials don't contain identifying information
 ```
 
-**常见错误**：补充代码里可见的 git 提交信息、机构工具的带水印图、上一版草稿留下的致谢。匿名期前就挂上的 arXiv 预印本。
+**常见错误**：补充代码里可见的 git 提交信息、机构工具的带水印图、上一版草稿留下的致谢、匿名期前就挂上的 arXiv 预印本。
 
 ### 第 7.3 步：格式化核验
 
@@ -1815,7 +1815,7 @@ ls -la main.pdf
 
 | Venue | 特殊要求 |
 |-------|---------------------|
-| **NeurIPS** | 附录中的论文清单。录用后写通俗摘要 |
+| **NeurIPS** | 附录中的论文清单；录用后写通俗摘要 |
 | **ICML** | Broader Impact Statement（结论之后，不计页数） |
 | **ICLR** | 强制 LLM 披露、互评协议 |
 | **ACL** | 强制 Limitations 小节、Responsible NLP 清单 |
@@ -2148,7 +2148,7 @@ ACL 系 venue 有不同的投稿类型：
 | **`memory`** | 跨会话持久化关键决策：贡献表述、venue 选择、审稿反馈。 |
 | **`cronjob`** | 安排实验监控、倒计时、自动化 arXiv 检查。 |
 | **`clarify`** | 卡住时（venue 选择、贡献表述）向用户提有针对性的问题。 |
-| **cron `deliver:`** | 实验完成或草稿就绪时通知用户（即便用户不在聊天里）— 把检查排成带消息 `deliver:` 目标的 cron job（agent 已无 `send_message` 工具。外发由 cron/`hermes send` 处理）。 |
+| **cron `deliver:`** | 实验完成或草稿就绪时通知用户（即便用户不在聊天里）— 把检查排成带消息 `deliver:` 目标的 cron job（agent 已无 `send_message` 工具；外发由 cron/`hermes send` 处理）。 |
 
 ### 工具使用模式
 

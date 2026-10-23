@@ -63,7 +63,7 @@ metadata:
 | `interact` | 在当前作用域落入完整 Python REPL（Ctrl+D 退出） |
 | `q` | 退出 |
 
-`interact` 命令最强——你可以 import 任何东西、检视复杂对象，甚至调用会改状态的方法。局部变量默认只读。在 `(Pdb)` 提示符里用 `!x = 42` 去改。
+`interact` 命令最强——你可以 import 任何东西、检视复杂对象，甚至调用会改状态的方法。局部变量默认只读；在 `(Pdb)` 提示符里用 `!x = 42` 去改。
 
 ## Recipe 1: Local breakpoint（本地断点）
 
@@ -151,7 +151,7 @@ python -m pm.build_env --source . --out .venv --group dev --group test
 .venv/bin/python -c "import debugpy; print(debugpy.__file__)"
 ```
 
-该输出路径必须尚不存在。重建前先停掉它的进程，并且只删掉那个一次性环境。调试目标沿用同一个隔离的 `HERMES_HOME`。`.venv/bin/python` 是这个显式构建的调试环境，不是猜出来的应用 venv，下面的套路都经它运行。不要往正在跑的生产环境里加 debugpy。在那儿复现只能用已准备好的调试目标，或在开发环境里安排一次重启。
+该输出路径必须尚不存在。重建前先停掉它的进程，并且只删掉那个一次性环境。调试目标沿用同一个隔离的 `HERMES_HOME`。`.venv/bin/python` 是这个显式构建的调试环境，不是猜出来的应用 venv，下面的套路都经它运行。不要往正在跑的生产环境里加 debugpy；在那儿复现只能用已准备好的调试目标，或在开发环境里安排一次重启。
 
 ### Pattern A: Source-edit — process waits for debugger at launch（改源码——进程启动时等调试器）
 
@@ -165,7 +165,7 @@ debugpy.wait_for_client()
 debugpy.breakpoint()       # optional: pause immediately once attached
 ```
 
-启动该进程。它会阻塞在 `wait_for_client()`。
+启动该进程；它会阻塞在 `wait_for_client()`。
 
 ### Pattern B: No source edit — launch with `-m debugpy`（不改源码——用 `-m debugpy` 启动）
 
@@ -253,7 +253,7 @@ send({"type": "request", "command": "configurationDone"})
 
 **Option 3: 干脆不用 DAP，改用 `remote-pdb`** —— 通常这才是终端 agent 真正想要的：
 
-对一个独立自有的 Python 项目，在那个项目的开发依赖里声明 `remote-pdb`。并经该项目的包管理器准备其调试环境。这不是 Hermes SDK 的安装配方。对 Hermes，优先用已声明的 debugpy 依赖。下面的 remote-pdb 例子需要一个单独声明、全新构建的调试环境。绝不是在选定应用代际里就地进行 pip 安装。
+对一个独立自有的 Python 项目，在那个项目的开发依赖里声明 `remote-pdb`，并经该项目的包管理器准备其调试环境。这不是 Hermes SDK 的安装配方。对 Hermes，优先用已声明的 debugpy 依赖；下面的 remote-pdb 例子需要一个单独声明、全新构建的调试环境，绝不是在选定应用代际里就地进行 pip 安装。
 
 在你的代码里：
 ```python
@@ -287,7 +287,7 @@ import debugpy
 debugpy.listen(("127.0.0.1", 5678))
 debugpy.wait_for_client()
 ```
-从准备好的调试检出里启动 `python hermes --tui`。TUI 会看起来冻住（它的后端在等）。连一个客户端。你 `continue` 时执行恢复。在假定子进程继承了调试环境之前，先核实它的解释器与 import。
+从准备好的调试检出里启动 `python hermes --tui`。TUI 会看起来冻住（它的后端在等）。连一个客户端；你 `continue` 时执行恢复。在假定子进程继承了调试环境之前，先核实它的解释器与 import。
 
 **B. 在某个具体 handler 用 `remote-pdb`：**
 ```python
@@ -297,7 +297,7 @@ set_trace(host="127.0.0.1", port=4444)   # in the RPC handler you want to trap
 从 TUI 触发对应的 slash 命令，然后在另一个终端 `nc 127.0.0.1 4444`。
 
 ### `_SlashWorker` 子进程
-同样的套路——在 worker 的 `exec` 路径里用 `remote-pdb` 配 `set_trace()`。worker 跨 slash 命令是持久的，所以第一次触发会阻塞到你连上。后续 slash 命令正常通过，除非你重新布点。
+同样的套路——在 worker 的 `exec` 路径里用 `remote-pdb` 配 `set_trace()`。worker 跨 slash 命令是持久的，所以第一次触发会阻塞到你连上；后续 slash 命令正常通过，除非你重新布点。
 
 ### Gateway (`gateway/run.py`)
 长命。在某个 handler 用 `remote-pdb`，或者既然你本来就要重启 gateway，就用带 `--wait-for-client` 的 `debugpy`。
@@ -306,7 +306,7 @@ set_trace(host="127.0.0.1", port=4444)   # in the RPC handler you want to trap
 
 1. **在并行/捕获输出的 runner 下 pdb 会静默失效。** 你看不到提示符，测试就那么卡住（pytest-xdist 和 `scripts/run_tests.sh` 的逐文件捕获子进程都如此）。要交互调试，就在单个文件上直接跑 pytest。
 
-2. **CI / 非 TTY 环境里的 `breakpoint()` 会卡住进程。** 本地安全。但绝不能提交它。加个 pre-commit grep 当兜底。
+2. **CI / 非 TTY 环境里的 `breakpoint()` 会卡住进程。** 本地安全；但绝不能提交它。加个 pre-commit grep 当兜底。
 
 3. **`PYTHONBREAKPOINT=0`** 会禁用所有 `breakpoint()` 调用。断点没命中时先查这个环境变量：
    ```bash

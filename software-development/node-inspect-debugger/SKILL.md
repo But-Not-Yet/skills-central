@@ -20,7 +20,7 @@ metadata:
 两个工具，选一个：
 
 - **`node inspect`** — 内置、零安装、CLI REPL。适合快速戳一戳。
-- **`ndb` / 经 `chrome-remote-interface` 走 CDP** — 可从 Node/Python 脚本化。适合要自动化大量断点、跨多次运行收集状态，或从 agent 循环里非交互调试的场合。
+- **`ndb` / 经 `chrome-remote-interface` 走 CDP** — 可从 Node/Python 脚本化；适合要自动化大量断点、跨多次运行收集状态，或从 agent 循环里非交互调试的场合。
 
 **优先用 `node inspect`。** 它永远可用，且 REPL 很快。
 
@@ -32,7 +32,7 @@ metadata:
 - 你要检查闭包里的某个值，`console.log` 不打补丁够不着
 - 性能：附着到运行中的进程抓 CPU profile 或堆快照
 
-**不用于：** `console.log` 一分钟内能解决的事。断点驱动的调试更重。有实打实收益时才用。
+**不用于：** `console.log` 一分钟内能解决的事。断点驱动的调试更重；有实打实收益时才用。
 
 ## Quick Reference: `node inspect` REPL（速查）
 
@@ -218,7 +218,7 @@ curl -s http://127.0.0.1:9229/json/list | jq -r '.[0].webSocketDebuggerUrl'
 node inspect ws://127.0.0.1:9229/<uuid>
 ```
 
-与 TUI 交互（在它窗口里打字）会继续推进执行。你的调试器可以在任意 `sb(...)` 断点处把它暂停。
+与 TUI 交互（在它窗口里打字）会继续推进执行；你的调试器可以在任意 `sb(...)` 断点处把它暂停。
 
 ### 调试 `_SlashWorker` / PTY 子进程
 
@@ -261,16 +261,16 @@ require('fs').writeFileSync('~/.hermes/cache/scratch/heap.heapsnapshot', chunks.
 
 ## Common Pitfalls（常见坑）
 
-1. **TS 源码里的行号对不上。** 断点命中的是产出的 JS，不是 `.ts`。要么 (a) 在构建出的 `dist/*.js` 里断，要么 (b) 启用 sourcemap（`node --enable-source-maps`）再用 `sb('src/app.tsx', N)`。但只在会跟随 sourcemap 的 CDP 客户端里有用，`node inspect` CLI 不跟随。
+1. **TS 源码里的行号对不上。** 断点命中的是产出的 JS，不是 `.ts`。要么 (a) 在构建出的 `dist/*.js` 里断，要么 (b) 启用 sourcemap（`node --enable-source-maps`）再用 `sb('src/app.tsx', N)`——但只在会跟随 sourcemap 的 CDP 客户端里有用，`node inspect` CLI 不跟随。
 
-2. **`--inspect` vs `--inspect-brk`。** `--inspect` 会启动 inspector 但不暂停。附着得太晚，脚本就冲过了你的第一个断点。需要在任何代码跑起来之前设断点时，用 `--inspect-brk`。
+2. **`--inspect` vs `--inspect-brk`。** `--inspect` 会启动 inspector 但不暂停；附着得太晚，脚本就冲过了你的第一个断点。需要在任何代码跑起来之前设断点时，用 `--inspect-brk`。
 
 3. **端口冲突。** 默认是 `9229`。若有多个 Node 进程在做 inspect，传 `--inspect=0`（随机端口），再从 `/json/list` 读出实际 URL：
    ```bash
    curl -s http://127.0.0.1:9229/json/list   # lists all inspectable targets on the host
    ```
 
-4. **子进程。** 在父进程上开 `--inspect` **不会** inspect 它的子进程。用 `NODE_OPTIONS='--inspect-brk' node parent.js` 传播给每个子进程。注意它们各自需要唯一端口（`NODE_OPTIONS='--inspect'` 被继承时 Node 会自动递增端口）。
+4. **子进程。** 在父进程上开 `--inspect` **不会** inspect 它的子进程。用 `NODE_OPTIONS='--inspect-brk' node parent.js` 传播给每个子进程；注意它们各自需要唯一端口（`NODE_OPTIONS='--inspect'` 被继承时 Node 会自动递增端口）。
 
 5. **后台被杀。** 若在目标暂停时用 `Ctrl+C` 退出 `node inspect`，目标会一直保持暂停。要么先 `cont`，要么显式 `kill` 掉目标。
 
