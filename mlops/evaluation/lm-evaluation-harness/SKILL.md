@@ -412,7 +412,7 @@ lm_eval --model vllm \
 
 或只评测 MMLU 的子集：
 ```bash
---tasks mmlu_stem  # Only STEM subjects
+--tasks mmlu_stem  # Only STEM subjects（任务名成立：官方 mmlu README 48 行列有 mmlu_stem，10-23 核）
 ```
 
 **问题：显存不足**
