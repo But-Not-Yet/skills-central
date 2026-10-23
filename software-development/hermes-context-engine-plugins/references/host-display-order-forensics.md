@@ -25,7 +25,8 @@ UI 消息顺序错乱、旧消息跳到队尾、怀疑插件注入污染显示�
 
 ## 修法优先级
 
-1. **P1-2a（低风险，推荐先做）**：在 `_insert_message_rows` 插入循环结束后加一条批量 `UPDATE`——对 `display_order = id` 且存在同 `display_identity` 的 inactive 孪生行（`active=0 AND compacted=0`）且 `display_order < id` 的新行，回填 `MIN(peer.display_order)`。**两个口各挂一次**（`_insert_message_rows` 与 `append_message`），只挂前者时撤回/重生成场景不修；回填要跑在 `stamp_inserted_row_snapshots` 之前，行摘要得描述最终落盘的形状。不动触发器、不改折叠口径。
+1. **P1-2a（低风险，推荐先做）**：在插入循环结束后加一条批量 `UPDATE`——对 `display_order = id` 且存在同 `display_identity` 的 inactive 孪生行（`active=0 AND compacted=0`）且 `display_order < id` 的新行，回填 `MIN(peer.display_order)`。回填要跑在 `stamp_inserted_row_snapshots` 之前，行摘要得描述最终落盘的形状。不动触发器、不改折叠口径。
+   **挂法按调用方意图，不按缝挂**：给 `_insert_message_rows` 加 `inherit_withdrawn_slot=False`（默认关），只有「副本顶替被撤回行」的调用方显式开——每轮 flush（`agent/session_persistence.py` → `append_messages_batch` → `_append_messages_in_transaction`）、撤回交接副本（`rewind_in_transaction`）、单条 `append_message`。压缩、分叉播种、导入、整段替换一律不继承。理由：`archive_and_compact` 先把尾部行改成 `active=0, compacted=0`，再用同 identity、同时间戳插入承载副本，副本本来就要坐在摘要之后的新槽位上；无条件回填会把它们拽回旧位置。
 2. **P1-3（治现存数据）**：一次性 SQL 回填 `active=1 AND display_order=id` 且有 inactive 孪生行的记录，先备份 `state.db`。
 3. **P1-1（触发器）**：中高风险，会影响 compaction 代际折叠口径。先跑 P1-2a + P1-3 稳定后再评估；动它必须连带跑 `tests/hermes_state/` 全量。
 
@@ -53,6 +54,7 @@ UI 消息顺序错乱、旧消息跳到队尾、怀疑插件注入污染显示�
 
 ## 陷阱
 
+- **别把回填无条件挂在共享插入缝上**：压缩与撤回走同一条 `_insert_message_rows`，语义相反。判据固定成这三条既有测试：`tests/hermes_state/test_display_projection_parity.py`、`test_hermes_state.py::TestHandoffTimestampCarry`、`test_session_archived_round_trip.py`——它们会以「摘要行顶掉后面那条」的形状变红（索引处 `[summary 0]` vs `e0 user 3`）。发现方式：拿这批文件在**未改版本**上跑一遍，两边 `FAILED` 清单求差；只看「修后红不红」会漏掉它们（这些文件本来就有环境性失败）。
 - **别把 `_reconcile_display_orders` 当万能修理工**：它只在压缩后跑，撤回/重写路径不调用。照报告原样改 reconcile，撤回场景仍修不到。
 - **别直接改数据库里的触发器**：`SCHEMA_SQL` 每次 writable open 都重建，改完下次打开就还原。
 - **插件洗白不等于宿主没问题**：注入进 `api_content`，显示读 `content`；插件零 `state.db` 写。显示顺序错乱先查宿主槽位继承。
