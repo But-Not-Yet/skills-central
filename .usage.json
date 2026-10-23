@@ -198,14 +198,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-07T20:26:50.829337+00:00",
     "last_reused_patch_generation": 5,
-    "last_used_at": "2026-10-23T04:07:48.316458+00:00",
-    "last_viewed_at": "2026-10-23T04:07:48.299209+00:00",
+    "last_used_at": "2026-10-23T15:51:12.643350+00:00",
+    "last_viewed_at": "2026-10-23T15:51:12.617296+00:00",
     "patch_count": 5,
     "patch_generation": 5,
     "pinned": false,
     "state": "active",
-    "use_count": 6,
-    "view_count": 6
+    "use_count": 9,
+    "view_count": 9
   },
   "delivery-critic-gate": {
     "archived_at": null,
@@ -406,14 +406,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-17T23:18:16.798702+00:00",
     "last_reused_patch_generation": 13,
-    "last_used_at": "2026-10-18T21:35:10.393462+00:00",
-    "last_viewed_at": "2026-10-18T21:35:10.383777+00:00",
+    "last_used_at": "2026-10-23T15:51:12.651693+00:00",
+    "last_viewed_at": "2026-10-23T15:51:12.626333+00:00",
     "patch_count": 13,
     "patch_generation": 13,
     "pinned": false,
     "state": "active",
-    "use_count": 20,
-    "view_count": 20
+    "use_count": 23,
+    "view_count": 23
   },
   "github-pr-workflow": {
     "archived_at": null,
@@ -1794,14 +1794,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-21T22:03:23.370779+00:00",
     "last_reused_patch_generation": 4,
-    "last_used_at": "2026-10-23T04:08:31.792703+00:00",
-    "last_viewed_at": "2026-10-23T04:08:31.783635+00:00",
+    "last_used_at": "2026-10-23T15:51:12.661537+00:00",
+    "last_viewed_at": "2026-10-23T15:51:12.634368+00:00",
     "patch_count": 4,
     "patch_generation": 4,
     "pinned": false,
     "state": "active",
-    "use_count": 8,
-    "view_count": 8
+    "use_count": 11,
+    "view_count": 11
   },
   "xurl": {
     "archived_at": null,
