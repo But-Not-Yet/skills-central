@@ -160,13 +160,26 @@ gcc -O2 -DSQLITE_ENABLE_DBPAGE_VTAB -DSQLITE_ENABLE_DBSTAT_VTAB -DSQLITE_ENABLE_
 
 - 日志三连 `Context engine 'X' loaded but no engine instance found` + `falling back to built-in compressor`。且重启后**没有任何**该插件的激活日志（连 register 的故障日志都没有一行）= 插件根本不在启用列表。桌面插件菜单的开关写 config.yaml 的 plugins 段，由主人切换。不是代码坏了。别去复现 import（复现环境缺依赖代际会另报 ruamel 之类假线索，见下节沙箱探针）。
 - 修复后验证只看一件事：重启/重载时间戳**之后**出现插件自己的激活日志行（如 `factcheck hook active` / `tiered context engine active`）。三态分开汇报：盘上代码已改 ≠ 进程已注册 ≠ 功能已跑过（状态文件/实际调用产物才算第三态）。
+- **重启是动作不是证据**：`systemctl show -p ActiveEnterTimestamp --value <unit>` 取时刻，只数该时刻之后的日志；验收脚本要能在旧进程上**全红**（它自己当负对照）。重启把「修复从未生效」暴露出来时，先证进程加载的是哪一份（模块自报 `__file__`、pyc 与源 mtime、进程解释器版本），别先换假设重改代码。
 - 良性噪音识别：`tried to register a context engine, but one is already registered` 出现在通用插件路径（内层引擎先占位）。context_engine 专用加载路径仍会拿到包装实例。引擎激活行在 = 无害，别当故障追。
+
+## 包内互引：绝对导入会被同名目录遮蔽，抛的是 ImportError 不是 ModuleNotFoundError
+
+- 症状：装好的插件/引擎在宿主里持续打 `record failed: ModuleNotFoundError: No module named 'X'`，而同一份代码在别的解释器/目录里能 import。
+- 机制：`sys.path` 上只要有一个**叫 X 的目录**（探针自己的数据目录就够，如 `~/.hermes/cache/scratch/assembly_probe/`），`import X` 就解析成命名空间包（无 `__file__`，报 `(unknown location)`），`from X import Y` 抛的是 **ImportError**（cannot import name …）。按模块名判定的 `except ModuleNotFoundError` 一句都抓不住，异常直接冒到外层。
+- 改法：包内模块互引一律**相对优先**（`from .X import Y`），`except ImportError` 兜底绝对形式；只有要保留测试打桩的模块身份时才顶层优先，并把异常扩成 `(ModuleNotFoundError, ImportError)`。
+- 判据（负对照）：把修复前那版代码摊到临时包、旁边放一个同名目录，喂同一导入，必须复现生产里那条 ImportError；新代码同场景通过，再用**宿主那版解释器**（可能是 3.14，不是测试用的 3.12）跑一遍。
 
 ## 插件「注册了但从不触发」：按触发链逐环对质，别猜
 
 - 症状：激活日志在、会话每轮都过 hook，但功能产物（状态文件、调用日志行）始终不出现。第四态补全三态链：盘上已改 ≠ 已注册 ≠ 每轮被调用 ≠ **触发条件真的满足过**。
 - 排法 = 读源码把触发链列成序列（豁免过滤 → 计数器 → 阈值 → 实际调用）。拿**本会话真实回复样本**逐环喂进去测，哪环断了在哪环修。禁止从「N 轮早该满了」直接跳到「hook 没挂上」。
 - 红线坑：**确定性表面线索的豁免正则必须拿它要豁免的那类文本的常见格式做对抗测试**。单星号旁白模式会撞上 markdown `**粗体**` 的内侧，导致报告体回复整轮被静默豁免，计数器一次都不加。加任何豁免规则时同步写回归用例：代表性工作体文本（粗体、行内代码、引用）必须**不**豁免。真旁白/颜文字必须照豁免。
+
+## 插件自产提醒（导向卡/事实核查）的假阳性：先核实物，再改抽取器
+
+- 两类规律性假阳性：① `path:/x.py 不存在` —— 正文写的是仓内相对路径（`hermes_cli/web_routers/sessions.py`），抽取正则从任意 `/` 起匹配，截成 `/sessions.py` 去核。② `git hash … 对象库里查不到` —— 哈希只存在于另一个仓，核验器用的是它自己 cwd 的仓。
+- 处置：先 `ls` / `git -C <仓> cat-file -t <hash>` 核实物；确认是抽取器的错就去修抽取器（路径正则加左边界，不许从词中间起匹配），并补一条**负对照用例**（相对路径不得产声明，`/…`、`~/…` 照旧核）。别指望靠改自己以后的措辞绕开一个假卡源。
 
 ## 写盘类功能「静默无产物」：先离线复现模块，再找字面 `~` 目录
 
