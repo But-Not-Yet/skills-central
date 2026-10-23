@@ -213,15 +213,15 @@
     "created_by": "learn",
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T15:13:40.428082+00:00",
-    "last_reused_patch_generation": 27,
-    "last_used_at": "2026-10-23T15:13:07.858303+00:00",
-    "last_viewed_at": "2026-10-23T15:13:07.843165+00:00",
+    "last_reused_patch_generation": 28,
+    "last_used_at": "2026-10-23T19:00:19.001913+00:00",
+    "last_viewed_at": "2026-10-23T19:00:18.984593+00:00",
     "patch_count": 28,
     "patch_generation": 28,
     "pinned": false,
     "state": "active",
-    "use_count": 61,
-    "view_count": 61
+    "use_count": 62,
+    "view_count": 62
   },
   "devops/kanban-dispatch": {
     "archived_at": null,
@@ -773,14 +773,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T00:33:03.571414+00:00",
     "last_reused_patch_generation": 78,
-    "last_used_at": "2026-10-23T17:26:01.291198+00:00",
-    "last_viewed_at": "2026-10-23T17:26:01.280538+00:00",
+    "last_used_at": "2026-10-23T19:00:19.010186+00:00",
+    "last_viewed_at": "2026-10-23T19:00:18.992962+00:00",
     "patch_count": 78,
     "patch_generation": 78,
     "pinned": false,
     "state": "active",
-    "use_count": 97,
-    "view_count": 97
+    "use_count": 98,
+    "view_count": 98
   },
   "laptop-coder-node": {
     "archived_at": null,
