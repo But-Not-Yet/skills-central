@@ -1,6 +1,6 @@
 ---
 name: github-repo-management
-description: "管理 GitHub 仓库时使用：克隆、新建、fork、remote 与 release。"
+description: "管理 GitHub 仓库时使用：克隆、新建、fork、remote 与 release。只要要动 GitHub 上的仓库本身，就主动加载，即使用户只说「帮我建个仓库」或「拉一份下来」。"
 version: 1.1.0
 author: Hermes Agent
 license: MIT
@@ -11,15 +11,15 @@ metadata:
     related_skills: [github-auth, github-pr-workflow, github-issues]
 ---
 
-# GitHub Repository Management
+# GitHub 仓库管理
 
-Create, clone, fork, configure, and manage GitHub repositories. Each section shows `gh` first, then the `git` + `curl` fallback.
+创建、克隆、fork、配置与管理 GitHub 仓库。每节先给 `gh` 写法，再给 `git` + `curl` 兜底。
 
-## Prerequisites
+## 前置条件
 
-- Authenticated with GitHub (see `github-auth` skill)
+- 已通过 GitHub 认证（见 `github-auth` skill）
 
-### Setup
+### 初始化
 
 ```bash
 if command -v gh &>/dev/null && gh auth status &>/dev/null; then
@@ -43,7 +43,7 @@ else
 fi
 ```
 
-If you're inside a repo already:
+若你已经在某个仓库里：
 
 ```bash
 REMOTE_URL=$(git remote get-url origin)
@@ -54,9 +54,9 @@ REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
 
 ---
 
-## 1. Cloning Repositories
+## 1. 克隆仓库
 
-Cloning is pure `git` — works identically either way:
+克隆是纯 `git` — 两种方式完全一样：
 
 ```bash
 # Clone via HTTPS (works with credential helper or token-embedded URL)
@@ -75,16 +75,16 @@ git clone --branch develop https://github.com/owner/repo-name.git
 git clone git@github.com:owner/repo-name.git
 ```
 
-**With gh (shorthand):**
+**用 gh（简写）：**
 
 ```bash
 gh repo clone owner/repo-name
 gh repo clone owner/repo-name -- --depth 1
 ```
 
-## 2. Creating Repositories
+## 2. 创建仓库
 
-**With gh:**
+**用 gh：**
 
 ```bash
 # Create a public repo and clone it
@@ -101,7 +101,7 @@ cd /path/to/existing/project
 gh repo create my-project --source . --public --push
 ```
 
-**With git + curl:**
+**用 git + curl：**
 
 ```bash
 # Create the remote repo via API
@@ -129,7 +129,7 @@ git remote add origin https://github.com/$GH_USER/my-new-project.git
 git push -u origin main
 ```
 
-To create under an organization:
+在组织下创建：
 
 ```bash
 curl -s -X POST \
@@ -138,15 +138,15 @@ curl -s -X POST \
   -d '{"name": "my-new-project", "private": false}'
 ```
 
-### From a Template
+### 从模板创建
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh repo create my-new-app --template owner/template-repo --public --clone
 ```
 
-**With curl:**
+**用 curl：**
 
 ```bash
 curl -s -X POST \
@@ -155,15 +155,15 @@ curl -s -X POST \
   -d '{"owner": "'"$GH_USER"'", "name": "my-new-app", "private": false}'
 ```
 
-## 3. Forking Repositories
+## 3. Fork 仓库
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh repo fork owner/repo-name --clone
 ```
 
-**With git + curl:**
+**用 git + curl：**
 
 ```bash
 # Create the fork via API
@@ -180,7 +180,7 @@ cd repo-name
 git remote add upstream https://github.com/owner/repo-name.git
 ```
 
-### Keeping a Fork in Sync
+### 保持 fork 同步
 
 ```bash
 # Pure git — works everywhere
@@ -190,15 +190,15 @@ git merge upstream/main
 git push origin main
 ```
 
-**With gh (shortcut):**
+**用 gh（快捷方式）：**
 
 ```bash
 gh repo sync $GH_USER/repo-name
 ```
 
-## 4. Repository Information
+## 4. 仓库信息
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh repo view owner/repo-name
@@ -206,7 +206,7 @@ gh repo list --limit 20
 gh search repos "machine learning" --language python --sort stars
 ```
 
-**With curl:**
+**用 curl：**
 
 ```bash
 # View repo details
@@ -241,9 +241,9 @@ for r in json.load(sys.stdin)['items']:
     print(f\"  {r['full_name']:40}  ★{r['stargazers_count']:6}  {r['description'][:60] if r['description'] else ''}\")"
 ```
 
-## 5. Repository Settings
+## 5. 仓库设置
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh repo edit --description "Updated description" --visibility public
@@ -253,7 +253,7 @@ gh repo edit --add-topic "machine-learning,python"
 gh repo edit --enable-auto-merge
 ```
 
-**With curl:**
+**用 curl：**
 
 ```bash
 curl -s -X PATCH \
@@ -274,7 +274,7 @@ curl -s -X PUT \
   -d '{"names": ["machine-learning", "python", "automation"]}'
 ```
 
-## 6. Branch Protection
+## 6. 分支保护
 
 ```bash
 # View current protection
@@ -299,9 +299,9 @@ curl -s -X PUT \
   }'
 ```
 
-## 7. Secrets Management (GitHub Actions)
+## 7. Secrets 管理（GitHub Actions）
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh secret set API_KEY --body "your-secret-value"
@@ -310,9 +310,9 @@ gh secret list
 gh secret delete API_KEY
 ```
 
-**With curl:**
+**用 curl：**
 
-Secrets require encryption with the repo's public key — more involved via API:
+secrets 需要用仓库公钥加密 — 走 API 更繁琐：
 
 ```bash
 # Get the repo's public key for encrypting secrets
@@ -355,11 +355,11 @@ for s in json.load(sys.stdin)['secrets']:
     print(f\"  {s['name']:30}  updated: {s['updated_at']}\")"
 ```
 
-Note: For secrets, `gh secret set` is dramatically simpler. If setting secrets is needed and `gh` isn't available, recommend installing it for just that operation.
+注意：设置 secrets 时，`gh secret set` 简单得多。若需要设置 secrets 而 `gh` 不可用，建议仅为这一步装一下 `gh`。
 
-## 8. Releases
+## 8. Release
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh release create v1.0.0 --title "v1.0.0" --generate-notes
@@ -369,7 +369,7 @@ gh release list
 gh release download v1.0.0 --dir ./downloads
 ```
 
-**With curl:**
+**用 curl：**
 
 ```bash
 # Create a release
@@ -404,9 +404,9 @@ curl -s -X POST \
   --data-binary @./dist/binary-amd64
 ```
 
-## 9. GitHub Actions Workflows
+## 9. GitHub Actions 工作流
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh workflow list
@@ -419,7 +419,7 @@ gh workflow run ci.yml --ref main
 gh workflow run deploy.yml -f environment=staging
 ```
 
-**With curl:**
+**用 curl：**
 
 ```bash
 # List workflows
@@ -466,16 +466,16 @@ curl -s -X POST \
   -d '{"ref": "main", "inputs": {"environment": "staging"}}'
 ```
 
-## 10. Gists
+## 10. Gist
 
-**With gh:**
+**用 gh：**
 
 ```bash
 gh gist create script.py --public --desc "Useful script"
 gh gist list
 ```
 
-**With curl:**
+**用 curl：**
 
 ```bash
 # Create a gist
@@ -501,16 +501,16 @@ for g in json.load(sys.stdin):
     print(f\"  {g['id']}  {g['description'] or '(no desc)':40}  {files}\")"
 ```
 
-## Quick Reference Table
+## 速查表
 
-| Action | gh | git + curl |
+| 操作 | gh | git + curl |
 |--------|-----|-----------|
-| Clone | `gh repo clone o/r` | `git clone https://github.com/o/r.git` |
-| Create repo | `gh repo create name --public` | `curl POST /user/repos` |
+| 克隆 | `gh repo clone o/r` | `git clone https://github.com/o/r.git` |
+| 创建仓库 | `gh repo create name --public` | `curl POST /user/repos` |
 | Fork | `gh repo fork o/r --clone` | `curl POST /repos/o/r/forks` + `git clone` |
-| Repo info | `gh repo view o/r` | `curl GET /repos/o/r` |
-| Edit settings | `gh repo edit --...` | `curl PATCH /repos/o/r` |
-| Create release | `gh release create v1.0` | `curl POST /repos/o/r/releases` |
-| List workflows | `gh workflow list` | `curl GET /repos/o/r/actions/workflows` |
-| Rerun CI | `gh run rerun ID` | `curl POST /repos/o/r/actions/runs/ID/rerun` |
-| Set secret | `gh secret set KEY` | `curl PUT /repos/o/r/actions/secrets/KEY` (+ encryption) |
+| 仓库信息 | `gh repo view o/r` | `curl GET /repos/o/r` |
+| 编辑设置 | `gh repo edit --...` | `curl PATCH /repos/o/r` |
+| 创建 release | `gh release create v1.0` | `curl POST /repos/o/r/releases` |
+| 列出工作流 | `gh workflow list` | `curl GET /repos/o/r/actions/workflows` |
+| 重跑 CI | `gh run rerun ID` | `curl POST /repos/o/r/actions/runs/ID/rerun` |
+| 设置 secret | `gh secret set KEY` | `curl PUT /repos/o/r/actions/secrets/KEY` (+ encryption) |

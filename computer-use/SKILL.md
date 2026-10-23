@@ -1,6 +1,6 @@
 ---
 name: computer-use
-description: "在后台驱动用户桌面时使用——点击、输入、滚动、拖拽，且不抢光标、键盘焦点，不切虚拟桌面/Space。跨平台：macOS、Windows、Linux。适配任何支持工具调用的模型；`computer_use` 工具可用时就加载。"
+description: "在后台驱动用户桌面时使用——点击、输入、滚动、拖拽，且不抢光标、键盘焦点，不切虚拟桌面/Space。跨平台：macOS、Windows、Linux。适配任何支持工具调用的模型；`computer_use` 工具可用时就主动加载。"
 version: 2.0.0
 platforms: [macos, windows, linux]
 metadata:

@@ -1,6 +1,6 @@
 ---
 name: touchdesigner-mcp
-description: Control TouchDesigner via twozero MCP.
+description: "通过 twozero MCP 控制 TouchDesigner 时使用。只要要在 TD 里搭实时视觉 / 生成艺术 / 音频反应 / VJ 装置网络并操作节点，就主动加载。即使用户只说「用 TD 做个视觉效果」。提供 36 个 MCP 工具与验证过的 GLSL 配方。"
 version: 1.1.0
 author: kshitijk4poor
 license: MIT
@@ -12,61 +12,61 @@ metadata:
 
 ---
 
-# TouchDesigner Integration (twozero MCP)
+# TouchDesigner 集成（twozero MCP）
 
-## CRITICAL RULES
+## 关键规则
 
-1. **NEVER guess parameter names.** Call `td_get_par_info` for the op type FIRST. Your training data is wrong for TD 2025.32.
-2. **If `tdAttributeError` fires, STOP.** Call `td_get_operator_info` on the failing node before continuing.
-3. **NEVER hardcode absolute paths** in script callbacks. Use `me.parent()` / `scriptOp.parent()`.
-4. **Prefer native MCP tools over td_execute_python.** Use `td_create_operator`, `td_set_operator_pars`, `td_get_errors` etc. Only fall back to `td_execute_python` for complex multi-step logic.
-5. **Call `td_get_hints` before building.** It returns patterns specific to the op type you're working with.
+1. **绝不猜参数名。** 先对 op 类型调用 `td_get_par_info`。你的训练数据对 TD 2025.32 是错的。
+2. **若触发 `tdAttributeError`，停下。** 先对出错的节点调用 `td_get_operator_info` 再继续。
+3. **绝不在 script 回调里硬编码绝对路径**。用 `me.parent()` / `scriptOp.parent()`。
+4. **优先用原生 MCP 工具而非 td_execute_python。** 用 `td_create_operator`、`td_set_operator_pars`、`td_get_errors` 等。只有复杂的多步逻辑才回退到 `td_execute_python`。
+5. **构建前先调用 `td_get_hints`。** 它返回与你所用 op 类型相关的模式。
 
-## Architecture
+## 架构
 
 ```
 Hermes Agent -> MCP (Streamable HTTP) -> twozero.tox (port 40404) -> TD Python
 ```
 
-36 native tools. Free plugin (no payment/license — confirmed April 2026).
-Context-aware (knows selected OP, current network).
-Hub health check: `GET http://localhost:40404/mcp` returns JSON with instance PID, project name, TD version.
+36 个原生工具。免费插件（无需付费 / 许可——2026 年 4 月确认）。
+上下文感知（知道当前选中的 OP 与网络）。
+Hub 健康检查：`GET http://localhost:40404/mcp` 返回含实例 PID、项目名、TD 版本的 JSON。
 
-## Setup (Automated)
+## 安装（自动化）
 
-Run the setup script to handle everything:
+运行安装脚本处理一切：
 
 ```bash
 bash "${HERMES_HOME:-$HOME/.hermes}/skills/creative/touchdesigner-mcp/scripts/setup.sh"
 ```
 
-The script will:
-1. Check if TD is running
-2. Download twozero.tox if not already cached
-3. Add `twozero_td` MCP server to Hermes config (if missing)
-4. Test the MCP connection on port 40404
-5. Report what manual steps remain (drag .tox into TD, enable MCP toggle)
+脚本会：
+1. 检查 TD 是否在运行
+2. 若未缓存则下载 twozero.tox
+3. 把 `twozero_td` MCP server 加入 Hermes 配置（若缺失）
+4. 在 40404 端口测试 MCP 连接
+5. 报告还剩哪些手动步骤（把 .tox 拖进 TD、启用 MCP 开关）
 
-### Manual steps (one-time, cannot be automated)
+### 手动步骤（一次性，无法自动化）
 
-1. **Drag `~/Downloads/twozero.tox` into the TD network editor** → click Install
-2. **Enable MCP:** click twozero icon → Settings → mcp → "auto start MCP" → Yes
-3. **Restart Hermes session** to pick up the new MCP server
+1. **把 `~/Downloads/twozero.tox` 拖进 TD 网络编辑器** → 点击 Install
+2. **启用 MCP：** 点击 twozero 图标 → Settings → mcp → "auto start MCP" → Yes
+3. **重启 Hermes 会话**以加载新的 MCP server
 
-After setup, verify:
+安装后校验：
 ```bash
 nc -z 127.0.0.1 40404 && echo "twozero MCP: READY"
 ```
 
-## Environment Notes
+## 环境说明
 
-- **Non-Commercial TD** caps resolution at 1280×1280. Use `outputresolution = 'custom'` and set width/height explicitly.
-- **Codecs:** `prores` (preferred on macOS) or `mjpa` as fallback. H.264/H.265/AV1 require a Commercial license.
-- Always call `td_get_par_info` before setting params — names vary by TD version (see CRITICAL RULES #1).
+- **Non-Commercial 版 TD** 分辨率上限 1280×1280。用 `outputresolution = 'custom'` 并显式设置宽 / 高。
+- **编解码器：** `prores`（macOS 上首选）或 `mjpa` 作为回退。H.264/H.265/AV1 需要 Commercial 许可。
+- 设置参数前始终调用 `td_get_par_info`——参数名随 TD 版本而变（见关键规则 #1）。
 
-## Workflow
+## 工作流
 
-### Step 0: Discover (before building anything)
+### 第 0 步：侦察（构建任何东西之前）
 
 ```
 Call td_get_par_info with op_type for each type you plan to use.
@@ -75,13 +75,13 @@ Call td_get_focus to see where the user is and what's selected.
 Call td_get_network to see what already exists.
 ```
 
-No temp nodes, no cleanup. This replaces the old discovery dance entirely.
+无需临时节点、无需清理。这彻底取代了旧的侦察套路。
 
-### Step 1: Clean + Build
+### 第 1 步：清理 + 构建
 
-**IMPORTANT: Split cleanup and creation into SEPARATE MCP calls.** Destroying and recreating same-named nodes in one `td_execute_python` script causes "Invalid OP object" errors. See pitfalls #11b.
+**重要：把清理与创建拆成*分开*的 MCP 调用。** 在同一个 `td_execute_python` 脚本里销毁并重建同名节点会导致 "Invalid OP object" 错误。见 pitfalls #11b。
 
-Use `td_create_operator` for each node (handles viewport positioning automatically):
+对每个节点用 `td_create_operator`（自动处理视口定位）：
 
 ```
 td_create_operator(type="noiseTOP", parent="/project1", name="bg", parameters={"resolutionw": 1280, "resolutionh": 720})
@@ -89,7 +89,7 @@ td_create_operator(type="levelTOP", parent="/project1", name="brightness")
 td_create_operator(type="nullTOP", parent="/project1", name="out")
 ```
 
-For bulk creation or wiring, use `td_execute_python`:
+批量创建或连线时，用 `td_execute_python`：
 
 ```python
 # td_execute_python script:
@@ -104,29 +104,29 @@ for i in range(len(nodes)-1):
 result = {'created': nodes}
 ```
 
-### Step 2: Set Parameters
+### 第 2 步：设置参数
 
-Prefer the native tool (validates params, won't crash):
+优先用原生工具（校验参数、不会崩溃）：
 
 ```
 td_set_operator_pars(path="/project1/bg", parameters={"roughness": 0.6, "monochrome": true})
 ```
 
-For expressions or modes, use `td_execute_python`:
+表达式或模式用 `td_execute_python`：
 
 ```python
 op('/project1/time_driver').par.colorr.expr = "absTime.seconds % 1000.0"
 ```
 
-### Step 3: Wire
+### 第 3 步：连线
 
-Use `td_execute_python` — no native wire tool exists:
+用 `td_execute_python`——不存在原生连线工具：
 
 ```python
 op('/project1/bg').outputConnectors[0].connect(op('/project1/fx').inputConnectors[0])
 ```
 
-### Step 4: Verify
+### 第 4 步：校验
 
 ```
 td_get_errors(path="/project1", recursive=true)
@@ -134,13 +134,13 @@ td_get_perf()
 td_get_operator_info(path="/project1/out", detail="full")
 ```
 
-### Step 5: Display / Capture
+### 第 5 步：显示 / 捕获
 
 ```
 td_get_screenshot(path="/project1/out")
 ```
 
-Or open a window via script:
+或通过脚本打开窗口：
 
 ```python
 win = op('/project1').create(windowCOMP, 'display')
@@ -149,69 +149,69 @@ win.par.winw = 1280; win.par.winh = 720
 win.par.winopen.pulse()
 ```
 
-## MCP Tool Quick Reference
+## MCP 工具速查
 
-**Core (use these most):**
-| Tool | What |
+**核心（最常用）：**
+| 工具 | 用途 |
 |------|------|
-| `td_execute_python` | Run arbitrary Python in TD. Full API access. |
-| `td_create_operator` | Create node with params + auto-positioning |
-| `td_set_operator_pars` | Set params safely (validates, won't crash) |
-| `td_get_operator_info` | Inspect one node: connections, params, errors |
-| `td_get_operators_info` | Inspect multiple nodes in one call |
-| `td_get_network` | See network structure at a path |
-| `td_get_errors` | Find errors/warnings recursively |
-| `td_get_par_info` | Get param names for an OP type (replaces discovery) |
-| `td_get_hints` | Get patterns/tips before building |
-| `td_get_focus` | What network is open, what's selected |
+| `td_execute_python` | 在 TD 中运行任意 Python。完整 API 访问。 |
+| `td_create_operator` | 创建带参数的节点 + 自动定位 |
+| `td_set_operator_pars` | 安全设置参数（校验、不会崩） |
+| `td_get_operator_info` | 检查单个节点：连接、参数、错误 |
+| `td_get_operators_info` | 一次调用检查多个节点 |
+| `td_get_network` | 查看某路径下的网络结构 |
+| `td_get_errors` | 递归查找错误 / 警告 |
+| `td_get_par_info` | 获取某 OP 类型的参数名（取代侦察） |
+| `td_get_hints` | 构建前获取模式 / 提示 |
+| `td_get_focus` | 哪个网络打开、选中了什么 |
 
-**Read/Write:**
-| Tool | What |
+**读 / 写：**
+| 工具 | 用途 |
 |------|------|
-| `td_read_dat` | Read DAT text content |
-| `td_write_dat` | Write/patch DAT content |
-| `td_read_chop` | Read CHOP channel values |
-| `td_read_textport` | Read TD console output |
+| `td_read_dat` | 读取 DAT 文本内容 |
+| `td_write_dat` | 写入 / 修补 DAT 内容 |
+| `td_read_chop` | 读取 CHOP 通道值 |
+| `td_read_textport` | 读取 TD 控制台输出 |
 
-**Visual:**
-| Tool | What |
+**视觉：**
+| 工具 | 用途 |
 |------|------|
-| `td_get_screenshot` | Capture one OP viewer to file |
-| `td_get_screenshots` | Capture multiple OPs at once |
-| `td_get_screen_screenshot` | Capture actual screen via TD |
-| `td_navigate_to` | Jump network editor to an OP |
+| `td_get_screenshot` | 把一个 OP 查看器捕获到文件 |
+| `td_get_screenshots` | 一次捕获多个 OP |
+| `td_get_screen_screenshot` | 通过 TD 捕获实际屏幕 |
+| `td_navigate_to` | 把网络编辑器跳转到某个 OP |
 
-**Search:**
-| Tool | What |
+**搜索：**
+| 工具 | 用途 |
 |------|------|
-| `td_find_op` | Find ops by name/type across project |
-| `td_search` | Search code, expressions, string params |
+| `td_find_op` | 跨项目按名称 / 类型查找 op |
+| `td_search` | 搜索代码、表达式、字符串参数 |
 
-**System:**
-| Tool | What |
+**系统：**
+| 工具 | 用途 |
 |------|------|
-| `td_get_perf` | Performance profiling (FPS, slow ops) |
-| `td_list_instances` | List all running TD instances |
-| `td_get_docs` | In-depth docs on a TD topic |
-| `td_agents_md` | Read/write per-COMP markdown docs |
-| `td_reinit_extension` | Reload extension after code edit |
-| `td_clear_textport` | Clear console before debug session |
+| `td_get_perf` | 性能剖析（FPS、慢 op） |
+| `td_list_instances` | 列出所有运行中的 TD 实例 |
+| `td_get_docs` | 某 TD 主题的深入文档 |
+| `td_agents_md` | 读 / 写每个 COMP 的 markdown 文档 |
+| `td_reinit_extension` | 编辑代码后重载 extension |
+| `td_clear_textport` | 调试会话前清空控制台 |
 
-**Input Automation:**
-| Tool | What |
+**输入自动化：**
+| 工具 | 用途 |
 |------|------|
-| `td_input_execute` | Send mouse/keyboard to TD |
-| `td_input_status` | Poll input queue status |
-| `td_input_clear` | Stop input automation |
-| `td_op_screen_rect` | Get screen coords of a node |
-| `td_click_screen_point` | Click a point in a screenshot |
-| `td_screen_point_to_global` | Convert screenshot pixel to absolute screen coords |
+| `td_input_execute` | 向 TD 发送鼠标 / 键盘 |
+| `td_input_status` | 轮询输入队列状态 |
+| `td_input_clear` | 停止输入自动化 |
+| `td_op_screen_rect` | 获取节点的屏幕坐标 |
+| `td_click_screen_point` | 点击截图中的某点 |
+| `td_screen_point_to_global` | 把截图像素转换为绝对屏幕坐标 |
 
-The table above covers the 32 tools used in typical creative workflows. The remaining 4 tools (`td_project_quit`, `td_test_session`, `td_dev_log`, `td_clear_dev_log`) are admin/dev-mode utilities — see `references/mcp-tools.md` for the full 36-tool reference with complete parameter schemas.
+上表覆盖了典型创作工作流中用到的 32 个工具。其余 4 个（`td_project_quit`、`td_test_session`、`td_dev_log`、`td_clear_dev_log`）是管理 / dev-mode 工具——完整 36 工具参考与完整参数 schema 见 `references/mcp-tools.md`。
 
-## Key Implementation Rules
+## 关键实现规则
 
-**GLSL time:** No `uTDCurrentTime` in GLSL TOP. Use the Values page:
+**GLSL 时间：** GLSL TOP 里没有 `uTDCurrentTime`。用 Values 页：
 ```python
 # Call td_get_par_info(op_type="glslTOP") first to confirm param names
 td_set_operator_pars(path="/project1/shader", parameters={"value0name": "uTime"})
@@ -220,23 +220,23 @@ td_set_operator_pars(path="/project1/shader", parameters={"value0name": "uTime"}
 # In GLSL: uniform float uTime;
 ```
 
-Fallback: Constant TOP in `rgba32float` format (8-bit clamps to 0-1, freezing the shader).
+回退：用 `rgba32float` 格式的 Constant TOP（8-bit 会钳制到 0-1，冻住 shader）。
 
-**Feedback TOP:** Use `top` parameter reference, not direct input wire. "Not enough sources" resolves after first cook. "Cook dependency loop" warning is expected.
+**Feedback TOP：** 用 `top` 参数引用，而非直接输入连线。"Not enough sources" 会在首次 cook 后消失。"Cook dependency loop" 警告是预期内的。
 
-**Resolution:** Non-Commercial caps at 1280×1280. Use `outputresolution = 'custom'`.
+**分辨率：** Non-Commercial 版上限 1280×1280。用 `outputresolution = 'custom'`。
 
-**Large shaders:** Write GLSL to `/tmp/file.glsl`, then use `td_write_dat` or `td_execute_python` to load.
+**大型 shader：** 把 GLSL 写到 `/tmp/file.glsl`，再用 `td_write_dat` 或 `td_execute_python` 加载。
 
-**Vertex/Point access (TD 2025.32):** `point.P[0]`, `point.P[1]`, `point.P[2]` — NOT `.x`, `.y`, `.z`.
+**Vertex / Point 访问（TD 2025.32）：** `point.P[0]`、`point.P[1]`、`point.P[2]`——不是 `.x`、`.y`、`.z`。
 
-**Extensions:** `ext0object` format is `"op('./datName').module.ClassName(me)"` in CONSTANT mode. After editing extension code with `td_write_dat`, call `td_reinit_extension`.
+**Extensions：** CONSTANT 模式下 `ext0object` 的格式是 `"op('./datName').module.ClassName(me)"`。用 `td_write_dat` 编辑 extension 代码后，调用 `td_reinit_extension`。
 
-**Script callbacks:** ALWAYS use relative paths via `me.parent()` / `scriptOp.parent()`.
+**Script 回调：** 始终通过 `me.parent()` / `scriptOp.parent()` 使用相对路径。
 
-**Cleaning nodes:** Always `list(root.children)` before iterating + `child.valid` check.
+**清理节点：** 迭代前始终 `list(root.children)`，并做 `child.valid` 检查。
 
-## Recording / Exporting Video
+## 录制 / 导出视频
 
 ```python
 # via td_execute_python:
@@ -250,21 +250,21 @@ rec.par.record = True   # start
 # rec.par.record = False  # stop (call separately later)
 ```
 
-H.264/H.265/AV1 need Commercial license. Use `prores` on macOS or `mjpa` as fallback.
-Extract frames: `ffmpeg -i /tmp/output.mov -vframes 120 /tmp/frames/frame_%06d.png`
+H.264/H.265/AV1 需要 Commercial 许可。macOS 上用 `prores`，或用 `mjpa` 回退。
+抽帧：`ffmpeg -i /tmp/output.mov -vframes 120 /tmp/frames/frame_%06d.png`
 
-**TOP.save() is useless for animation** — captures same GPU texture every time. Always use MovieFileOut.
+**TOP.save() 对动画没用**——每次都捕获同一张 GPU 纹理。始终用 MovieFileOut。
 
-### Before Recording: Checklist
+### 录制前：清单
 
-1. **Verify FPS > 0** via `td_get_perf`. If FPS=0 the recording will be empty. See pitfalls #38-39.
-2. **Verify shader output is not black** via `td_get_screenshot`. Black output = shader error or missing input. See pitfalls #8, #40.
-3. **If recording with audio:** cue audio to start first, then delay recording by 3 frames. See pitfalls #19.
-4. **Set output path before starting record** — setting both in the same script can race.
+1. **用 `td_get_perf` 确认 FPS > 0**。若 FPS=0，录制会是空的。见 pitfalls #38-39。
+2. **用 `td_get_screenshot` 确认 shader 输出不是黑的**。全黑输出 = shader 错误或缺输入。见 pitfalls #8、#40。
+3. **若带音频录制：** 先让音频起播，再把录制延后 3 帧。见 pitfalls #19。
+4. **开始录制前先设好输出路径**——在同一脚本里同时设置两者可能产生竞态。
 
-## Audio-Reactive GLSL (Proven Recipe)
+## 音频反应式 GLSL（验证过的配方）
 
-### Correct signal chain (tested April 2026)
+### 正确的信号链（2026 年 4 月测试）
 
 ```
 AudioFileIn CHOP (playmode=sequential)
@@ -277,18 +277,18 @@ Constant TOP (rgba32float, time) → GLSL TOP input 0
 GLSL TOP → Null TOP → MovieFileOut
 ```
 
-### Critical audio-reactive rules (empirically verified)
+### 关键音频反应规则（经验验证）
 
-1. **TimeSlice must stay ON** for AudioSpectrum. OFF = processes entire audio file → 24000+ samples → CHOP to TOP overflow.
-2. **Set Output Length manually** to 256 via `outputmenu='setmanually'` and `outlength=256`. Default outputs 22050 samples.
-3. **DO NOT use Lag CHOP for spectrum smoothing.** Lag CHOP operates in timeslice mode and expands 256 samples to 2400+, averaging all values to near-zero (~1e-06). The shader receives no usable data. This was the #1 audio sync failure in testing.
-4. **DO NOT use Filter CHOP either** — same timeslice expansion problem with spectrum data.
-5. **Smoothing belongs in the GLSL shader** if needed, via temporal lerp with a feedback texture: `mix(prevValue, newValue, 0.3)`. This gives frame-perfect sync with zero pipeline latency.
-6. **CHOP to TOP dataformat = 'r'**, layout = 'rowscropped'. Spectrum output is 256x2 (stereo). Sample at y=0.25 for first channel.
-7. **Math gain = 10** (not 5). Raw spectrum values are ~0.19 in bass range. Gain of 10 gives usable ~5.0 for the shader.
-8. **No Resample CHOP needed.** Control output size via AudioSpectrum's `outlength` param directly.
+1. **AudioSpectrum 的 TimeSlice 必须保持 ON**。OFF = 处理整个音频文件 → 24000+ 采样 → CHOP to TOP 溢出。
+2. **手动把 Output Length 设为 256**，用 `outputmenu='setmanually'` 与 `outlength=256`。默认输出 22050 采样。
+3. **不要用 Lag CHOP 做频谱平滑。** Lag CHOP 以 timeslice 模式运行，会把 256 采样扩到 2400+，把所有值平均到接近零（~1e-06）。shader 拿不到可用数据。这是测试中头号音频同步失败。
+4. **也不要用 Filter CHOP**——频谱数据同样有 timeslice 扩张问题。
+5. **平滑该放在 GLSL shader 里**（如果需要），用反馈纹理做时间 lerp：`mix(prevValue, newValue, 0.3)`。这样能帧级精确同步、零管线延迟。
+6. **CHOP to TOP 的 dataformat = 'r'**，layout = 'rowscropped'。频谱输出是 256x2（立体声）。第一通道采样 y=0.25。
+7. **Math gain = 10**（不是 5）。低频段原始频谱值约 0.19。增益 10 给 shader 约 5.0 的可用值。
+8. **不需要 Resample CHOP。** 直接通过 AudioSpectrum 的 `outlength` 参数控制输出大小。
 
-### GLSL spectrum sampling
+### GLSL 频谱采样
 
 ```glsl
 // Input 0 = time (1x1 rgba32float), Input 1 = spectrum (256x2)
@@ -304,53 +304,53 @@ float hi   = (texture(sTD2DInputs[1], vec2(0.6, 0.25)).r +
               texture(sTD2DInputs[1], vec2(0.8, 0.25)).r) / 2.0;
 ```
 
-See `references/network-patterns.md` for complete build scripts + shader code.
+完整构建脚本 + shader 代码见 `references/network-patterns.md`。
 
-## Operator Quick Reference
+## Operator 速查
 
-| Family | Color | Python class / MCP type | Suffix |
+| 家族 | 颜色 | Python class / MCP type | 后缀 |
 |--------|-------|-------------|--------|
-| TOP | Purple | noiseTOP, glslTOP, compositeTOP, levelTop, blurTOP, textTOP, nullTOP | TOP |
-| CHOP | Green | audiofileinCHOP, audiospectrumCHOP, mathCHOP, lfoCHOP, constantCHOP | CHOP |
-| SOP | Blue | gridSOP, sphereSOP, transformSOP, noiseSOP | SOP |
-| DAT | White | textDAT, tableDAT, scriptDAT, webserverDAT | DAT |
-| MAT | Yellow | phongMAT, pbrMAT, glslMAT, constMAT | MAT |
-| COMP | Gray | geometryCOMP, containerCOMP, cameraCOMP, lightCOMP, windowCOMP | COMP |
+| TOP | 紫 | noiseTOP, glslTOP, compositeTOP, levelTop, blurTOP, textTOP, nullTOP | TOP |
+| CHOP | 绿 | audiofileinCHOP, audiospectrumCHOP, mathCHOP, lfoCHOP, constantCHOP | CHOP |
+| SOP | 蓝 | gridSOP, sphereSOP, transformSOP, noiseSOP | SOP |
+| DAT | 白 | textDAT, tableDAT, scriptDAT, webserverDAT | DAT |
+| MAT | 黄 | phongMAT, pbrMAT, glslMAT, constMAT | MAT |
+| COMP | 灰 | geometryCOMP, containerCOMP, cameraCOMP, lightCOMP, windowCOMP | COMP |
 
-## Security Notes
+## 安全说明
 
-- MCP runs on localhost only (port 40404). No authentication — any local process can send commands.
-- `td_execute_python` has unrestricted access to the TD Python environment and filesystem as the TD process user.
-- `setup.sh` downloads twozero.tox from the official 404zero.com URL. Verify the download if concerned.
-- The skill never sends data outside localhost. All MCP communication is local.
+- MCP 只监听 localhost（端口 40404）。无认证——任何本地进程都能发命令。
+- `td_execute_python` 以 TD 进程用户的身份，对 TD Python 环境与文件系统有不受限的访问。
+- `setup.sh` 从官方 404zero.com URL 下载 twozero.tox。若担心可自行校验下载。
+- 本 skill 绝不把数据发到 localhost 之外。所有 MCP 通信都是本地的。
 
-## References
+## 参考文档
 
-| File | What |
+| 文件 | 内容 |
 |------|------|
-| `references/pitfalls.md` | Hard-won lessons from real sessions |
-| `references/operators.md` | All operator families with params and use cases |
-| `references/network-patterns.md` | Recipes: audio-reactive, generative, GLSL, instancing |
-| `references/mcp-tools.md` | Full twozero MCP tool parameter schemas |
-| `references/python-api.md` | TD Python: op(), scripting, extensions |
-| `references/troubleshooting.md` | Connection diagnostics, debugging |
-| `references/glsl.md` | GLSL uniforms, built-in functions, shader templates |
-| `references/postfx.md` | Post-FX: bloom, CRT, chromatic aberration, feedback glow |
-| `references/layout-compositor.md` | HUD layout patterns, panel grids, BSP-style layouts |
-| `references/operator-tips.md` | Wireframe rendering, feedback TOP setup |
-| `references/geometry-comp.md` | Geometry COMP: instancing, POP vs SOP, morphing |
-| `references/audio-reactive.md` | Audio band extraction, beat detection, envelope following |
-| `references/animation.md` | LFOs, timers, keyframes, easing, expression-driven motion |
-| `references/midi-osc.md` | MIDI/OSC controllers, TouchOSC, multi-machine sync |
-| `references/particles.md` | POPs and legacy particleSOP — emission, forces, collisions |
-| `references/projection-mapping.md` | Multi-window output, corner pin, mesh warp, edge blending |
-| `references/external-data.md` | HTTP, WebSocket, MQTT, Serial, TCP, webserverDAT |
-| `references/panel-ui.md` | Custom params, panel COMPs, button/slider/field, panelExecuteDAT |
-| `references/replicator.md` | replicatorCOMP — data-driven cloning, layouts, callbacks |
-| `references/dat-scripting.md` | Execute DAT family — chop/dat/parameter/panel/op/executeDAT |
-| `references/3d-scene.md` | Lighting rigs, shadows, IBL/cubemaps, multi-camera, PBR |
-| `scripts/setup.sh` | Automated setup script |
+| `references/pitfalls.md` | 真实会话中得来的血泪教训 |
+| `references/operators.md` | 所有 operator 家族，含参数与用例 |
+| `references/network-patterns.md` | 配方：音频反应、生成式、GLSL、instancing |
+| `references/mcp-tools.md` | 完整的 twozero MCP 工具参数 schema |
+| `references/python-api.md` | TD Python：op()、脚本、extensions |
+| `references/troubleshooting.md` | 连接诊断、调试 |
+| `references/glsl.md` | GLSL uniform、内置函数、shader 模板 |
+| `references/postfx.md` | 后期特效：bloom、CRT、色差、反馈辉光 |
+| `references/layout-compositor.md` | HUD 布局模式、面板网格、BSP 式布局 |
+| `references/operator-tips.md` | 线框渲染、feedback TOP 设置 |
+| `references/geometry-comp.md` | Geometry COMP：instancing、POP vs SOP、变形 |
+| `references/audio-reactive.md` | 音频频段提取、节拍检测、包络跟随 |
+| `references/animation.md` | LFO、计时器、关键帧、缓动、表达式驱动运动 |
+| `references/midi-osc.md` | MIDI/OSC 控制器、TouchOSC、多机同步 |
+| `references/particles.md` | POP 与旧版 particleSOP——发射、力、碰撞 |
+| `references/projection-mapping.md` | 多窗口输出、corner pin、网格变形、边缘融合 |
+| `references/external-data.md` | HTTP、WebSocket、MQTT、Serial、TCP、webserverDAT |
+| `references/panel-ui.md` | 自定义参数、panel COMP、按钮 / 滑块 / 字段、panelExecuteDAT |
+| `references/replicator.md` | replicatorCOMP——数据驱动克隆、布局、回调 |
+| `references/dat-scripting.md` | Execute DAT 家族——chop/dat/parameter/panel/op/executeDAT |
+| `references/3d-scene.md` | 灯光装置、阴影、IBL/cubemap、多相机、PBR |
+| `scripts/setup.sh` | 自动化安装脚本 |
 
 ---
 
-> You're not writing code. You're conducting light.
+> 你不是在写代码。你是在指挥光。

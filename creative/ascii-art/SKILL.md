@@ -1,6 +1,6 @@
 ---
 name: ascii-art
-description: "ASCII art: pyfiglet, cowsay, boxes, image-to-ascii."
+description: "生成 ASCII art 时使用。只要要做文字横幅、cowsay 气泡、装饰边框或图片转 ASCII，就主动加载，即使用户只说「搞个 ASCII 图」。覆盖 pyfiglet、cowsay、boxes、image-to-ascii 与在线 API。"
 version: 4.0.0
 author: 0xbyt4, Hermes Agent
 license: MIT
@@ -15,13 +15,13 @@ metadata:
 
 # ASCII Art Skill
 
-Multiple tools for different ASCII art needs. All tools are local CLI programs or free REST APIs — no API keys required.
+针对不同 ASCII art 需求的多个工具。所有工具都是本地 CLI 程序或免费 REST API——无需 API key。
 
-## Tool 1: Text Banners (pyfiglet — local)
+## 工具 1：文本横幅（pyfiglet — 本地）
 
-Render text as large ASCII art banners. 571 built-in fonts.
+把文本渲染成大型 ASCII art 横幅。内置 571 种字体。
 
-### Setup
+### 安装
 
 ```bash
 pip install pyfiglet --break-system-packages -q
@@ -35,30 +35,30 @@ python3 -m pyfiglet "TEXT" -f doom -w 80    # Set width
 python3 -m pyfiglet --list_fonts             # List all 571 fonts
 ```
 
-### Recommended fonts
+### 推荐字体
 
-| Style | Font | Best for |
+| 风格 | 字体 | 适合 |
 |-------|------|----------|
-| Clean & modern | `slant` | Project names, headers |
-| Bold & blocky | `doom` | Titles, logos |
-| Big & readable | `big` | Banners |
-| Classic banner | `banner3` | Wide displays |
-| Compact | `small` | Subtitles |
-| Cyberpunk | `cyberlarge` | Tech themes |
-| 3D effect | `3-d` | Splash screens |
-| Gothic | `gothic` | Dramatic text |
+| 简洁现代 | `slant` | 项目名、标题 |
+| 粗壮块状 | `doom` | 标题、logo |
+| 大而清晰 | `big` | 横幅 |
+| 经典横幅 | `banner3` | 宽幅展示 |
+| 紧凑 | `small` | 副标题 |
+| 赛博朋克 | `cyberlarge` | 科技主题 |
+| 3D 效果 | `3-d` | 启动页 |
+| 哥特 | `gothic` | 戏剧化文本 |
 
-### Tips
+### 技巧
 
-- Preview 2-3 fonts and let the user pick their favorite
-- Short text (1-8 chars) works best with detailed fonts like `doom` or `block`
-- Long text works better with compact fonts like `small` or `mini`
+- 预览 2-3 种字体，让用户挑最喜欢的
+- 短文本（1-8 字符）最适合 `doom` 或 `block` 这类细节丰富的字体
+- 长文本更适合 `small` 或 `mini` 这类紧凑字体
 
-## Tool 2: Text Banners (asciified API — remote, no install)
+## 工具 2：文本横幅（asciified API — 远程，免安装）
 
-Free REST API that converts text to ASCII art. 250+ FIGlet fonts. Returns plain text directly — no parsing needed. Use this when pyfiglet is not installed or as a quick alternative.
+免费 REST API，把文本转成 ASCII art。250+ 种 FIGlet 字体。直接返回纯文本——无需解析。在未安装 pyfiglet 时使用，或作为快捷替代方案。
 
-### Usage (via terminal curl)
+### 用法（通过 terminal curl）
 
 ```bash
 # Basic text banner (default font)
@@ -75,18 +75,18 @@ curl -s "https://asciified.thelicato.io/api/v2/ascii?text=Hello&font=Banner3"
 curl -s "https://asciified.thelicato.io/api/v2/fonts"
 ```
 
-### Tips
+### 技巧
 
-- URL-encode spaces as `+` in the text parameter
-- The response is plain text ASCII art — no JSON wrapping, ready to display
-- Font names are case-sensitive; use the fonts endpoint to get exact names
-- Works from any terminal with curl — no Python or pip needed
+- 在 text 参数中把空格 URL 编码为 `+`
+- 响应就是纯文本 ASCII art——没有 JSON 包裹，可直接展示
+- 字体名区分大小写。用 fonts 端点获取确切名称
+- 任何带 curl 的终端都能用——无需 Python 或 pip
 
-## Tool 3: Cowsay (Message Art)
+## 工具 3：Cowsay（消息艺术）
 
-Classic tool that wraps text in a speech bubble with an ASCII character.
+经典工具，把文本包进带 ASCII 角色的对话气泡中。
 
-### Setup
+### 安装
 
 ```bash
 sudo apt install cowsay -y    # Debian/Ubuntu
@@ -104,7 +104,7 @@ cowthink "Hmm..."                  # Thought bubble
 cowsay -l                          # List all characters
 ```
 
-### Available characters (50+)
+### 可用角色（50+）
 
 `beavis.zen`, `bong`, `bunny`, `cheese`, `daemon`, `default`, `dragon`,
 `dragon-and-cow`, `elephant`, `eyes`, `flaming-skull`, `ghostbusters`,
@@ -113,7 +113,7 @@ cowsay -l                          # List all characters
 `stegosaurus`, `stimpy`, `supermilker`, `surgery`, `three-eyes`,
 `turkey`, `turtle`, `tux`, `udder`, `vader`, `vader-koala`, `www`
 
-### Eye/tongue modifiers
+### 眼睛 / 舌头修饰符
 
 ```bash
 cowsay -b "Borg"       # =_= eyes
@@ -126,11 +126,11 @@ cowsay -e "OO" "Msg"   # Custom eyes
 cowsay -T "U " "Msg"   # Custom tongue
 ```
 
-## Tool 4: Boxes (Decorative Borders)
+## 工具 4：Boxes（装饰边框）
 
-Draw decorative ASCII art borders/frames around any text. 70+ built-in designs.
+为任意文本绘制装饰性 ASCII art 边框 / 外框。内置 70+ 种样式。
 
-### Setup
+### 安装
 
 ```bash
 sudo apt install boxes -y    # Debian/Ubuntu
@@ -153,7 +153,7 @@ echo "Hello World" | boxes -a c               # Center text
 boxes -l                                       # List all 70+ designs
 ```
 
-### Combine with pyfiglet or asciified
+### 与 pyfiglet 或 asciified 组合
 
 ```bash
 python3 -m pyfiglet "HERMES" -f slant | boxes -d stone
@@ -161,11 +161,11 @@ python3 -m pyfiglet "HERMES" -f slant | boxes -d stone
 curl -s "https://asciified.thelicato.io/api/v2/ascii?text=HERMES&font=Slant" | boxes -d stone
 ```
 
-## Tool 5: TOIlet (Colored Text Art)
+## 工具 5：TOIlet（彩色文本艺术）
 
-Like pyfiglet but with ANSI color effects and visual filters. Great for terminal eye candy.
+类似 pyfiglet，但带 ANSI 颜色效果与视觉滤镜。终端装点利器。
 
-### Setup
+### 安装
 
 ```bash
 sudo apt install toilet toilet-fonts -y    # Debian/Ubuntu
@@ -185,17 +185,17 @@ toilet -f pagga "Block"                 # Block-style font (unique to toilet)
 toilet -F list                          # List available filters
 ```
 
-### Filters
+### 滤镜
 
-`crop`, `gay` (rainbow), `metal`, `flip`, `flop`, `180`, `left`, `right`, `border`
+`crop`、`gay`（彩虹）、`metal`、`flip`、`flop`、`180`、`left`、`right`、`border`
 
-**Note**: toilet outputs ANSI escape codes for colors — works in terminals but may not render in all contexts (e.g., plain text files, some chat platforms).
+**注意**：toilet 通过 ANSI 转义码输出颜色——在终端中有效。但并非所有场景都能渲染（例如纯文本文件、部分聊天平台）。
 
-## Tool 6: Image to ASCII Art
+## 工具 6：图片转 ASCII Art
 
-Convert images (PNG, JPEG, GIF, WEBP) to ASCII art.
+把图片（PNG、JPEG、GIF、WEBP）转成 ASCII art。
 
-### Option A: ascii-image-converter (recommended, modern)
+### 方案 A：ascii-image-converter（推荐，现代）
 
 ```bash
 # Install
@@ -213,7 +213,7 @@ ascii-image-converter https://url/image.jpg      # Direct URL
 ascii-image-converter image.png --save-txt out   # Save as text
 ```
 
-### Option B: jp2a (lightweight, JPEG only)
+### 方案 B：jp2a（轻量，仅 JPEG）
 
 ```bash
 sudo apt install jp2a -y
@@ -221,23 +221,23 @@ jp2a --width=80 image.jpg
 jp2a --colors image.jpg              # Colorized
 ```
 
-## Tool 7: Search Pre-Made ASCII Art
+## 工具 7：搜索现成 ASCII Art
 
-Search curated ASCII art from the web. Use `terminal` with `curl`.
+从网上搜索精选 ASCII art。使用 `terminal` 配合 `curl`。
 
-### Source A: ascii.co.uk (recommended for pre-made art)
+### 来源 A：ascii.co.uk（现成艺术推荐）
 
-Large collection of classic ASCII art organized by subject. Art is inside HTML `<pre>` tags. Fetch the page with curl, then extract art with a small Python snippet.
+按主题归类的大量经典 ASCII art 合集。艺术内容位于 HTML 的 `<pre>` 标签内。用 curl 抓取页面，再用一小段 Python 提取艺术。
 
-**URL pattern:** `https://ascii.co.uk/art/{subject}`
+**URL 模式：** `https://ascii.co.uk/art/{subject}`
 
-**Step 1 — Fetch the page:**
+**第 1 步——抓取页面：**
 
 ```bash
 curl -s 'https://ascii.co.uk/art/cat' -o /tmp/ascii_art.html
 ```
 
-**Step 2 — Extract art from pre tags:**
+**第 2 步——从 pre 标签提取艺术：**
 
 ```python
 import re, html
@@ -252,38 +252,38 @@ for art in arts:
         print('\n---\n')
 ```
 
-**Available subjects** (use as URL path):
-- Animals: `cat`, `dog`, `horse`, `bird`, `fish`, `dragon`, `snake`, `rabbit`, `elephant`, `dolphin`, `butterfly`, `owl`, `wolf`, `bear`, `penguin`, `turtle`
-- Objects: `car`, `ship`, `airplane`, `rocket`, `guitar`, `computer`, `coffee`, `beer`, `cake`, `house`, `castle`, `sword`, `crown`, `key`
-- Nature: `tree`, `flower`, `sun`, `moon`, `star`, `mountain`, `ocean`, `rainbow`
-- Characters: `skull`, `robot`, `angel`, `wizard`, `pirate`, `ninja`, `alien`
-- Holidays: `christmas`, `halloween`, `valentine`
+**可用主题**（用作 URL 路径）：
+- 动物：`cat`, `dog`, `horse`, `bird`, `fish`, `dragon`, `snake`, `rabbit`, `elephant`, `dolphin`, `butterfly`, `owl`, `wolf`, `bear`, `penguin`, `turtle`
+- 物件：`car`, `ship`, `airplane`, `rocket`, `guitar`, `computer`, `coffee`, `beer`, `cake`, `house`, `castle`, `sword`, `crown`, `key`
+- 自然：`tree`, `flower`, `sun`, `moon`, `star`, `mountain`, `ocean`, `rainbow`
+- 角色：`skull`, `robot`, `angel`, `wizard`, `pirate`, `ninja`, `alien`
+- 节日：`christmas`, `halloween`, `valentine`
 
-**Tips:**
-- Preserve artist signatures/initials — important etiquette
-- Multiple art pieces per page — pick the best one for the user
-- Works reliably via curl, no JavaScript needed
+**技巧：**
+- 保留作者签名 / 缩写——这是重要礼仪
+- 每页可能有多件作品——为用户挑最好的
+- 通过 curl 稳定可用，无需 JavaScript
 
-### Source B: GitHub Octocat API (fun easter egg)
+### 来源 B：GitHub Octocat API（趣味彩蛋）
 
-Returns a random GitHub Octocat with a wise quote. No auth needed.
+返回随机的 GitHub Octocat 配上一句语录。无需认证。
 
 ```bash
 curl -s https://api.github.com/octocat
 ```
 
-## Tool 8: Fun ASCII Utilities (via curl)
+## 工具 8：趣味 ASCII 小工具（通过 curl）
 
-These free services return ASCII art directly — great for fun extras.
+这些免费服务直接返回 ASCII art——适合当趣味附加。
 
-### QR Codes as ASCII Art
+### QR 码转 ASCII Art
 
 ```bash
 curl -s "qrenco.de/Hello+World"
 curl -s "qrenco.de/https://example.com"
 ```
 
-### Weather as ASCII Art
+### 天气转 ASCII Art
 
 ```bash
 curl -s "wttr.in/London"          # Full weather report with ASCII graphics
@@ -291,11 +291,11 @@ curl -s "wttr.in/Moon"            # Moon phase in ASCII art
 curl -s "v2.wttr.in/London"       # Detailed version
 ```
 
-## Tool 9: LLM-Generated Custom Art (Fallback)
+## 工具 9：LLM 生成自定义艺术（兜底）
 
-When tools above don't have what's needed, generate ASCII art directly using these Unicode characters:
+当以上工具都没有所需内容时，直接用这些 Unicode 字符生成 ASCII art：
 
-### Character Palette
+### 字符调色板
 
 **Box Drawing:** `╔ ╗ ╚ ╝ ║ ═ ╠ ╣ ╦ ╩ ╬ ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼ ╭ ╮ ╰ ╯`
 
@@ -303,20 +303,20 @@ When tools above don't have what's needed, generate ASCII art directly using the
 
 **Geometric & Symbols:** `◆ ◇ ◈ ● ○ ◉ ■ □ ▲ △ ▼ ▽ ★ ☆ ✦ ✧ ◀ ▶ ◁ ▷ ⬡ ⬢ ⌂`
 
-### Rules
+### 规则
 
-- Max width: 60 characters per line (terminal-safe)
-- Max height: 15 lines for banners, 25 for scenes
-- Monospace only: output must render correctly in fixed-width fonts
+- 最大宽度：每行 60 字符（终端安全）
+- 最大高度：横幅 15 行，场景 25 行
+- 仅等宽：输出必须在固定宽度字体中正确渲染
 
-## Decision Flow
+## 决策流程
 
-1. **Text as a banner** → pyfiglet if installed, otherwise asciified API via curl
-2. **Wrap a message in fun character art** → cowsay
-3. **Add decorative border/frame** → boxes (can combine with pyfiglet/asciified)
-4. **Art of a specific thing** (cat, rocket, dragon) → ascii.co.uk via curl + parsing
-5. **Convert an image to ASCII** → ascii-image-converter or jp2a
-6. **QR code** → qrenco.de via curl
-7. **Weather/moon art** → wttr.in via curl
-8. **Something custom/creative** → LLM generation with Unicode palette
-9. **Any tool not installed** → install it, or fall back to next option
+1. **把文本做成横幅** → 装了 pyfiglet 就用它，否则用 curl 调 asciified API
+2. **把消息包进趣味角色艺术** → cowsay
+3. **加装饰性边框 / 外框** → boxes（可与 pyfiglet/asciified 组合）
+4. **某具体事物的艺术**（猫、火箭、龙） → curl 抓 ascii.co.uk + 解析
+5. **图片转 ASCII** → ascii-image-converter 或 jp2a
+6. **QR 码** → curl 调 qrenco.de
+7. **天气 / 月亮艺术** → curl 调 wttr.in
+8. **自定义 / 创意内容** → 用 Unicode 调色板由 LLM 生成
+9. **任何未安装的工具** → 安装它，或回退到下一选项

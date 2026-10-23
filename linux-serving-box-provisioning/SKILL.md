@@ -1,0 +1,122 @@
+---
+name: linux-serving-box-provisioning
+version: 1.0.0
+author: Nekonya
+license: MIT
+description: 把一台 Linux 主机布置成 headless 推理盒时加载：debootstrap 装系统、NVIDIA 驱动（Blackwell 只吃开源内核模块）、数据盘挂载、Strata 引擎起服务、外置 SSD 引导系统。含主人粘贴制代跑的执行流程。
+metadata:
+  hermes:
+    tags: [linux, provisioning, nvidia, strata, headless, ssh]
+---
+
+# 远程 Linux 推理盒布置（headless）
+
+把一台 Linux 主机布置成 LLM 推理服务盒（以 Strata / Qwen3.8 系为目标形态）。
+通用 SSH 壳卫生与「scp 脚本，不内联引号」见 `ssh-windows-remote-ops`。那些规则
+不分操作系统，本文不重复。
+
+## When to Use / 何时使用
+
+给一台 12–24GB VRAM + 32–64GB RAM 的机器装 headless Linux + 推理引擎。
+或为便携/外置 SSD 布置可引导推理系统。
+
+## 总原则：代跑执行流程
+
+凡由用户粘贴执行的步骤，遵循「发块前自检四问 + 每步验完再给下一步」
+（详见宿主 SOUL 的验收纪律节）。本文只补 Linux 特有的判据：
+
+- **装了的判据**：`dpkg -l <包> | tail -1` 显示 `ii`、`ls` 到预期文件、
+  `systemctl is-enabled <unit>` 返回 enabled。
+- **pgrep 必须用 `-x`**：`pgrep -f aria2c` 会匹配到含 "aria2c" 的 ssh 命令行本身，
+  给出假「在跑」信号。精确匹配用 `pgrep -x aria2c`，
+  或 `ps aux | grep ... | grep -v grep`。
+
+## 步骤 1 · 离线装系统（debootstrap 路线，宿主机不重启）
+
+目标盘分区可用 `sgdisk`（agent 可执行）。**`mkfs.*` 属硬拦红线，必须用户手敲**，
+提前把三条命令给全（fat32 EFI / swap / ext4 根）。分区后内核可能缓存旧表，
+`partprobe` 报「in use」时先卸干净占用（含 ntfs3 的 fuse 进程），再重读。
+
+```bash
+# 宿主机上：目标盘挂到 /mnt/<名> 后
+sudo debootstrap --arch=amd64 trixie /mnt/<名> http://deb.debian.org/debian
+for fs in dev proc sys; do sudo mount --bind /$fs /mnt/<名>/$fs; done
+# chroot 内：fstab(三行 UUID)、sources.list(main contrib non-free non-free-firmware)
+# 装：linux-image-amd64 firmware-misc-nonfree openssh-server grub-efi-amd64-bin
+#     wifi 固件一次装齐：firmware-iwlwifi firmware-realtek firmware-mediatek
+#     firmware-atheros firmware-brcm80211
+```
+
+**坑：`grub-efi-amd64-bin` 不提供 `grub-install`**。本体的 `grub-efi-amd64`
+漏装则症状是 `grub-install: command not found`，换一台机器则只报「认不到启动项」。
+便携引导必须 `grub-install --removable --no-nvram /dev/<盘>` 写 EFI 兜底路径
+（NVRAM 启动项不跨机器）。装完 `find` 验 `EFI/BOOT/BOOTX64.EFI` 存在，
+`update-grub` 后 grep grub.cfg 确认 vmlinuz 条目。
+
+**网络**：headless 用 systemd-networkd（`[Match] Name=en*` / `DHCP=yes`）+ sshd enabled。
+`systemd-resolved` 可不装。写静态 `/etc/resolv.conf` 兜底。**切勿写
+`ln -sf /run/systemd/resolve/resolv.conf`**：resolved 未装时是断链，
+后续 `tee /etc/resolv.conf` 会报 `No such file or directory`（tee 沿断链写入）。
+修复 = `sudo rm -f /etc/resolv.conf` 再写实体文件。
+
+**fstab 卫生**：sysctl 参数（如 `vm.nr_hugepages`）写 `/etc/sysctl.d/`，
+**绝不混进 fstab**：fstab 解析报 `parse error at line N -- ignored` 虽良性但必须清。
+改文件避免高危 sed（引号易碎）：`echo 覆盖` 或 `grep -v 到临时文件再盖回`。
+
+## 步骤 2 · NVIDIA 驱动：Blackwell 只吃开源内核模块
+
+详见 `references/debian-nvidia-blackwell.md`。一句话判据：
+**RTX 50 系（Blackwell）必须 570+ 的 open 内核模块**。Debian 全系（含 sid、backports）的
+`nvidia-kernel-dkms` 是闭源流派，任何版本都带不动。正路 = NVIDIA CUDA 仓库
+`nvidia-driver-cuda` + `nvidia-kernel-open-dkms`。验收：`nvidia-smi` 显示卡名与驱动号。
+
+DKMS 自签模块 + Secure Boot 会拒载。干活机直接在 BIOS 关 Secure Boot 最省事。
+
+## 步骤 3 · 数据盘：NTFS rw 挂载内置分区
+
+大模型下载目录**绝不放外置 USB 盘**：UAS 黑名单盒子退 usb-storage 兼容模式，
+持续 30GB 写入会 `device offline`。**根分区若也在该盘上，掉线 = 整机 I/O 冻结**
+（DNS 失败 / sshd reset / 下载 IO error 三症状一病根），拔插救不回，只能硬重启。
+
+- 内置 Windows NTFS 分区挂载：`mount -t ntfs3 -o rw,uid=$(id -u),gid=$(id -g) /dev/<p> ~/winc`
+- **先验脏标记再 rw**：Windows 快速启动开着时卷带脏标记，强挂有元数据风险。
+  挂载成功后先 `touch` 写入测试。
+- 引擎的数据目录用**软链指到 NTFS 挂载点**（`ln -s ~/winc/<data> ~/<repo>-data`），
+  大文件全走内置盘。
+
+## 步骤 4 · 引擎安装（Strata 形态）
+
+```bash
+git clone --depth 1 https://github.com/Niko1221/Strata && cd Strata
+./setup.sh --check          # 先体检：会列出各尺寸哪些装得下
+./setup.sh --yes --family coder --no-start   # 断点可续
+```
+
+- **`--check` 的结论是账本**：低内存机型只有 Coder（IQ1_M）走 low-RAM 模式，
+  其余尺寸全不适配。不要自算推翻，以 check 输出为准。
+- **CUDA Toolkit**：Debian 不在引擎自动安装范围内。若机器已配 NVIDIA CUDA 仓库
+  （装驱动时配的），`apt-get install -y cuda-toolkit-13-<x>` 即可，
+  `/usr/local/cuda` 软链由 dpkg 自带。
+- **装包先备料**：apt 缺的组件（如 `sudo`、`aria2`、`curl`，装系统时容易漏）
+  在联网态下载 .deb 推到家目录（带 md5 对验），离线态只 `dpkg -i`。
+- **hf 下载用 aria2 逐文件 `-o` 指定原始文件名**：`resolve/main` 经 CDN 重定向，
+  多文件 `-j` 并发会落成哈希文件名，引擎按原名找不到等于白下。校验 =
+  文件字节数与服务端声明精确一致。
+- 装完判据：输出 `All set.`。数据目录含 `models/` `mtp/` `packs/`。
+
+## 步骤 5 · 起服务与远程访问
+
+- 引擎默认绑 **127.0.0.1**。远程验收用 SSH 隧道：
+  `ssh -N -L 18080:127.0.0.1:8080 user@host`（Hermes 侧用 background=true 挂常驻），
+  台侧打 `http://127.0.0.1:18080/v1/...`。`ss -tlnp | grep 8080` 验绑定形状。
+- **首次推理是冷启动**：专家缓存刚填充完，首 token 延迟分钟级属正常，
+  发起请求一侧的超时给足（curl `-m 900`），验收看 usage 与真实 tok/s，不看首响应快慢。
+- 模型加载判据：`/v1/models` 返回 `status.loaded`。进程日志出现 `ready:` 行。
+
+## 用户侧权限形状
+
+远程代管的 sudo 圈定（用户敲一次）：
+`alonzo ALL=(root) NOPASSWD: /usr/bin/apt-get, /usr/bin/dpkg, /usr/bin/systemctl,
+/usr/sbin/reboot, /usr/bin/mount, /usr/bin/umount`。**按二进制路径圈，绝不 ALL。
+root 保持锁定**。验证圈定是否生效必须用**圈内命令**试（`sudo -n /usr/bin/dpkg -l sudo`），
+拿圈外命令（如 `sudo -n true`）去测会误判为配置失败。

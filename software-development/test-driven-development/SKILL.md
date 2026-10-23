@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: "走 TDD 时使用：RED-GREEN-REFACTOR，先写测试再写码。"
+description: "走测试驱动开发（TDD）时使用：RED-GREEN-REFACTOR，先写测试再写码。只要要写新功能、修 bug 或重构，就主动加载，即使用户没明说 TDD。没看过测试失败就不算数。"
 version: 1.1.0
 author: Hermes Agent (adapted from obra/superpowers)
 license: MIT
@@ -11,54 +11,54 @@ metadata:
     related_skills: [systematic-debugging, subagent-driven-development]
 ---
 
-# Test-Driven Development (TDD)
+# 测试驱动开发（TDD）
 
-## Overview
+## Overview（概览）
 
-Write the test first. Watch it fail. Write minimal code to pass.
+先写测试。看它失败。写最小代码让它通过。
 
-**Core principle:** If you didn't watch the test fail, you don't know if it tests the right thing.
+**核心原则：** 若你没亲眼看过测试失败，你就不知道它测的是不是对的东西。
 
-**Violating the letter of the rules is violating the spirit of the rules.**
+**违背规则的字面，就是违背规则的精神。**
 
-## When to Use
+## When to Use（何时用）
 
-**Always:**
-- New features
-- Bug fixes
-- Refactoring
-- Behavior changes
+**永远：**
+- 新功能
+- 修 bug
+- 重构
+- 行为改动
 
-**Exceptions (ask the user first):**
-- Throwaway prototypes
-- Generated code
-- Configuration files
+**例外（先问用户）：**
+- 一次性原型
+- 生成的代码
+- 配置文件
 
-Thinking "skip TDD just this once"? Stop. That's rationalization.
+冒出 "就这一次跳过 TDD" 的念头？停下。那是自我合理化。
 
-## The Iron Law
+## The Iron Law（铁律）
 
 ```
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 ```
 
-Write code before the test? Delete it. Start over.
+在测试之前写了代码？删掉它。重来。
 
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+**没有例外：**
+- 别把它留作 "reference"
+- 别在写测试时 "改编" 它
+- 别看它
+- 删就是删
 
-Implement fresh from tests. Period.
+从测试全新实现。就这样。
 
-## Red-Green-Refactor Cycle
+## Red-Green-Refactor Cycle（红-绿-重构循环）
 
-### RED — Write Failing Test
+### RED —— 写失败测试
 
-Write one minimal test showing what should happen.
+写一个最小的测试，展示应该发生什么。
 
-**Good test:**
+**好测试：**
 ```python
 def test_retries_failed_operations_3_times():
     attempts = 0
@@ -74,9 +74,9 @@ def test_retries_failed_operations_3_times():
     assert result == 'success'
     assert attempts == 3
 ```
-Clear name, tests real behavior, one thing.
+名字清晰、测的是真实行为、只测一件事。
 
-**Bad test:**
+**坏测试：**
 ```python
 def test_retry_works():
     mock = MagicMock()
@@ -84,43 +84,43 @@ def test_retry_works():
     result = retry_operation(mock)
     assert result == 'success'  # What about retry count? Timing?
 ```
-Vague name, tests mock not real code.
+名字含糊、测的是 mock 不是真实代码。
 
-**Requirements:**
-- One behavior per test
-- Clear descriptive name ("and" in name? Split it)
-- Real code, not mocks (unless truly unavoidable)
-- Name describes behavior, not implementation
+**要求：**
+- 每个测试一个行为
+- 名字清晰有描述性（名字里有 "and"？拆开它）
+- 真实代码，不用 mock（除非真的躲不开）
+- 名字描述行为，不描述实现
 
-### Verify RED — Watch It Fail
+### Verify RED —— 看它失败
 
-**MANDATORY. Never skip.**
+**强制。永不跳过。**
 
 ```bash
 # Use terminal tool to run the specific test
 pytest tests/test_feature.py::test_specific_behavior -v
 ```
 
-Confirm:
-- Test fails (not errors from typos)
-- Failure message is expected
-- Fails because the feature is missing
+确认：
+- 测试失败（而不是拼写错误导致的报错）
+- 失败信息符合预期
+- 失败是因为功能缺失
 
-**Test passes immediately?** You're testing existing behavior. Fix the test.
+**测试立刻通过？** 你在测已有行为。修测试。
 
-**Test errors?** Fix the error, re-run until it fails correctly.
+**测试报错？** 修错误，重跑直到它以正确方式失败。
 
-### GREEN — Minimal Code
+### GREEN —— 最小代码
 
-Write the simplest code to pass the test. Nothing more.
+写最简单、能让测试通过的代码。不多一点。
 
-**Good:**
+**好：**
 ```python
 def add(a, b):
     return a + b  # Nothing extra
 ```
 
-**Bad:**
+**坏：**
 ```python
 def add(a, b):
     result = a + b
@@ -128,19 +128,19 @@ def add(a, b):
     return result
 ```
 
-Don't add features, refactor other code, or "improve" beyond the test.
+别加功能、别重构别的代码、别超出测试去 "改进"。
 
-**Cheating is OK in GREEN:**
-- Hardcode return values
-- Copy-paste
-- Duplicate code
-- Skip edge cases
+**GREEN 阶段作弊没关系：**
+- 硬编码返回值
+- 复制粘贴
+- 重复代码
+- 跳过边界情况
 
-We'll fix it in REFACTOR.
+我们会在 REFACTOR 里修。
 
-### Verify GREEN — Watch It Pass
+### Verify GREEN —— 看它通过
 
-**MANDATORY.**
+**强制。**
 
 ```bash
 # Run the specific test
@@ -150,36 +150,36 @@ pytest tests/test_feature.py::test_specific_behavior -v
 pytest tests/ -q
 ```
 
-Confirm:
-- Test passes
-- Other tests still pass
-- Output pristine (no errors, warnings)
+确认：
+- 测试通过
+- 其他测试仍通过
+- 输出干净（无错误、无警告）
 
-**Test fails?** Fix the code, not the test.
+**测试失败？** 修代码，不是修测试。
 
-**Other tests fail?** Fix regressions now.
+**其他测试失败？** 现在就修回归。
 
-### REFACTOR — Clean Up
+### REFACTOR —— 清理
 
-After green only:
-- Remove duplication
-- Improve names
-- Extract helpers
-- Simplify expressions
+只在绿了之后：
+- 去重复
+- 改名字
+- 抽 helper
+- 简化表达式
 
-Keep tests green throughout. Don't add behavior.
+全程保持测试绿。别加行为。
 
-**If tests fail during refactor:** Undo immediately. Take smaller steps.
+**重构中测试失败？** 立刻回退。步子迈小点。
 
-### Repeat
+### Repeat（重复）
 
-Next failing test for next behavior. One cycle at a time.
+为下一个行为写下一个失败测试。一次一个循环。
 
-## Avoid Horizontal Slices
+## Avoid Horizontal Slices（别横向切片）
 
-Do **not** write all tests first and then all implementation. That is horizontal slicing: RED becomes "write a pile of imagined tests" and GREEN becomes "make the pile pass." It produces brittle tests because the tests are designed before the implementation has taught you what behavior and interface actually matter.
+**不要**先把所有测试写完、再写所有实现。那是横向切片：RED 变成 "写一堆靠想象编出来的测试"，GREEN 变成 "让这堆通过"。它产出脆弱的测试，因为测试是在实现还没教会你「到底哪些行为和接口才重要」之前就设计好的。
 
-Use vertical tracer bullets instead:
+改用纵向曳光弹：
 
 ```text
 WRONG:
@@ -192,118 +192,118 @@ RIGHT:
   RED→GREEN: test3→impl3
 ```
 
-A tracer bullet is one end-to-end behavior slice. It proves the path works, teaches you about the interface, and keeps each next test grounded in what you just learned.
+一条曳光弹就是一条端到端的行为切片。它证明路径走得通、让你了解接口，并让下一个测试扎根于你刚学到的东西。
 
-## Why Order Matters
+## Why Order Matters（顺序为何重要）
 
-**"I'll write tests after to verify it works"**
+**"我事后写测试来验证它能跑"**
 
-Tests written after code pass immediately. Passing immediately proves nothing:
-- Might test the wrong thing
-- Might test implementation, not behavior
-- Might miss edge cases you forgot
-- You never saw it catch the bug
+事后写的测试立刻通过。立刻通过什么都证明不了：
+- 可能测错了东西
+- 可能测的是实现而非行为
+- 可能漏掉你忘了的边界情况
+- 你从没见它抓住过 bug
 
-Test-first forces you to see the test fail, proving it actually tests something.
+测试先行逼你看到测试失败，从而证明它确实在测某样东西。
 
-**"I already manually tested all the edge cases"**
+**"我已经手动测过所有边界情况了"**
 
-Manual testing is ad-hoc. You think you tested everything but:
-- No record of what you tested
-- Can't re-run when code changes
-- Easy to forget cases under pressure
-- "It worked when I tried it" ≠ comprehensive
+手动测试是临时的。你以为什么都测了，但其实：
+- 没有测过什么的记录
+- 代码变了没法重跑
+- 压力下容易忘掉用例
+- "我试的时候是好的" ≠ 全面
 
-Automated tests are systematic. They run the same way every time.
+自动化测试是系统的。每次都以同样方式跑。
 
-**"Deleting X hours of work is wasteful"**
+**"删掉 X 小时的活儿太浪费"**
 
-Sunk cost fallacy. The time is already gone. Your choice now:
-- Delete and rewrite with TDD (high confidence)
-- Keep it and add tests after (low confidence, likely bugs)
+沉没成本谬误。时间已经没了。你现在的选择：
+- 删掉并用 TDD 重写（高置信度）
+- 留着它、事后补测试（低置信度，大概率有 bug）
 
-The "waste" is keeping code you can't trust.
+真正的「浪费」是留着你无法信任的代码。
 
-**"TDD is dogmatic, being pragmatic means adapting"**
+**"TDD 教条，务实就该变通"**
 
-TDD IS pragmatic:
-- Finds bugs before commit (faster than debugging after)
-- Prevents regressions (tests catch breaks immediately)
-- Documents behavior (tests show how to use code)
-- Enables refactoring (change freely, tests catch breaks)
+TDD **就是**务实：
+- 在提交前抓 bug（比事后调试快）
+- 防回归（测试立刻抓住破坏）
+- 记录行为（测试展示怎么用代码）
+- 使重构可行（随便改，测试抓破坏）
 
-"Pragmatic" shortcuts = debugging in production = slower.
+"务实"的捷径 = 在生产里调试 = 更慢。
 
-**"Tests after achieve the same goals — it's spirit not ritual"**
+**"事后测能达到同样目的——重在精神不重形式"**
 
-No. Tests-after answer "What does this do?" Tests-first answer "What should this do?"
+不。事后测回答 "这代码做了什么？" 测试先行回答 "它应该做什么？"
 
-Tests-after are biased by your implementation. You test what you built, not what's required. Tests-first force edge case discovery before implementing.
+事后测被你自己的实现带偏。你测的是你建的东西，而非要求的东西。测试先行逼迫你在实现之前发现边界情况。
 
-## Common Rationalizations
+## Common Rationalizations（常见自我合理化）
 
-| Excuse | Reality |
+| 借口 | 现实 |
 |--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
-| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
-| "Deleting X hours is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
-| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
-| "Test hard = design unclear" | Listen to the test. Hard to test = hard to use. |
-| "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
-| "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
-| "Existing code has no tests" | You're improving it. Add tests for the code you touch. |
+| "太简单，不用测" | 简单代码也会坏。测试只要 30 秒。 |
+| "我事后测" | 测试立刻通过证明不了任何事。 |
+| "事后测能达到同样目的" | 事后测 = "这代码做了什么？" 测试先行 = "它应该做什么？" |
+| "已经手动测过了" | 临时 ≠ 系统。没记录、不能重跑。 |
+| "删掉 X 小时太浪费" | 沉没成本谬误。留着未验证代码就是技术债。 |
+| "留作参考，先写测试" | 你会改编它。那就是事后测。删就是删。 |
+| "得先探索一下" | 行。把探索扔掉，从 TDD 开始。 |
+| "测试难 = 设计不清" | 听测试的。难测 = 难用。 |
+| "TDD 会拖慢我" | TDD 比调试快。务实 = 测试先行。 |
+| "手动测更快" | 手动证明不了边界情况。每次改动你都得重测。 |
+| "已有代码没测试" | 你在改进它。给已有代码补测试。 |
 
-## Red Flags — STOP and Start Over
+## Red Flags — STOP and Start Over（红旗：停下，重来）
 
-If you catch yourself doing any of these, delete the code and restart with TDD:
+若你发现自己做了其中任何一件，就删掉代码、用 TDD 重来：
 
-- Code before test
-- Test after implementation
-- Test passes immediately on first run
-- Can't explain why test failed
-- Tests added "later"
-- Rationalizing "just this once"
-- "I already manually tested it"
-- "Tests after achieve the same purpose"
-- "Keep as reference" or "adapt existing code"
-- "Already spent X hours, deleting is wasteful"
-- "TDD is dogmatic, I'm being pragmatic"
-- "This is different because..."
+- 测试之前就有代码
+- 实现后才写测试
+- 测试首次运行就立刻通过
+- 说不清测试为什么失败
+- 测试是 "事后" 补的
+- 为 "就这一次" 找理由
+- "我已经手动测过它了"
+- "事后测能达到同样的目的"
+- "留作参考" 或 "改编已有代码"
+- "已经花了 X 小时，删掉太浪费"
+- "TDD 教条，我在务实"
+- "这次情况不同，因为……"
 
-**All of these mean: Delete code. Start over with TDD.**
+**以上全部意味着：删代码。用 TDD 重来。**
 
-## Verification Checklist
+## Verification Checklist（验证清单）
 
-Before marking work complete:
+标记工作完成之前：
 
-- [ ] Every new function/method has a test
-- [ ] Watched each test fail before implementing
-- [ ] Each test failed for expected reason (feature missing, not typo)
-- [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
-- [ ] Output pristine (no errors, warnings)
-- [ ] Tests use real code (mocks only if unavoidable)
-- [ ] Edge cases and errors covered
+- [ ] 每个新函数/方法都有测试
+- [ ] 实现之前亲眼看过每个测试失败
+- [ ] 每个测试都以预期原因失败（功能缺失，而非拼写错误）
+- [ ] 写了能让每个测试通过的最小代码
+- [ ] 所有测试通过
+- [ ] 输出干净（无错误、无警告）
+- [ ] 测试用真实代码（mock 仅在不必要时才用）
+- [ ] 边界情况与错误都已覆盖
 
-Can't check all boxes? You skipped TDD. Start over.
+勾不齐全部？你跳过了 TDD。重来。
 
-## When Stuck
+## When Stuck（卡住时）
 
-| Problem | Solution |
+| 问题 | 解决 |
 |---------|----------|
-| Don't know how to test | Write the wished-for API. Write the assertion first. Ask the user. |
-| Test too complicated | Design too complicated. Simplify the interface. |
-| Must mock everything | Code too coupled. Use dependency injection. |
-| Test setup huge | Extract helpers. Still complex? Simplify the design. |
+| 不知道怎么测 | 写你期望的 API。先写断言。问用户。 |
+| 测试太复杂 | 设计太复杂。简化接口。 |
+| 什么都得 mock | 代码太耦合。用依赖注入。 |
+| 测试 setup 巨大 | 抽 helper。还复杂？简化设计。 |
 
-## Hermes Agent Integration
+## Hermes Agent Integration（与 Hermes Agent 的集成）
 
-### Running Tests
+### Running Tests（跑测试）
 
-Use the `terminal` tool to run tests at each step:
+每一步都用 `terminal` 工具跑测试：
 
 ```python
 # RED — verify failure
@@ -318,7 +318,7 @@ terminal("pytest tests/ -q")
 
 ### With delegate_task
 
-When dispatching subagents for implementation, enforce TDD in the goal:
+派子代理做实现时，在 goal 里强制 TDD：
 
 ```python
 delegate_task(
@@ -341,22 +341,23 @@ delegate_task(
 
 ### With systematic-debugging
 
-Bug found? Write failing test reproducing it. Follow TDD cycle. The test proves the fix and prevents regression.
+发现 bug？写一个能复现它的失败测试。走 TDD 循环。该测试证明修复、并防回归。
 
-Never fix bugs without a test.
+没有测试，永不修 bug。
 
-## Testing Anti-Patterns
+## Testing Anti-Patterns（测试反模式）
 
-- **Testing mock behavior instead of real behavior** — mocks should verify interactions, not replace the system under test
-- **Testing implementation details** — test behavior/results, not internal method calls
-- **Happy path only** — always test edge cases, errors, and boundaries
-- **Brittle tests** — tests should verify behavior, not structure; refactoring shouldn't break them
+- **测 mock 行为而非真实行为** — mock 应该验证交互，而不是替换被测系统
+- **测实现细节** — 测行为/结果，不测内部方法调用
+- **只测顺风路径** — 永远要测边界情况、错误与边界
+- **脆弱测试** — 测试应验证行为而非结构。重构不该弄断它们
+- **结构性测试撞了重构就删** — 有些顺序/位置不变量只能用源码锚点断言（`inspect.getsource` 找符号先后）。这类测试被上游或自己的重构打断时：在新调用图上重锚成等价的多个分段断言（守卫在调用前、调用在写入前、写入只活在写入函数里），逐段保住原不变量——删测试或放宽断言等于把回归保护扔掉
 
-## Final Rule
+## Final Rule（最终裁决）
 
 ```
 Production code → test exists and failed first
 Otherwise → not TDD
 ```
 
-No exceptions without the user's explicit permission.
+没有用户明确许可，就没有例外。

@@ -1,6 +1,6 @@
 ---
 name: claude-code
-description: "Delegate coding to Claude Code CLI (features, PRs)."
+description: "把编程任务委派给 Claude Code CLI 时使用。只要要开 feature、修 bug、提 PR 或做代码审查，就主动加载，即使用户只说「用 Claude Code 干」或「让 CC 跑一下」。不用于纯本地手工改代码。"
 version: 2.2.1
 author: Hermes Agent + Teknium
 license: MIT
@@ -11,45 +11,45 @@ metadata:
     related_skills: [codex, hermes-agent, opencode]
 ---
 
-# Claude Code — Hermes Orchestration Guide
+# Claude Code — Hermes 编排指南
 
-Delegate coding tasks to [Claude Code](https://code.claude.com/docs/en/cli-reference) (Anthropic's autonomous coding agent CLI) via the Hermes terminal. Claude Code v2.x can read files, write code, run shell commands, spawn subagents, and manage git workflows autonomously.
+通过 Hermes terminal 把编码任务委派给 [Claude Code](https://code.claude.com/docs/en/cli-reference)（Anthropic 的自主编码代理 CLI）。Claude Code v2.x 能自主读取文件、编写代码、执行 shell 命令、派生子代理，并管理 git 工作流。
 
-## Prerequisites
+## 前置条件
 
-- **Install:** `npm install -g @anthropic-ai/claude-code`
-- **Auth:** run `claude` once to log in (browser OAuth for Pro/Max, or set `ANTHROPIC_API_KEY`)
-- **Console auth:** `claude auth login --console` for API key billing
-- **SSO auth:** `claude auth login --sso` for Enterprise
-- **Check status:** `claude auth status` (JSON) or `claude auth status --text` (human-readable)
-- **Health check:** `claude doctor` — checks auto-updater and installation health
-- **Version check:** `claude --version` (requires v2.x+)
-- **Update:** `claude update` or `claude upgrade`
+- **安装：** `npm install -g @anthropic-ai/claude-code`
+- **认证：** 运行一次 `claude` 登录（Pro/Max 用浏览器 OAuth，或设置 `ANTHROPIC_API_KEY`）
+- **Console 认证：** `claude auth login --console`（API key 计费）
+- **SSO 认证：** `claude auth login --sso`（Enterprise）
+- **查看状态：** `claude auth status`（JSON）或 `claude auth status --text`（人类可读）
+- **健康检查：** `claude doctor` —— 检查自动更新器与安装状态
+- **版本检查：** `claude --version`（需 v2.x+）
+- **更新：** `claude update` 或 `claude upgrade`
 
-## Two Orchestration Modes
+## 两种编排模式
 
-Hermes interacts with Claude Code in two fundamentally different ways. Choose based on the task.
+Hermes 与 Claude Code 的交互有两种根本不同的方式，按任务选择。
 
-### Mode 1: Print Mode (`-p`) — Non-Interactive (PREFERRED for most tasks)
+### 模式 1：Print Mode（`-p`）—— 非交互（多数任务首选）
 
-Print mode runs a one-shot task, returns the result, and exits. No PTY needed. No interactive prompts. This is the cleanest integration path.
+Print mode 执行一次性任务，返回结果后退出。无需 PTY，无交互提示。这是最干净的集成路径。
 
 ```
 terminal(command="claude -p 'Add error handling to all API calls in src/' --allowedTools 'Read,Edit' --max-turns 10", workdir="/path/to/project", timeout=120)
 ```
 
-**When to use print mode:**
-- One-shot coding tasks (fix a bug, add a feature, refactor)
-- CI/CD automation and scripting
-- Structured data extraction with `--json-schema`
-- Piped input processing (`cat file | claude -p "analyze this"`)
-- Any task where you don't need multi-turn conversation
+**何时使用 print mode：**
+- 一次性编码任务（修 bug、加 feature、重构）
+- CI/CD 自动化与脚本
+- 用 `--json-schema` 做结构化数据抽取
+- 管道输入处理（`cat file | claude -p "analyze this"`）
+- 任何不需要多轮对话的任务
 
-**Print mode skips ALL interactive dialogs** — no workspace trust prompt, no permission confirmations. This makes it ideal for automation.
+**Print mode 跳过所有交互对话框** —— 无 workspace 信任提示，无权限确认。这使它非常适合自动化。
 
-### Mode 2: Interactive PTY via tmux — Multi-Turn Sessions
+### 模式 2：通过 tmux 的交互式 PTY —— 多轮会话
 
-Interactive mode gives you a full conversational REPL where you can send follow-up prompts, use slash commands, and watch Claude work in real time. **Requires tmux orchestration.**
+交互模式提供完整的对话式 REPL，可发送追问、使用斜杠命令，并实时观察 Claude 工作。**需要 tmux 编排。**
 
 ```
 # Start a tmux session
@@ -72,37 +72,37 @@ terminal(command="tmux send-keys -t claude-work 'Now add unit tests for the new 
 terminal(command="tmux send-keys -t claude-work '/exit' Enter")
 ```
 
-**When to use interactive mode:**
-- Multi-turn iterative work (refactor → review → fix → test cycle)
-- Tasks requiring human-in-the-loop decisions
-- Exploratory coding sessions
-- When you need to use Claude's slash commands (`/compact`, `/review`, `/model`)
+**何时使用交互模式：**
+- 多轮迭代工作（重构 → 审查 → 修复 → 测试循环）
+- 需要 human-in-the-loop 决策的任务
+- 探索式编码会话
+- 需要使用 Claude 的斜杠命令（`/compact`、`/review`、`/model`）
 
-## PTY Dialog Handling (CRITICAL for Interactive Mode)
+## PTY 对话框处理（交互模式的关键）
 
-Claude Code presents up to two confirmation dialogs on first launch. You MUST handle these via tmux send-keys:
+Claude Code 首次启动时最多弹出两个确认对话框。你必须通过 tmux send-keys 处理：
 
-### Dialog 1: Workspace Trust (first visit to a directory)
+### 对话框 1：Workspace 信任（首次访问某目录）
 ```
 ❯ 1. Yes, I trust this folder    ← DEFAULT (just press Enter)
   2. No, exit
 ```
-**Handling:** `tmux send-keys -t <session> Enter` — default selection is correct.
+**处理：** `tmux send-keys -t <session> Enter` —— 默认选项即正确。
 
-### Dialog 2: Individual Permission Prompts (normal flow)
+### 对话框 2：单项权限提示（常规流程）
 
-Each tool use that needs approval (file write, shell command, network) shows a prompt. Answer that one prompt — this is different from disabling prompts for the whole run:
+每个需要批准的工具调用（写文件、shell 命令、网络）都会弹出提示。只回答当前这一条提示 —— 这与为整轮运行禁用提示不同：
 ```
 # Read the prompt before answering it
 terminal(command="tmux capture-pane -t <session> -p -S -30")
 # Allow this one action (Enter = default "Yes"); Esc declines it
 terminal(command="tmux send-keys -t <session> Enter")
 ```
-Never send a blind `Enter` on a timer to approve prompts you have not read — that is the bypass flag with extra steps.
+绝不要用定时器盲发 `Enter` 去批准你尚未读过的提示 —— 那不过是多此一举的 bypass flag。
 
-A narrower opt-in than the full bypass is `--permission-mode acceptEdits`: file edits in the working directory are accepted, shell and other tool calls still prompt. Use it only in a dedicated worktree after reviewing the task.
+比完全 bypass 更窄的 opt-in 是 `--permission-mode acceptEdits`：工作目录内的文件编辑被接受，shell 及其他工具调用仍会提示。仅在审查任务后、于专用 worktree 中使用。
 
-### Robust Dialog Handling Pattern
+### 稳健的对话框处理模式
 ```
 # Default launch — keep permission prompts enabled
 terminal(command="tmux send-keys -t claude-work 'claude \"your task\"' Enter")
@@ -114,16 +114,16 @@ terminal(command="sleep 4 && tmux send-keys -t claude-work Enter")
 terminal(command="sleep 15 && tmux capture-pane -t claude-work -p -S -60")
 ```
 
-**Note:** After the first trust acceptance for a directory, the trust dialog won't appear again.
+**注意：** 对某目录首次接受信任后，信任对话框不再出现。
 
-### Opt-in: --dangerously-skip-permissions (isolated environments only)
+### Opt-in：--dangerously-skip-permissions（仅限隔离环境）
 
-This disables permission prompts for the whole run — grants filesystem, shell, and network access with no prompts. Acceptable only in a throwaway worktree or isolated container.
+这将为整轮运行禁用权限提示 —— 无提示地授予文件系统、shell 与网络访问。仅可在一次性 worktree 或隔离容器中使用。
 ```
 ❯ 1. No, exit                    ← DEFAULT (safe choice)
   2. Yes, I accept
 ```
-To accept: `tmux send-keys -t <session> Down && sleep 0.3 && tmux send-keys -t <session> Enter`
+接受方式：`tmux send-keys -t <session> Down && sleep 0.3 && tmux send-keys -t <session> Enter`
 
 ## CLI Subcommands
 
@@ -149,14 +149,14 @@ To accept: `tmux send-keys -t <session> Down && sleep 0.3 && tmux send-keys -t <
 | `claude plugin` / `claude plugins` | Manage Claude Code plugins |
 | `claude auto-mode` | Inspect auto mode classifier configuration |
 
-## Print Mode Deep Dive
+## Print Mode 深入
 
-### Structured JSON Output
+### 结构化 JSON 输出
 ```
 terminal(command="claude -p 'Analyze auth.py for security issues' --output-format json --max-turns 5", workdir="/project", timeout=120)
 ```
 
-Returns a JSON object with:
+返回一个 JSON 对象，包含：
 ```json
 {
   "type": "result",
@@ -173,30 +173,30 @@ Returns a JSON object with:
 }
 ```
 
-**Key fields:** `session_id` for resumption, `num_turns` for agentic loop count, `total_cost_usd` for spend tracking, `subtype` for success/error detection (`success`, `error_max_turns`, `error_budget`).
+**关键字段：** `session_id` 用于恢复会话，`num_turns` 为 agentic 循环次数，`total_cost_usd` 用于花费追踪，`subtype` 用于成功/错误识别（`success`、`error_max_turns`、`error_budget`）。
 
-### Streaming JSON Output
-For real-time token streaming, use `stream-json` with `--verbose`:
+### 流式 JSON 输出
+要实时流式传输 token，使用带 `--verbose` 的 `stream-json`：
 ```
 terminal(command="claude -p 'Write a summary' --output-format stream-json --verbose --include-partial-messages", timeout=60)
 ```
 
-Returns newline-delimited JSON events. Filter with jq for live text:
+返回换行分隔的 JSON 事件。用 jq 过滤出实时文本：
 ```
 claude -p "Explain X" --output-format stream-json --verbose --include-partial-messages | \
   jq -rj 'select(.type == "stream_event" and .event.delta.type? == "text_delta") | .event.delta.text'
 ```
 
-Stream events include `system/api_retry` with `attempt`, `max_retries`, and `error` fields (e.g., `rate_limit`, `billing_error`).
+流事件包含 `system/api_retry`，带 `attempt`、`max_retries` 与 `error` 字段（如 `rate_limit`、`billing_error`）。
 
-### Bidirectional Streaming
-For real-time input AND output streaming:
+### 双向流式
+要实时输入与输出双向流式传输：
 ```
 claude -p "task" --input-format stream-json --output-format stream-json --replay-user-messages
 ```
-`--replay-user-messages` re-emits user messages on stdout for acknowledgment.
+`--replay-user-messages` 会在 stdout 上重新回显用户消息以作确认。
 
-### Piped Input
+### 管道输入
 ```
 # Pipe a file for analysis
 terminal(command="cat src/auth.py | claude -p 'Review this code for bugs' --max-turns 1", timeout=60)
@@ -213,9 +213,9 @@ terminal(command="git diff HEAD~3 | claude -p 'Summarize these changes' --max-tu
 terminal(command="claude -p 'List all functions in src/' --output-format json --json-schema '{\"type\":\"object\",\"properties\":{\"functions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"functions\"]}' --max-turns 5", workdir="/project", timeout=90)
 ```
 
-Parse `structured_output` from the JSON result. Claude validates output against the schema before returning.
+从 JSON 结果中解析 `structured_output`。Claude 在返回前会按 schema 校验输出。
 
-### Session Continuation
+### 会话续接
 ```
 # Start a task
 terminal(command="claude -p 'Start refactoring the database layer' --output-format json --max-turns 10 > ~/.hermes/cache/scratch/session.json", workdir="/project", timeout=180)
@@ -230,105 +230,105 @@ terminal(command="claude -p 'What did you do last time?' --continue --max-turns 
 terminal(command="claude -p 'Try a different approach' --resume <id> --fork-session --max-turns 10", workdir="/project", timeout=120)
 ```
 
-### Bare Mode for CI/Scripting
+### 面向 CI/脚本的 Bare Mode
 ```
 terminal(command="claude --bare -p 'Run all tests and report failures' --allowedTools 'Read,Bash' --max-turns 10", workdir="/project", timeout=180)
 ```
 
-`--bare` skips hooks, plugins, MCP discovery, and CLAUDE.md loading. Fastest startup. Requires `ANTHROPIC_API_KEY` (skips OAuth).
+`--bare` 跳过 hooks、plugins、MCP 发现与 CLAUDE.md 加载。启动最快。需要 `ANTHROPIC_API_KEY`（跳过 OAuth）。
 
-To selectively load context in bare mode:
-| To load | Flag |
+要在 bare mode 下有选择地加载上下文：
+| 加载项 | Flag |
 |---------|------|
-| System prompt additions | `--append-system-prompt "text"` or `--append-system-prompt-file path` |
-| Settings | `--settings <file-or-json>` |
-| MCP servers | `--mcp-config <file-or-json>` |
-| Custom agents | `--agents '<json>'` |
+| 追加系统提示 | `--append-system-prompt "text"` 或 `--append-system-prompt-file path` |
+| 设置 | `--settings <file-or-json>` |
+| MCP server | `--mcp-config <file-or-json>` |
+| 自定义 agent | `--agents '<json>'` |
 
-### Fallback Model for Overload
+### 过载时的 Fallback 模型
 ```
 terminal(command="claude -p 'task' --fallback-model haiku --max-turns 5", timeout=90)
 ```
-Automatically falls back to the specified model when the default is overloaded (print mode only).
+当默认模型过载时自动回退到指定模型（仅 print mode）。
 
-## Complete CLI Flags Reference
+## 完整 CLI Flags 参考
 
-### Session & Environment
-| Flag | Effect |
+### 会话与环境
+| Flag | 作用 |
 |------|--------|
-| `-p, --print` | Non-interactive one-shot mode (exits when done) |
-| `-c, --continue` | Resume most recent conversation in current directory |
-| `-r, --resume <id>` | Resume specific session by ID or name (interactive picker if no ID) |
-| `--fork-session` | When resuming, create new session ID instead of reusing original |
-| `--session-id <uuid>` | Use a specific UUID for the conversation |
-| `--no-session-persistence` | Don't save session to disk (print mode only) |
-| `--add-dir <paths...>` | Grant Claude access to additional working directories |
-| `-w, --worktree [name]` | Run in an isolated git worktree at `.claude/worktrees/<name>` |
-| `--tmux` | Create a tmux session for the worktree (requires `--worktree`) |
-| `--ide` | Auto-connect to a valid IDE on startup |
-| `--chrome` / `--no-chrome` | Enable/disable Chrome browser integration for web testing |
-| `--from-pr [number]` | Resume session linked to a specific GitHub PR |
-| `--file <specs...>` | File resources to download at startup (format: `file_id:relative_path`) |
+| `-p, --print` | 非交互一次性模式（完成后退出） |
+| `-c, --continue` | 恢复当前目录最近一次会话 |
+| `-r, --resume <id>` | 按 ID 或名称恢复指定会话（无 ID 时弹出交互选择器） |
+| `--fork-session` | 恢复时创建新 session ID 而非复用原 ID |
+| `--session-id <uuid>` | 为会话使用指定 UUID |
+| `--no-session-persistence` | 不把会话保存到磁盘（仅 print mode） |
+| `--add-dir <paths...>` | 授予 Claude 访问额外工作目录 |
+| `-w, --worktree [name]` | 在 `.claude/worktrees/<name>` 的隔离 git worktree 中运行 |
+| `--tmux` | 为该 worktree 创建 tmux 会话（需 `--worktree`） |
+| `--ide` | 启动时自动连接可用的 IDE |
+| `--chrome` / `--no-chrome` | 启用/禁用用于网页测试的 Chrome 浏览器集成 |
+| `--from-pr [number]` | 恢复与指定 GitHub PR 关联的会话 |
+| `--file <specs...>` | 启动时下载的文件资源（格式：`file_id:relative_path`） |
 
-### Model & Performance
-| Flag | Effect |
+### 模型与性能
+| Flag | 作用 |
 |------|--------|
-| `--model <alias>` | Model selection: `sonnet`, `opus`, `haiku`, or full name like `claude-sonnet-4-6` |
-| `--effort <level>` | Reasoning depth: `low`, `medium`, `high`, `xhigh`, `max` |
-| `--max-turns <n>` | Limit agentic loops (print mode only; prevents runaway) |
-| `--max-budget-usd <n>` | Cap API spend in dollars (print mode only) |
-| `--fallback-model <model>` | Auto-fallback when default model is overloaded (print mode only) |
-| `--betas <betas...>` | Beta headers to include in API requests (API key users only) |
+| `--model <alias>` | 模型选择：`sonnet`、`opus`、`haiku`，或类似 `claude-sonnet-4-6` 的完整名 |
+| `--effort <level>` | 推理深度：`low`、`medium`、`high`、`xhigh`、`max` |
+| `--max-turns <n>` | 限制 agentic 循环次数（仅 print mode。防止失控） |
+| `--max-budget-usd <n>` | 以美元为上限限制 API 花费（仅 print mode） |
+| `--fallback-model <model>` | 默认模型过载时自动回退（仅 print mode） |
+| `--betas <betas...>` | 在 API 请求中携带的 Beta headers（仅 API key 用户） |
 
-### Permission & Safety
-| Flag | Effect |
+### 权限与安全
+| Flag | 作用 |
 |------|--------|
-| `--dangerously-skip-permissions` | Opt-in only: disables ALL permission prompts (file writes, bash, network). Throwaway worktree / isolated container only — see "Opt-in" above |
-| `--allow-dangerously-skip-permissions` | Enable bypass as an *option* without enabling it by default |
+| `--dangerously-skip-permissions` | 仅 opt-in：禁用所有权限提示（写文件、bash、网络）。仅限一次性 worktree / 隔离容器 —— 见上文「Opt-in」 |
+| `--allow-dangerously-skip-permissions` | 将 bypass 作为*可选项*启用，但默认不启用 |
 | `--permission-mode <mode>` | `default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions` |
-| `--allowedTools <tools...>` | Whitelist specific tools (comma or space-separated) |
-| `--disallowedTools <tools...>` | Blacklist specific tools |
-| `--tools <tools...>` | Override built-in tool set (`""` = none, `"default"` = all, or tool names) |
+| `--allowedTools <tools...>` | 白名单指定工具（逗号或空格分隔） |
+| `--disallowedTools <tools...>` | 黑名单指定工具 |
+| `--tools <tools...>` | 覆盖内置工具集（`""` = 无，`"default"` = 全部，或工具名） |
 
-### Output & Input Format
-| Flag | Effect |
+### 输出与输入格式
+| Flag | 作用 |
 |------|--------|
-| `--output-format <fmt>` | `text` (default), `json` (single result object), `stream-json` (newline-delimited) |
-| `--input-format <fmt>` | `text` (default) or `stream-json` (real-time streaming input) |
-| `--json-schema <schema>` | Force structured JSON output matching a schema |
-| `--verbose` | Full turn-by-turn output |
-| `--include-partial-messages` | Include partial message chunks as they arrive (stream-json + print) |
-| `--replay-user-messages` | Re-emit user messages on stdout (stream-json bidirectional) |
+| `--output-format <fmt>` | `text`（默认）、`json`（单结果对象）、`stream-json`（换行分隔） |
+| `--input-format <fmt>` | `text`（默认）或 `stream-json`（实时流式输入） |
+| `--json-schema <schema>` | 强制输出符合 schema 的结构化 JSON |
+| `--verbose` | 完整逐轮输出 |
+| `--include-partial-messages` | 随到随包含部分消息块（stream-json + print） |
+| `--replay-user-messages` | 在 stdout 重新回显用户消息（stream-json 双向） |
 
-### System Prompt & Context
-| Flag | Effect |
+### 系统提示与上下文
+| Flag | 作用 |
 |------|--------|
-| `--append-system-prompt <text>` | **Add** to the default system prompt (preserves built-in capabilities) |
-| `--append-system-prompt-file <path>` | **Add** file contents to the default system prompt |
-| `--system-prompt <text>` | **Replace** the entire system prompt (use --append instead usually) |
-| `--system-prompt-file <path>` | **Replace** the system prompt with file contents |
-| `--bare` | Skip hooks, plugins, MCP discovery, CLAUDE.md, OAuth (fastest startup) |
-| `--agents '<json>'` | Define custom subagents dynamically as JSON |
-| `--mcp-config <path>` | Load MCP servers from JSON file (repeatable) |
-| `--strict-mcp-config` | Only use MCP servers from `--mcp-config`, ignoring all other MCP configs |
-| `--settings <file-or-json>` | Load additional settings from a JSON file or inline JSON |
-| `--setting-sources <sources>` | Comma-separated sources to load: `user`, `project`, `local` |
-| `--plugin-dir <paths...>` | Load plugins from directories for this session only |
-| `--disable-slash-commands` | Disable all skills/slash commands |
+| `--append-system-prompt <text>` | **追加**到默认系统提示（保留内置能力） |
+| `--append-system-prompt-file <path>` | 把文件内容**追加**到默认系统提示 |
+| `--system-prompt <text>` | **替换**整个系统提示（通常应改用 --append） |
+| `--system-prompt-file <path>` | 用文件内容**替换**系统提示 |
+| `--bare` | 跳过 hooks、plugins、MCP 发现、CLAUDE.md、OAuth（启动最快） |
+| `--agents '<json>'` | 以 JSON 动态定义自定义子代理 |
+| `--mcp-config <path>` | 从 JSON 文件加载 MCP server（可重复） |
+| `--strict-mcp-config` | 仅使用来自 `--mcp-config` 的 MCP server，忽略其他所有 MCP 配置 |
+| `--settings <file-or-json>` | 从 JSON 文件或内联 JSON 加载额外设置 |
+| `--setting-sources <sources>` | 逗号分隔的加载来源：`user`、`project`、`local` |
+| `--plugin-dir <paths...>` | 仅为本会话从这些目录加载插件 |
+| `--disable-slash-commands` | 禁用所有 skills/斜杠命令 |
 
-### Debugging
-| Flag | Effect |
+### 调试
+| Flag | 作用 |
 |------|--------|
-| `-d, --debug [filter]` | Enable debug logging with optional category filter (e.g., `"api,hooks"`, `"!1p,!file"`) |
-| `--debug-file <path>` | Write debug logs to file (implicitly enables debug mode) |
+| `-d, --debug [filter]` | 启用调试日志，可带分类过滤（如 `"api,hooks"`、`"!1p,!file"`） |
+| `--debug-file <path>` | 把调试日志写入文件（隐式启用 debug mode） |
 
-### Agent Teams
-| Flag | Effect |
+### Agent 团队
+| Flag | 作用 |
 |------|--------|
-| `--teammate-mode <mode>` | How agent teams display: `auto`, `in-process`, or `tmux` |
-| `--brief` | Enable `SendUserMessage` tool for agent-to-user communication |
+| `--teammate-mode <mode>` | agent 团队的显示方式：`auto`、`in-process` 或 `tmux` |
+| `--brief` | 启用 `SendUserMessage` 工具用于 agent 到用户的通信 |
 
-### Tool Name Syntax for --allowedTools / --disallowedTools
+### --allowedTools / --disallowedTools 的工具名语法
 ```
 Read                    # All file reading
 Edit                    # File editing (existing files)
@@ -342,15 +342,15 @@ WebFetch                # Web page fetching
 mcp__<server>__{tool}   # Specific MCP tool
 ```
 
-## Settings & Configuration
+## 设置与配置
 
-### Settings Hierarchy (highest to lowest priority)
-1. **CLI flags** — override everything
-2. **Local project:** `.claude/settings.local.json` (personal, gitignored)
-3. **Project:** `.claude/settings.json` (shared, git-tracked)
-4. **User:** `~/.claude/settings.json` (global)
+### 设置层级（优先级从高到低）
+1. **CLI flags** —— 覆盖一切
+2. **本地项目：** `.claude/settings.local.json`（个人，gitignored）
+3. **项目：** `.claude/settings.json`（共享，git-tracked）
+4. **用户：** `~/.claude/settings.json`（全局）
 
-### Permissions in Settings
+### 设置中的权限
 ```json
 {
   "permissions": {
@@ -361,57 +361,57 @@ mcp__<server>__{tool}   # Specific MCP tool
 }
 ```
 
-### Memory Files (CLAUDE.md) Hierarchy
-1. **Global:** `~/.claude/CLAUDE.md` — applies to all projects
-2. **Project:** `./CLAUDE.md` — project-specific context (git-tracked)
-3. **Local:** `.claude/CLAUDE.local.md` — personal project overrides (gitignored)
+### 记忆文件（CLAUDE.md）层级
+1. **全局：** `~/.claude/CLAUDE.md` —— 适用于所有项目
+2. **项目：** `./CLAUDE.md` —— 项目专属上下文（git-tracked）
+3. **本地：** `.claude/CLAUDE.local.md` —— 个人项目覆盖（gitignored）
 
-Use the `#` prefix in interactive mode to quickly add to memory: `# Always use 2-space indentation`.
+在交互模式下用 `#` 前缀快速写入记忆：`# Always use 2-space indentation`。
 
-## Interactive Session: Slash Commands
+## 交互式会话：斜杠命令
 
-### Session & Context
-| Command | Purpose |
+### 会话与上下文
+| Command | 用途 |
 |---------|---------|
-| `/help` | Show all commands (including custom and MCP commands) |
-| `/compact [focus]` | Compress context to save tokens; CLAUDE.md survives compaction. E.g., `/compact focus on auth logic` |
-| `/clear` | Wipe conversation history for a fresh start |
-| `/context` | Visualize context usage as a colored grid with optimization tips |
-| `/cost` | View token usage with per-model and cache-hit breakdowns |
-| `/resume` | Switch to or resume a different session |
-| `/rewind` | Revert to a previous checkpoint in conversation or code |
-| `/btw <question>` | Ask a side question without adding to context cost |
-| `/status` | Show version, connectivity, and session info |
-| `/todos` | List tracked action items from the conversation |
-| `/exit` or `Ctrl+D` | End session |
+| `/help` | 显示所有命令（含自定义与 MCP 命令） |
+| `/compact [focus]` | 压缩上下文以省 token。CLAUDE.md 在压缩后保留。例如 `/compact focus on auth logic` |
+| `/clear` | 清空对话历史以全新开始 |
+| `/context` | 以彩色网格可视化上下文用量并给出优化提示 |
+| `/cost` | 查看 token 用量，含按模型与缓存命中细分 |
+| `/resume` | 切换到或恢复另一个会话 |
+| `/rewind` | 回退到对话或代码的先前检查点 |
+| `/btw <question>` | 提一个附带问题，不增加上下文开销 |
+| `/status` | 显示版本、连通性与会话信息 |
+| `/todos` | 列出对话中跟踪的行动项 |
+| `/exit` 或 `Ctrl+D` | 结束会话 |
 
-### Development & Review
-| Command | Purpose |
+### 开发与审查
+| Command | 用途 |
 |---------|---------|
-| `/review` | Request code review of current changes |
-| `/security-review` | Perform security analysis of current changes |
-| `/plan [description]` | Enter Plan mode with auto-start for task planning |
-| `/loop [interval]` | Schedule recurring tasks within the session |
-| `/batch` | Auto-create worktrees for large parallel changes (5-30 worktrees) |
+| `/review` | 请求对当前改动做代码审查 |
+| `/security-review` | 对当前改动做安全分析 |
+| `/plan [description]` | 进入 Plan 模式并自动开始任务规划 |
+| `/loop [interval]` | 在会话内安排重复任务 |
+| `/batch` | 为大规模并行改动自动创建 worktree（5-30 个） |
 
-### Configuration & Tools
-| Command | Purpose |
+### 配置与工具
+| Command | 用途 |
 |---------|---------|
-| `/model [model]` | Switch models mid-session (use arrow keys to adjust effort) |
-| `/effort [level]` | Set reasoning effort: `low`, `medium`, `high`, `xhigh`, or `max` |
-| `/init` | Create a CLAUDE.md file for project memory |
-| `/memory` | Open CLAUDE.md for editing |
-| `/config` | Open interactive settings configuration |
-| `/permissions` | View/update tool permissions |
-| `/agents` | Manage specialized subagents |
-| `/mcp` | Interactive UI to manage MCP servers |
-| `/add-dir` | Add additional working directories (useful for monorepos) |
-| `/usage` | Show plan limits and rate limit status |
-| `/voice` | Enable push-to-talk voice mode (20 languages; hold Space to record, release to send) |
-| `/release-notes` | Interactive picker for version release notes |
+| `/model [model]` | 会话中切换模型（用方向键调整 effort） |
+| `/effort [level]` | 设置推理 effort：`low`、`medium`、`high`、`xhigh` 或 `max` |
+| `/init` | 创建用于项目记忆的 CLAUDE.md 文件 |
+| `/memory` | 打开 CLAUDE.md 进行编辑 |
+| `/config` | 打开交互式设置配置 |
+| `/permissions` | 查看/更新工具权限 |
+| `/agents` | 管理专用子代理 |
+| `/mcp` | 管理 MCP server 的交互式 UI |
+| `/add-dir` | 添加额外工作目录（对 monorepo 有用） |
+| `/usage` | 显示套餐限额与限流状态 |
+| `/voice` | 启用按键说话语音模式（20 种语言。按住 Space 录音，松开发送） |
+| `/release-notes` | 版本发行说明的交互式选择器 |
 
-### Custom Slash Commands
-Create `.claude/commands/<name>.md` (project-shared) or `~/.claude/commands/<name>.md` (personal):
+### 自定义斜杠命令
+创建 `.claude/commands/<name>.md`（项目共享）或 `~/.claude/commands/<name>.md`（个人）：
 
 ```markdown
 # .claude/commands/deploy.md
@@ -422,10 +422,10 @@ Run the deploy pipeline:
 4. Update the $ARGUMENTS environment (default: staging)
 ```
 
-Usage: `/deploy production` — `$ARGUMENTS` is replaced with the user's input.
+用法：`/deploy production` —— `$ARGUMENTS` 会被替换为用户输入。
 
-### Skills (Natural Language Invocation)
-Unlike slash commands (manually invoked), skills in `.claude/skills/` are markdown guides that Claude invokes automatically via natural language when the task matches:
+### Skills（自然语言调用）
+与斜杠命令（手动调用）不同，`.claude/skills/` 中的 skills 是 markdown 指南，当任务匹配时 Claude 会通过自然语言自动调用：
 
 ```markdown
 # .claude/skills/database-migration.md
@@ -435,54 +435,54 @@ When asked to create or modify database migrations:
 3. Test migrations against a local database copy
 ```
 
-## Interactive Session: Keyboard Shortcuts
+## 交互式会话：键盘快捷键
 
-### General Controls
-| Key | Action |
+### 通用控制
+| Key | 操作 |
 |-----|--------|
-| `Ctrl+C` | Cancel current input or generation |
-| `Ctrl+D` | Exit session |
-| `Ctrl+R` | Reverse search command history |
-| `Ctrl+B` | Background a running task |
-| `Ctrl+V` | Paste image into conversation |
-| `Ctrl+O` | Transcript mode — see Claude's thinking process |
-| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open prompt in external editor |
-| `Esc Esc` | Rewind conversation or code state / summarize |
+| `Ctrl+C` | 取消当前输入或生成 |
+| `Ctrl+D` | 退出会话 |
+| `Ctrl+R` | 反向搜索命令历史 |
+| `Ctrl+B` | 将运行中的任务转入后台 |
+| `Ctrl+V` | 将图片粘贴进对话 |
+| `Ctrl+O` | 转录模式 —— 查看 Claude 的思考过程 |
+| `Ctrl+G` 或 `Ctrl+X Ctrl+E` | 在外部编辑器中打开提示 |
+| `Esc Esc` | 回退对话或代码状态 / 总结 |
 
-### Mode Toggles
-| Key | Action |
+### 模式切换
+| Key | 操作 |
 |-----|--------|
-| `Shift+Tab` | Cycle permission modes (Normal → Auto-Accept → Plan) |
-| `Alt+P` | Switch model |
-| `Alt+T` | Toggle thinking mode |
-| `Alt+O` | Toggle Fast Mode |
+| `Shift+Tab` | 循环切换权限模式（Normal → Auto-Accept → Plan） |
+| `Alt+P` | 切换模型 |
+| `Alt+T` | 切换思考模式 |
+| `Alt+O` | 切换 Fast Mode |
 
-### Multiline Input
-| Key | Action |
+### 多行输入
+| Key | 操作 |
 |-----|--------|
-| `\` + `Enter` | Quick newline |
-| `Shift+Enter` | Newline (alternative) |
-| `Ctrl+J` | Newline (alternative) |
+| `\` + `Enter` | 快速换行 |
+| `Shift+Enter` | 换行（备选） |
+| `Ctrl+J` | 换行（备选） |
 
-### Input Prefixes
-| Prefix | Action |
+### 输入前缀
+| Prefix | 操作 |
 |--------|--------|
-| `!` | Execute bash directly, bypassing AI (e.g., `!npm test`). Use `!` alone to toggle shell mode. |
-| `@` | Reference files/directories with autocomplete (e.g., `@./src/api/`) |
-| `#` | Quick add to CLAUDE.md memory (e.g., `# Use 2-space indentation`) |
-| `/` | Slash commands |
+| `!` | 直接执行 bash，绕过 AI（如 `!npm test`）。单独用 `!` 切换 shell 模式。 |
+| `@` | 带自动补全地引用文件/目录（如 `@./src/api/`） |
+| `#` | 快速写入 CLAUDE.md 记忆（如 `# Use 2-space indentation`） |
+| `/` | 斜杠命令 |
 
-### Pro Tip: "ultrathink"
-Use the keyword "ultrathink" in your prompt for maximum reasoning effort on a specific turn. This triggers the deepest thinking mode regardless of the current `/effort` setting.
+### 技巧："ultrathink"
+在提示中使用关键词 "ultrathink"，可在特定轮次达到最大推理 effort。无论当前 `/effort` 设置为何，它都会触发最深思考模式。
 
-## PR Review Pattern
+## PR 审查模式
 
-### Quick Review (Print Mode)
+### 快速审查（Print Mode）
 ```
 terminal(command="cd /path/to/repo && git diff main...feature-branch | claude -p 'Review this diff for bugs, security issues, and style problems. Be thorough.' --max-turns 1", timeout=60)
 ```
 
-### Deep Review (Interactive + Worktree)
+### 深度审查（交互 + Worktree）
 ```
 terminal(command="tmux new-session -d -s review -x 140 -y 40")
 terminal(command="tmux send-keys -t review 'cd /path/to/repo && claude -w pr-review' Enter")
@@ -491,20 +491,20 @@ terminal(command="sleep 2 && tmux send-keys -t review 'Review all changes vs mai
 terminal(command="sleep 30 && tmux capture-pane -t review -p -S -60")
 ```
 
-### PR Review from Number
+### 按 PR 编号审查
 ```
 terminal(command="claude -p 'Review this PR thoroughly' --from-pr 42 --max-turns 10", workdir="/path/to/repo", timeout=120)
 ```
 
-### Claude Worktree with tmux
+### 带 tmux 的 Claude Worktree
 ```
 terminal(command="claude -w feature-x --tmux", workdir="/path/to/repo")
 ```
-Creates an isolated git worktree at `.claude/worktrees/feature-x` AND a tmux session for it. Uses iTerm2 native panes when available; add `--tmux=classic` for traditional tmux.
+在 `.claude/worktrees/feature-x` 创建隔离 git worktree，并为其创建 tmux 会话。可用时使用 iTerm2 原生分屏。加 `--tmux=classic` 使用传统 tmux。
 
-## Parallel Claude Instances
+## 并行 Claude 实例
 
-Run multiple independent Claude tasks simultaneously:
+同时运行多个相互独立的 Claude 任务：
 
 ```
 # Task 1: Fix backend
@@ -520,9 +520,9 @@ terminal(command="tmux new-session -d -s task3 -x 140 -y 40 && tmux send-keys -t
 terminal(command="sleep 30 && for s in task1 task2 task3; do echo '=== '$s' ==='; tmux capture-pane -t $s -p -S -5 2>/dev/null; done")
 ```
 
-## CLAUDE.md — Project Context File
+## CLAUDE.md —— 项目上下文文件
 
-Claude Code auto-loads `CLAUDE.md` from the project root. Use it to persist project context:
+Claude Code 会从项目根目录自动加载 `CLAUDE.md`。用它持久化项目上下文：
 
 ```markdown
 # Project: My API
@@ -544,30 +544,30 @@ Claude Code auto-loads `CLAUDE.md` from the project root. Use it to persist proj
 - No wildcard imports
 ```
 
-**Be specific.** Instead of "Write good code", use "Use 2-space indentation for JS" or "Name test files with `.test.ts` suffix." Specific instructions save correction cycles.
+**写具体。** 不要写「写好的代码」，而写「JS 用 2 空格缩进」或「测试文件用 `.test.ts` 后缀命名」。具体指令能省下纠错轮次。
 
-### Rules Directory (Modular CLAUDE.md)
-For projects with many rules, use the rules directory instead of one massive CLAUDE.md:
-- **Project rules:** `.claude/rules/*.md` — team-shared, git-tracked
-- **User rules:** `~/.claude/rules/*.md` — personal, global
+### Rules 目录（模块化 CLAUDE.md）
+规则很多的项目，用 rules 目录代替一个庞大的 CLAUDE.md：
+- **项目规则：** `.claude/rules/*.md` —— 团队共享，git-tracked
+- **用户规则：** `~/.claude/rules/*.md` —— 个人，全局
 
-Each `.md` file in the rules directory is loaded as additional context. This is cleaner than cramming everything into a single CLAUDE.md.
+rules 目录中的每个 `.md` 文件都会作为额外上下文加载。这比把所有内容塞进单个 CLAUDE.md 更清晰。
 
-### Auto-Memory
-Claude automatically stores learned project context in `~/.claude/projects/<project>/memory/`.
-- **Limit:** 25KB or 200 lines per project
-- This is separate from CLAUDE.md — it's Claude's own notes about the project, accumulated across sessions
+### 自动记忆
+Claude 会自动把学到的项目上下文存到 `~/.claude/projects/<project>/memory/`。
+- **上限：** 每项目 25KB 或 200 行
+- 这与 CLAUDE.md 分开 —— 它是 Claude 自己对项目的笔记，跨会话累积
 
-## Custom Subagents
+## 自定义子代理
 
-Define specialized agents in `.claude/agents/` (project), `~/.claude/agents/` (personal), or via `--agents` CLI flag (session):
+在 `.claude/agents/`（项目）、`~/.claude/agents/`（个人）中定义专用 agent，或通过 `--agents` CLI flag（会话）：
 
-### Agent Location Priority
-1. `.claude/agents/` — project-level, team-shared
-2. `--agents` CLI flag — session-specific, dynamic
-3. `~/.claude/agents/` — user-level, personal
+### Agent 位置优先级
+1. `.claude/agents/` —— 项目级，团队共享
+2. `--agents` CLI flag —— 会话专属，动态
+3. `~/.claude/agents/` —— 用户级，个人
 
-### Creating an Agent
+### 创建一个 Agent
 ```markdown
 # .claude/agents/security-reviewer.md
 ---
@@ -583,18 +583,18 @@ You are a senior security engineer. Review code for:
 - Unsafe deserialization
 ```
 
-Invoke via: `@security-reviewer review the auth module`
+调用方式：`@security-reviewer review the auth module`
 
-### Dynamic Agents via CLI
+### 通过 CLI 的动态 Agent
 ```
 terminal(command="claude --agents '{\"reviewer\": {\"description\": \"Reviews code\", \"prompt\": \"You are a code reviewer focused on performance\"}}' -p 'Use @reviewer to check auth.py'", timeout=120)
 ```
 
-Claude can orchestrate multiple agents: "Use @db-expert to optimize queries, then @security to audit the changes."
+Claude 可编排多个 agent："Use @db-expert to optimize queries, then @security to audit the changes."
 
-## Hooks — Automation on Events
+## Hooks —— 事件驱动的自动化
 
-Configure in `.claude/settings.json` (project) or `~/.claude/settings.json` (global):
+在 `.claude/settings.json`（项目）或 `~/.claude/settings.json`（全局）中配置：
 
 ```json
 {
@@ -614,26 +614,26 @@ Configure in `.claude/settings.json` (project) or `~/.claude/settings.json` (glo
 }
 ```
 
-### All 8 Hook Types
-| Hook | When it fires | Common use |
+### 全部 8 种 Hook 类型
+| Hook | 触发时机 | 常见用途 |
 |------|--------------|------------|
-| `UserPromptSubmit` | Before Claude processes a user prompt | Input validation, logging |
-| `PreToolUse` | Before tool execution | Security gates, block dangerous commands (exit 2 = block) |
-| `PostToolUse` | After a tool finishes | Auto-format code, run linters |
-| `Notification` | On permission requests or input waits | Desktop notifications, alerts |
-| `Stop` | When Claude finishes a response | Completion logging, status updates |
-| `SubagentStop` | When a subagent completes | Agent orchestration |
-| `PreCompact` | Before context memory is cleared | Backup session transcripts |
-| `SessionStart` | When a session begins | Load dev context (e.g., `git status`) |
+| `UserPromptSubmit` | Claude 处理用户提示之前 | 输入校验、日志 |
+| `PreToolUse` | 工具执行之前 | 安全闸门、拦截危险命令（exit 2 = 拦截） |
+| `PostToolUse` | 工具结束后 | 自动格式化代码、跑 linter |
+| `Notification` | 权限请求或等待输入时 | 桌面通知、告警 |
+| `Stop` | Claude 完成一次回复时 | 完成日志、状态更新 |
+| `SubagentStop` | 子代理完成时 | agent 编排 |
+| `PreCompact` | 上下文记忆被清空之前 | 备份会话转录 |
+| `SessionStart` | 会话开始时 | 加载开发上下文（如 `git status`） |
 
-### Hook Environment Variables
-| Variable | Content |
+### Hook 环境变量
+| Variable | 内容 |
 |----------|---------|
-| `CLAUDE_PROJECT_DIR` | Current project path |
-| `CLAUDE_FILE_PATHS` | Files being modified |
-| `CLAUDE_TOOL_INPUT` | Tool parameters as JSON |
+| `CLAUDE_PROJECT_DIR` | 当前项目路径 |
+| `CLAUDE_FILE_PATHS` | 正在修改的文件 |
+| `CLAUDE_TOOL_INPUT` | 工具参数（JSON） |
 
-### Security Hook Examples
+### 安全 Hook 示例
 ```json
 {
   "PreToolUse": [{
@@ -643,9 +643,9 @@ Configure in `.claude/settings.json` (project) or `~/.claude/settings.json` (glo
 }
 ```
 
-## MCP Integration
+## MCP 集成
 
-Add external tool servers for databases, APIs, and services:
+为数据库、API 与服务添加外部工具 server：
 
 ```
 # GitHub integration
@@ -658,97 +658,97 @@ terminal(command="claude mcp add -s local postgres -- npx @anthropic-ai/server-p
 terminal(command="claude mcp add puppeteer -- npx @anthropic-ai/server-puppeteer", timeout=30)
 ```
 
-### MCP Scopes
-| Flag | Scope | Storage |
+### MCP 作用域
+| Flag | 作用域 | 存储 |
 |------|-------|---------|
-| `-s user` | Global (all projects) | `~/.claude.json` |
-| `-s local` | This project (personal) | `.claude/settings.local.json` (gitignored) |
-| `-s project` | This project (team-shared) | `.claude/settings.json` (git-tracked) |
+| `-s user` | 全局（所有项目） | `~/.claude.json` |
+| `-s local` | 本项目（个人） | `.claude/settings.local.json`（gitignored） |
+| `-s project` | 本项目（团队共享） | `.claude/settings.json`（git-tracked） |
 
-### MCP in Print/CI Mode
+### Print/CI 模式下的 MCP
 ```
 terminal(command="claude --bare -p 'Query database' --mcp-config mcp-servers.json --strict-mcp-config", timeout=60)
 ```
-`--strict-mcp-config` ignores all MCP servers except those from `--mcp-config`.
+`--strict-mcp-config` 忽略除 `--mcp-config` 之外的所有 MCP server。
 
-Reference MCP resources in chat: `@github:issue://123`
+在聊天中引用 MCP 资源：`@github:issue://123`
 
-### MCP Limits & Tuning
-- **Tool descriptions:** 2KB cap per server for tool descriptions and server instructions
-- **Result size:** Default capped; use `maxResultSizeChars` annotation to allow up to **500K** characters for large outputs
-- **Output tokens:** `export MAX_MCP_OUTPUT_TOKENS=50000` — cap output from MCP servers to prevent context flooding
-- **Transports:** `stdio` (local process), `http` (remote), `sse` (server-sent events)
+### MCP 限制与调优
+- **工具描述：** 每个 server 的工具描述与 server 指令上限 2KB
+- **结果大小：** 默认有上限。用 `maxResultSizeChars` 注解可为大输出放宽到最多 **500K** 字符
+- **输出 token：** `export MAX_MCP_OUTPUT_TOKENS=50000` —— 限制 MCP server 输出以防上下文被淹没
+- **传输方式：** `stdio`（本地进程）、`http`（远程）、`sse`（server-sent events）
 
-## Monitoring Interactive Sessions
+## 监控交互式会话
 
-### Reading the TUI Status
+### 读取 TUI 状态
 ```
 # Periodic capture to check if Claude is still working or waiting for input
 terminal(command="tmux capture-pane -t dev -p -S -10")
 ```
 
-Look for these indicators:
-- `❯` at bottom = waiting for your input (Claude is done or asking a question)
-- `●` lines = Claude is actively using tools (reading, writing, running commands)
-- `⏵⏵ bypass permissions on` = status bar showing permissions mode
-- `◐ medium · /effort` = current effort level in status bar
-- `ctrl+o to expand` = tool output was truncated (can be expanded interactively)
+留意这些指示符：
+- 底部出现 `❯` = 正在等待你的输入（Claude 已完成或在提问）
+- `●` 行 = Claude 正在积极使用工具（读取、写入、运行命令）
+- `⏵⏵ bypass permissions on` = 状态栏显示权限模式
+- `◐ medium · /effort` = 状态栏中的当前 effort 等级
+- `ctrl+o to expand` = 工具输出被截断（可交互展开）
 
-### Context Window Health
-Use `/context` in interactive mode to see a colored grid of context usage. Key thresholds:
-- **< 70%** — Normal operation, full precision
-- **70-85%** — Precision starts dropping, consider `/compact`
-- **> 85%** — Hallucination risk spikes significantly, use `/compact` or `/clear`
+### 上下文窗口健康度
+在交互模式下用 `/context` 查看上下文用量的彩色网格。关键阈值：
+- **< 70%** —— 正常运行，完整精度
+- **70-85%** —— 精度开始下降，考虑 `/compact`
+- **> 85%** —— 幻觉风险显著飙升，使用 `/compact` 或 `/clear`
 
-## Environment Variables
+## 环境变量
 
-| Variable | Effect |
+| Variable | 作用 |
 |----------|--------|
-| `ANTHROPIC_API_KEY` | API key for authentication (alternative to OAuth) |
-| `CLAUDE_CODE_EFFORT_LEVEL` | Default effort: `low`, `medium`, `high`, `max`, or `auto` |
-| `MAX_THINKING_TOKENS` | Cap thinking tokens (set to `0` to disable thinking entirely) |
-| `MAX_MCP_OUTPUT_TOKENS` | Cap output from MCP servers (default varies; set e.g., `50000`) |
-| `CLAUDE_CODE_NO_FLICKER=1` | Enable alt-screen rendering to eliminate terminal flicker |
-| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | Strip credentials from sub-processes for security |
+| `ANTHROPIC_API_KEY` | 用于认证的 API key（OAuth 的替代） |
+| `CLAUDE_CODE_EFFORT_LEVEL` | 默认 effort：`low`、`medium`、`high`、`max` 或 `auto` |
+| `MAX_THINKING_TOKENS` | 限制思考 token（设为 `0` 完全禁用思考） |
+| `MAX_MCP_OUTPUT_TOKENS` | 限制 MCP server 输出（默认值不定。例如设为 `50000`） |
+| `CLAUDE_CODE_NO_FLICKER=1` | 启用 alt-screen 渲染以消除终端闪烁 |
+| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | 出于安全从子进程中剥离凭证 |
 
-## Cost & Performance Tips
+## 成本与性能技巧
 
-1. **Use `--max-turns`** in print mode to prevent runaway loops. Start with 5-10 for most tasks.
-2. **Use `--max-budget-usd`** for cost caps. Note: minimum ~$0.05 for system prompt cache creation.
-3. **Use `--effort low`** for simple tasks (faster, cheaper). `high` or `max` for complex reasoning.
-4. **Use `--bare`** for CI/scripting to skip plugin/hook discovery overhead.
-5. **Use `--allowedTools`** to restrict to only what's needed (e.g., `Read` only for reviews).
-6. **Use `/compact`** in interactive sessions when context gets large.
-7. **Pipe input** instead of having Claude read files when you just need analysis of known content.
-8. **Use `--model haiku`** for simple tasks (cheaper) and `--model opus` for complex multi-step work.
-9. **Use `--fallback-model haiku`** in print mode to gracefully handle model overload.
-10. **Start new sessions for distinct tasks** — sessions last 5 hours; fresh context is more efficient.
-11. **Use `--no-session-persistence`** in CI to avoid accumulating saved sessions on disk.
+1. 在 print mode 中**用 `--max-turns`** 防止失控循环。多数任务从 5-10 起步。
+2. **用 `--max-budget-usd`** 设成本上限。注意：系统提示缓存创建的最低费用约 $0.05。
+3. 简单任务**用 `--effort low`**（更快更便宜）。复杂推理用 `high` 或 `max`。
+4. CI/脚本**用 `--bare`** 跳过插件/hook 发现开销。
+5. **用 `--allowedTools`** 只保留所需（如审查时只用 `Read`）。
+6. 交互式会话中上下文变大时**用 `/compact`**。
+7. 只需分析已知内容时，**用管道输入**而非让 Claude 读文件。
+8. 简单任务**用 `--model haiku`**（更便宜），复杂多步工作用 `--model opus`。
+9. print mode 中**用 `--fallback-model haiku`** 优雅处理模型过载。
+10. **为不同任务开新会话** —— 会话持续 5 小时。全新上下文更高效。
+11. CI 中**用 `--no-session-persistence`** 避免磁盘上累积保存的会话。
 
-## Pitfalls & Gotchas
+## 陷阱与坑
 
-1. **Interactive mode REQUIRES tmux** — Claude Code is a full TUI app. Using `pty=true` alone in Hermes terminal works but tmux gives you `capture-pane` for monitoring and `send-keys` for input, which is essential for orchestration.
-2. **The `--dangerously-skip-permissions` warning dialog defaults to "No, exit"** — that default is the safe answer; only send Down then Enter when you deliberately opted into the bypass in an isolated environment. Print mode (`-p`) skips the dialog entirely.
-3. **`--max-budget-usd` minimum is ~$0.05** — system prompt cache creation alone costs this much. Setting lower will error immediately.
-4. **`--max-turns` is print-mode only** — ignored in interactive sessions.
-5. **Claude may use `python` instead of `python`** — on systems without a `python` symlink, Claude's bash commands will fail on first try but it self-corrects.
-6. **Session resumption requires same directory** — `--continue` finds the most recent session for the current working directory.
-7. **`--json-schema` needs enough `--max-turns`** — Claude must read files before producing structured output, which takes multiple turns.
-8. **Trust dialog only appears once per directory** — first-time only, then cached.
-9. **Background tmux sessions persist** — always clean up with `tmux kill-session -t <name>` when done.
-10. **Slash commands (like `/commit`) only work in interactive mode** — in `-p` mode, describe the task in natural language instead.
-11. **`--bare` skips OAuth** — requires `ANTHROPIC_API_KEY` env var or an `apiKeyHelper` in settings.
-12. **Context degradation is real** — AI output quality measurably degrades above 70% context window usage. Monitor with `/context` and proactively `/compact`.
+1. **交互模式必须用 tmux** —— Claude Code 是完整 TUI 应用。在 Hermes terminal 中单用 `pty=true` 也能work，但 tmux 提供用于监控的 `capture-pane` 和用于输入的 `send-keys`，这对编排至关重要。
+2. **`--dangerously-skip-permissions` 警告对话框默认为「No, exit」** —— 该默认是安全答案。只有当你刻意在隔离环境中 opt-in bypass 时才发送 Down 再 Enter。Print mode（`-p`）完全跳过该对话框。
+3. **`--max-budget-usd` 最低约 $0.05** —— 仅系统提示缓存创建就花这么多。设得更低会立即报错。
+4. **`--max-turns` 仅限 print mode** —— 交互式会话中会被忽略。
+5. **Claude 可能用 `python` 而非 `python`** —— 在没有 `python` symlink 的系统上，Claude 的 bash 命令首次会失败，但会自我纠正。
+6. **会话恢复要求同一目录** —— `--continue` 查找当前工作目录最近一次会话。
+7. **`--json-schema` 需要足够的 `--max-turns`** —— Claude 必须先读文件才能产出结构化输出，这需要多轮。
+8. **信任对话框每个目录只出现一次** —— 仅首次，之后缓存。
+9. **后台 tmux 会话会持续存在** —— 完成后务必用 `tmux kill-session -t <name>` 清理。
+10. **斜杠命令（如 `/commit`）仅在交互模式可用** —— `-p` 模式下改以自然语言描述任务。
+11. **`--bare` 跳过 OAuth** —— 需要 `ANTHROPIC_API_KEY` 环境变量或设置中的 `apiKeyHelper`。
+12. **上下文退化是真实存在的** —— 上下文窗口使用超 70% 后 AI 输出质量可测地下降。用 `/context` 监控并主动 `/compact`。
 
-## Rules for Hermes Agents
+## Hermes Agent 的规则
 
-1. **Prefer print mode (`-p`) for single tasks** — cleaner, no dialog handling, structured output
-2. **Use tmux for multi-turn interactive work** — the only reliable way to orchestrate the TUI
-3. **Always set `workdir`** — keep Claude focused on the right project directory
-4. **Set `--max-turns` in print mode** — prevents infinite loops and runaway costs
-5. **Monitor tmux sessions** — use `tmux capture-pane -t <session> -p -S -50` to check progress
-6. **Look for the `❯` prompt** — indicates Claude is waiting for input (done or asking a question)
-7. **Clean up tmux sessions** — kill them when done to avoid resource leaks
-8. **Report results to user** — after completion, summarize what Claude did and what changed
-9. **Don't kill slow sessions** — Claude may be doing multi-step work; check progress instead
-10. **Use `--allowedTools`** — restrict capabilities to what the task actually needs
+1. **单任务优先用 print mode（`-p`）** —— 更干净、无需处理对话框、结构化输出
+2. **多轮交互工作用 tmux** —— 编排该 TUI 的唯一可靠方式
+3. **始终设置 `workdir`** —— 让 Claude 专注于正确的项目目录
+4. **print mode 中设置 `--max-turns`** —— 防止死循环与失控成本
+5. **监控 tmux 会话** —— 用 `tmux capture-pane -t <session> -p -S -50` 检查进度
+6. **留意 `❯` 提示符** —— 表示 Claude 在等待输入（已完成或在提问）
+7. **清理 tmux 会话** —— 完成后杀掉以免资源泄漏
+8. **向用户报告结果** —— 完成后总结 Claude 做了什么、改了什么
+9. **不要杀掉慢会话** —— Claude 可能在做多步工作。改为检查进度
+10. **用 `--allowedTools`** —— 把能力限制到任务真正所需

@@ -1,6 +1,6 @@
 ---
 name: dogfood
-description: "Exploratory QA of web apps: find bugs, evidence, reports."
+description: "对 Web 应用做探索式 QA 时使用。只要要找 bug、留证据、出报告，就主动加载。"
 version: 1.0.0
 platforms: [linux, macos, windows]
 metadata:

@@ -1,6 +1,6 @@
 ---
 name: pdf
-description: "创建、合并、拆分、填写、加密 PDF 时使用。"
+description: "创建、合并、拆分、填写、加密 PDF 时使用。只要涉及 PDF 的合并/拆分/旋转、水印、表单填写、加密解密或提取文字表格，就主动加载。即使用户只是提到一个 .pdf 文件。不用于扫描件重度 OCR（用 ocr-and-documents）或自然语言改字（用 nano-pdf）。"
 version: 1.0.0
 author: Anthropic (adapted by Nous Research)
 license: Proprietary. LICENSE.txt has complete terms
@@ -12,15 +12,15 @@ metadata:
     related_skills: [ocr-and-documents, nano-pdf, docx, xlsx]
 ---
 
-# PDF Skill
+# PDF 技能
 
-Create, combine, split, transform, and secure PDF files — merging, page manipulation, form filling, watermarks, encryption, and text/table extraction. For heavy text extraction from scanned documents prefer the `ocr-and-documents` skill; for natural-language edits to existing PDF text prefer `nano-pdf`.
+创建、合并、拆分、变换并保护 PDF 文件——合并、页面操作、表单填写、水印、加密以及文字/表格抽取。扫描文档的重度文字抽取优先用 `ocr-and-documents` skill。对现有 PDF 文字做自然语言编辑优先用 `nano-pdf`。
 
-## When to Use
+## 何时使用
 
-Use this skill whenever the user wants to do anything with PDF files: reading or extracting text/tables, combining or merging multiple PDFs, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting, extracting images, or OCR on scanned PDFs. If the user mentions a .pdf file or asks to produce one, use this skill.
+只要用户想对 PDF 文件做任何事就用本 skill：读取或抽取文字/表格、合并多个 PDF、拆分 PDF、旋转页面。添加水印、创建新 PDF、填写 PDF 表单、加密/解密、抽取图片，或对扫描件 PDF 做 OCR。只要用户提到 .pdf 文件或要求生成一份，就用本 skill。
 
-## Prerequisites
+## 前置条件
 
 ```bash
 pip install pypdf pdfplumber reportlab
@@ -28,27 +28,27 @@ which pdftotext || sudo apt install -y poppler-utils   # pdftotext, pdftoppm, pd
 which qpdf || sudo apt install -y qpdf                 # CLI merge/split/decrypt
 ```
 
-macOS: `brew install poppler qpdf`. OCR extras: `pip install pytesseract pdf2image` + `sudo apt install -y tesseract-ocr`.
+macOS：`brew install poppler qpdf`。OCR 附加：`pip install pytesseract pdf2image` + `sudo apt install -y tesseract-ocr`。
 
-> Script paths below are relative to this skill's directory. Form filling has its own workflow — read [forms.md](forms.md) and follow it. Advanced library usage (pypdfium2, pdf-lib) and troubleshooting: [reference.md](reference.md).
+> 下方脚本路径相对于本 skill 目录。表单填写有独立流程——读 [forms.md](forms.md) 并照做。进阶库用法（pypdfium2、pdf-lib）与排查：[reference.md](reference.md)。
 
-## Quick Reference
+## 快速参考
 
-| Task | Best Tool | Command/Code |
+| 任务 | 最佳工具 | 命令/代码 |
 |------|-----------|--------------|
-| Merge PDFs | pypdf | `writer.add_page(page)` per page |
-| Split PDFs | pypdf | One page per file |
-| Extract text | pdfplumber | `page.extract_text()` |
-| Extract tables | pdfplumber | `page.extract_tables()` |
-| Create PDFs | reportlab | Canvas or Platypus |
-| Command-line merge/split | qpdf | `qpdf --empty --pages ...` |
-| OCR scanned PDFs | pytesseract | Convert to images first (or use `ocr-and-documents`) |
-| Fill PDF forms | see [forms.md](forms.md) | `scripts/fill_fillable_fields.py` etc. |
-| Edit existing text | `nano-pdf` skill | `nano-pdf edit file.pdf <page> "<instruction>"` |
+| 合并 PDF | pypdf | 每页 `writer.add_page(page)` |
+| 拆分 PDF | pypdf | 每页一个文件 |
+| 抽取文字 | pdfplumber | `page.extract_text()` |
+| 抽取表格 | pdfplumber | `page.extract_tables()` |
+| 创建 PDF | reportlab | Canvas 或 Platypus |
+| 命令行合并/拆分 | qpdf | `qpdf --empty --pages ...` |
+| OCR 扫描件 PDF | pytesseract | 先转成图片（或用 `ocr-and-documents`） |
+| 填写 PDF 表单 | 见 [forms.md](forms.md) | `scripts/fill_fillable_fields.py` 等 |
+| 编辑已有文字 | `nano-pdf` skill | `nano-pdf edit file.pdf <page> "<instruction>"` |
 
-## Common operations
+## 常用操作
 
-### Merge / split / rotate (pypdf)
+### 合并 / 拆分 / 旋转（pypdf）
 
 ```python
 from pypdf import PdfReader, PdfWriter
@@ -73,7 +73,7 @@ page = reader.pages[0]
 page.rotate(90)  # clockwise
 ```
 
-### Extract text and tables (pdfplumber)
+### 抽取文字与表格（pdfplumber）
 
 ```python
 import pdfplumber, pandas as pd
@@ -85,7 +85,7 @@ with pdfplumber.open("document.pdf") as pdf:
               for t in page.extract_tables() if t]
 ```
 
-### Create PDFs (reportlab)
+### 创建 PDF（reportlab）
 
 ```python
 from reportlab.lib.pagesizes import letter
@@ -100,9 +100,9 @@ story = [Paragraph("Report Title", styles["Title"]), Spacer(1, 12),
 doc.build(story)
 ```
 
-**Subscripts/superscripts:** never use Unicode sub/superscript characters (₀₁₂, ⁰¹²) — the built-in fonts lack the glyphs and render solid black boxes. Use `<sub>`/`<super>` markup inside `Paragraph` objects: `Paragraph("H<sub>2</sub>O", styles['Normal'])`. For canvas-drawn text, adjust font size and position manually.
+**下标/上标：** 绝不要用 Unicode 下标/上标字符（₀₁₂、⁰¹²）——内置字体缺少这些字形，会渲染成实心黑方块。在 `Paragraph` 对象内用 `<sub>`/`<super>` 标记：`Paragraph("H<sub>2</sub>O", styles['Normal'])`。对 canvas 绘制的文字，手动调整字号与位置。
 
-### Command-line tools
+### 命令行工具
 
 ```bash
 pdftotext -layout input.pdf output.txt                     # text, layout preserved
@@ -114,7 +114,7 @@ qpdf --password=pw --decrypt encrypted.pdf decrypted.pdf   # remove password
 pdfimages -j input.pdf img                                 # extract images
 ```
 
-### Watermark
+### 水印
 
 ```python
 from pypdf import PdfReader, PdfWriter
@@ -128,13 +128,13 @@ with open("watermarked.pdf", "wb") as f:
     writer.write(f)
 ```
 
-### Password protection
+### 密码保护
 
 ```python
 writer.encrypt("userpassword", "ownerpassword")
 ```
 
-### OCR scanned PDFs
+### OCR 扫描件 PDF
 
 ```python
 import pytesseract
@@ -144,31 +144,31 @@ pages = convert_from_path("scanned.pdf")
 text = "\n\n".join(pytesseract.image_to_string(img) for img in pages)
 ```
 
-For batch/structured extraction from scans, the `ocr-and-documents` skill (pymupdf, marker-pdf) is the better path.
+扫描件的批量/结构化抽取，`ocr-and-documents` skill（pymupdf、marker-pdf）是更好的路子。
 
-## Form filling
+## 表单填写
 
-Read [forms.md](forms.md) first — it distinguishes fillable (AcroForm) PDFs from flat scanned forms and walks through the helper scripts:
+先读 [forms.md](forms.md)——它区分可填写（AcroForm）PDF 与扁平扫描表单，并逐一讲解辅助脚本：
 
-- `scripts/check_fillable_fields.py` — does the PDF have AcroForm fields?
-- `scripts/extract_form_field_info.py` / `scripts/extract_form_structure.py` — enumerate fields
-- `scripts/fill_fillable_fields.py` — fill AcroForm fields
-- `scripts/fill_pdf_form_with_annotations.py` — overlay text on flat forms
-- `scripts/check_bounding_boxes.py`, `scripts/create_validation_image.py` — verify placement visually
+- `scripts/check_fillable_fields.py`——该 PDF 有 AcroForm 字段吗？
+- `scripts/extract_form_field_info.py` / `scripts/extract_form_structure.py`——枚举字段
+- `scripts/fill_fillable_fields.py`——填写 AcroForm 字段
+- `scripts/fill_pdf_form_with_annotations.py`——在扁平表单上叠加文字
+- `scripts/check_bounding_boxes.py`、`scripts/create_validation_image.py`——可视化核验位置
 
-## Pitfalls
+## 常见坑
 
-- `page.extract_text()` returns `None` on image-only pages — guard with `or ""` and fall back to OCR.
-- pypdf preserves encryption flags: reading an encrypted PDF requires `PdfReader(path, password=...)` before pages are accessible.
-- reportlab coordinates are bottom-left origin, points (1/72″) — not top-left.
-- When filling flat forms by annotation overlay, always render a validation image and check the placement before delivering.
+- `page.extract_text()` 在纯图片页上返回 `None`——用 `or ""` 兜底并回退到 OCR。
+- pypdf 保留加密标志：读加密 PDF 需要 `PdfReader(path, password=...)` 才能访问页面。
+- reportlab 坐标以左下角为原点，单位是点（1/72″）——不是左上角。
+- 用批注叠加填写扁平表单时，交付前务必渲染一张校验图并检查位置。
 
-## Verification
+## 验证
 
-1. Open the output with `PdfReader` and assert the expected page count.
-2. Re-extract text from the output (`pdftotext` or pdfplumber) and confirm the content you added is present.
-3. For anything visual (watermarks, filled forms, created reports): `pdftoppm -jpeg -r 100 output.pdf page` and inspect the images with `vision_analyze`.
+1. 用 `PdfReader` 打开产出并断言预期页数。
+2. 从产出中重新抽取文字（`pdftotext` 或 pdfplumber），确认你添加的内容在其中。
+3. 对任何视觉产物（水印、填写过的表单、创建的报表）：`pdftoppm -jpeg -r 100 output.pdf page`，用 `vision_analyze` 检查图片。
 
-## Related skills
+## 相关 skill
 
-`ocr-and-documents` (scanned-document text extraction), `nano-pdf` (NL text edits in place), `docx` (Word), `xlsx` (spreadsheets), `powerpoint` (decks).
+`ocr-and-documents`（扫描文档文字抽取）、`nano-pdf`（原地自然语言改字）、`docx`（Word）、`xlsx`（电子表格）、`powerpoint`（演示文稿）。

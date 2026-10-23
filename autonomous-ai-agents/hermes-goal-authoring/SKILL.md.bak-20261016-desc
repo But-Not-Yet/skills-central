@@ -1,0 +1,45 @@
+---
+name: hermes-goal-authoring
+description: "主人要 /goal 格式 prompt 时使用——契约五字段与解析坑。"
+version: 1.0.0
+author: Nekonya (小喵)
+license: MIT
+metadata:
+  hermes:
+    tags: [hermes, goal, prompt-authoring]
+---
+
+# /goal 完成契约写作（authoring 手册）
+
+## When to Use
+主人要一段可粘贴的 `/goal` prompt、设跨轮目标（standing goal）、或追加 subgoal 判据时。源码出处：`hermes_cli/goals.py`、`hermes_cli/goal_command.py`、`gateway/slash_commands_goals.py`（2026-10-07 核实）。
+
+## 契约五字段（`别名: 值` 逐行。同字段可多行、自动空格拼接）
+| 字段 | 别名（英文、全小写） | 含义 |
+|---|---|---|
+| outcome | goal / done / done when | 什么算完成。headline 无显式 `outcome:` 时 headline 即 outcome |
+| verification | verify / verified by / evidence / proof | 如何证明。continuation 会要求「出示证据」——写成可现场出示的命令/文件/数字 |
+| constraints | constraint / preserve / must not / do not change | 不许破坏什么 |
+| boundaries | boundary / scope / allowed / files | 允许范围（资源、路径） |
+| stop_when | stop when / blocked / stop if blocked / give up when | 何时停下求助 |
+
+## 解析坑（核实过的硬规则）
+- **行内冒号必须半角 `:`**——中文「：」不解析，整行会被并进 headline。
+- 别名按 `prefix.strip().lower()` 查表——**只认英文别名**。值任意（中文 OK）。
+- 非字段行全部并成单行 headline（多行自动空格连接）——headline 写短，每轮 continuation 会重放。
+- judge 复看时 contract 块**截断到 2500 字符**——判据别超。
+- goal 文本以控制词开头（resume/pause/status…）会被当控制命令——真要这样开头用 `/goal -- <text>`。
+- 多行粘贴失败的备选：先发单行 headline 设目标，再用 `/subgoal` 逐条补判据。
+
+## 机制要点（影响写法）
+- 每轮结束由 auxiliary `goal_judge` 判 DONE/BLOCKED/CONTINUE。**fail-open**（判不了=继续）。默认 **20 轮预算**（max_turns）。
+- 重新设置 goal 会替换旧 goal（无需先 clear）。kickoff 时 goal 文本≈上一条 user 消息（≥400 字且占比 ≥80%）会去重跳过重贴。
+- `/subgoal` 追加判据（judge 也看）。`/goal gate add <shell 命令>` 加确定性前置门（失败短路 judge）。
+- `/goal status|show|pause|resume|clear|wait <pid>` 管理。
+- **哨兵约束（执行体常驻同服务）**。goal 执行体若与待停服务同源（如小喵本身跑在 llama-server 上、主人要她挂哨兵盯着）。「停服跑任务」= 隐式杀死执行体——**别默认要停**：先做共存内存账（任务峰值 vs 执行体常驻时的 MemAvailable）。装得下就不停。停服确有必要时，constraints 写明「不碰 <服务>」或「只经圈定命令停」。stop_when 必含内存门不过的退出与恢复分支（链死在任何一步都把生产拉回来）。
+- **verify 行引用的脚本/工件必须住永久路径**——scratch（`~/.hermes/cache/scratch`）条目 24h 闲置即被清，goal 往往跨天跑。先把工具拷进 `~/.hermes/scripts/` 再写进 verify，否则 worker 中途找不到判分器。同理，任务书/验收表这类 durable 工件不得引用 scratch 路径。
+- **批量清单类 goal：清单交给 worker 开工第一步重生成**——写 goal 时排序/名单会过时。任务书只定选取规则（如「按 linter 硬违规数降序取前 20」）+ 要求 worker 首步重跑并贴回名单。别把快照名单当死判据。
+- **配套任务书模式**：goal prompt 短（判据可出示、红线、停止条件），完整范围/分档/豁免规则写进落盘任务书。goal 的 boundary 指向该文件。豁免类达标路径要求逐条登记（文件/行/规则/理由），无登记不算数。
+
+## 实战范例
+2026-10-07「重读诊断 + 跨重启 patch」goal v3（红线/坐标/停止条件齐全的完整实例）：`~/Documents/Hermes/goal_重读诊断_20261007.md`。

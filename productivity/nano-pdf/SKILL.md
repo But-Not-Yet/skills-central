@@ -1,6 +1,6 @@
 ---
 name: nano-pdf
-description: "Edit text in existing PDFs via natural-language prompts."
+description: "用自然语言指令编辑现有 PDF 文字时使用。只要涉及改 PDF 里的标题、日期、错字或内容，就主动加载，即使用户只是说「把这份 PDF 的某处改一下」。不用于合并/拆分/加密（用 pdf）或扫描件 OCR（用 ocr-and-documents）。"
 version: 1.0.0
 author: community
 license: MIT
@@ -14,9 +14,9 @@ metadata:
 
 # nano-pdf
 
-Edit PDFs using natural-language instructions. Point it at a page and describe what to change. For structural PDF work (merge, split, forms, watermarks, creation), see the `pdf` skill; for text extraction from scans, see `ocr-and-documents`.
+用自然语言指令编辑 PDF：指向某一页，描述要改什么即可。结构性 PDF 工作（合并、拆分、表单、水印、创建）见 `pdf` skill。扫描件文字提取见 `ocr-and-documents`。
 
-## Prerequisites
+## 前置条件
 
 ```bash
 # Install with uv (recommended — already available in Hermes)
@@ -26,13 +26,13 @@ uv pip install nano-pdf
 pip install nano-pdf
 ```
 
-## Usage
+## 用法
 
 ```bash
 nano-pdf edit <file.pdf> <page_number> "<instruction>"
 ```
 
-## Examples
+## 示例
 
 ```bash
 # Change a title on page 1
@@ -45,9 +45,9 @@ nano-pdf edit report.pdf 3 "Update the date from January to February 2026"
 nano-pdf edit contract.pdf 2 "Change the client name from 'Acme Corp' to 'Acme Industries'"
 ```
 
-## Notes
+## 注意
 
-- Page numbers may be 0-based or 1-based depending on version — if the edit hits the wrong page, retry with ±1
-- Always verify the output PDF after editing (use `read_file` to check file size, or open it)
-- The tool uses an LLM under the hood — requires an API key (check `nano-pdf --help` for config)
-- Works well for text changes; complex layout modifications may need a different approach
+- 页码是 0-based 还是 1-based 取决于版本——若改到了错误的页，用 ±1 重试
+- 编辑后务必核验输出 PDF（用 `read_file` 检查文件大小，或打开它）
+- 该工具底层用 LLM——需要 API key（用 `nano-pdf --help` 查配置）
+- 适合文字修改。复杂版式改动可能需要别的方案

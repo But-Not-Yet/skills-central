@@ -1,6 +1,6 @@
 ---
 name: weights-and-biases
-description: "W&B: log ML experiments, sweeps, model registry, dashboards."
+description: "记录 ML 实验、跑 sweep、管模型注册表与看板（Weights & Biases）时使用。只要涉及 W&B 的日志、对比或调参，就主动加载，即使用户只说「把训练曲线记一下」。"
 version: 1.0.1
 author: Orchestra Research
 license: MIT
@@ -12,22 +12,22 @@ metadata:
 
 ---
 
-# Weights & Biases: ML Experiment Tracking & MLOps
+# Weights & Biases：ML 实验跟踪与 MLOps
 
-## When to Use This Skill
+## 何时使用本 skill
 
-Use Weights & Biases (W&B) when you need to:
-- **Track ML experiments** with automatic metric logging
-- **Visualize training** in real-time dashboards
-- **Compare runs** across hyperparameters and configurations
-- **Optimize hyperparameters** with automated sweeps
-- **Manage model registry** with versioning and lineage
-- **Collaborate on ML projects** with team workspaces
-- **Track artifacts** (datasets, models, code) with lineage
+需要做以下事情时用 Weights & Biases（W&B）：
+- **跟踪 ML 实验**，自动记录指标
+- 在实时看板中**可视化训练**
+- 跨超参与配置**对比 run**
+- 用自动 sweep **优化超参**
+- **管理模型注册表**，带版本与血缘
+- 用团队工作区**协作 ML 项目**
+- **跟踪 artifact**（数据集、模型、代码）及其血缘
 
-**Users**: 200,000+ ML practitioners | **GitHub Stars**: 10.5k+ | **Integrations**: 100+
+**用户**：200,000+ ML 从业者 | **GitHub Stars**：10.5k+ | **集成**：100+
 
-## Installation
+## 安装
 
 ```bash
 # Install W&B
@@ -40,9 +40,9 @@ wandb login
 export WANDB_API_KEY=your_api_key_here
 ```
 
-## Quick Start
+## 快速开始
 
-### Basic Experiment Tracking
+### 基础实验跟踪
 
 ```python
 import wandb
@@ -77,7 +77,7 @@ for epoch in range(run.config.epochs):
 wandb.finish()
 ```
 
-### With PyTorch
+### 配合 PyTorch
 
 ```python
 import torch
@@ -119,12 +119,12 @@ wandb.save("model.pth")  # Upload to W&B
 wandb.finish()
 ```
 
-## Core Concepts
+## 核心概念
 
-### 1. Projects and Runs
+### 1. Project 与 Run
 
-**Project**: Collection of related experiments
-**Run**: Single execution of your training script
+**Project**：一组相关实验的集合
+**Run**：训练脚本的一次执行
 
 ```python
 # Create/use project
@@ -140,9 +140,9 @@ print(f"Run ID: {run.id}")
 print(f"Run URL: {run.url}")
 ```
 
-### 2. Configuration Tracking
+### 2. 配置跟踪
 
-Track hyperparameters automatically:
+自动跟踪超参：
 
 ```python
 config = {
@@ -168,7 +168,7 @@ lr = wandb.config.learning_rate
 batch_size = wandb.config.batch_size
 ```
 
-### 3. Metric Logging
+### 3. 指标记录
 
 ```python
 # Log scalars
@@ -198,7 +198,7 @@ table = wandb.Table(columns=["id", "prediction", "ground_truth"])
 wandb.log({"predictions": table})
 ```
 
-### 4. Model Checkpointing
+### 4. 模型 checkpoint
 
 ```python
 import torch
@@ -223,11 +223,11 @@ artifact.add_file('checkpoint.pth')
 wandb.log_artifact(artifact)
 ```
 
-## Hyperparameter Sweeps
+## 超参 sweep
 
-Automatically search for optimal hyperparameters.
+自动搜索最优超参。
 
-### Define Sweep Configuration
+### 定义 sweep 配置
 
 ```python
 sweep_config = {
@@ -260,7 +260,7 @@ sweep_config = {
 sweep_id = wandb.sweep(sweep_config, project="my-project")
 ```
 
-### Define Training Function
+### 定义训练函数
 
 ```python
 def train():
@@ -291,7 +291,7 @@ def train():
 wandb.agent(sweep_id, function=train, count=50)  # Run 50 trials
 ```
 
-### Sweep Strategies
+### sweep 策略
 
 ```python
 # Grid search - exhaustive
@@ -322,11 +322,11 @@ sweep_config = {
 }
 ```
 
-## Artifacts
+## Artifact
 
-Track datasets, models, and other files with lineage.
+带血缘地跟踪数据集、模型与其他文件。
 
-### Log Artifacts
+### 记录 artifact
 
 ```python
 # Create artifact
@@ -345,7 +345,7 @@ artifact.add_dir('data/images/')
 wandb.log_artifact(artifact)
 ```
 
-### Use Artifacts
+### 使用 artifact
 
 ```python
 # Download and use artifact
@@ -359,7 +359,7 @@ artifact_dir = artifact.download()
 data = load_data(f"{artifact_dir}/train.csv")
 ```
 
-### Model Registry
+### 模型注册表
 
 ```python
 # Log model as artifact
@@ -376,7 +376,7 @@ wandb.log_artifact(model_artifact, aliases=['best', 'production'])
 run.link_artifact(model_artifact, 'model-registry/production-models')
 ```
 
-## Integration Examples
+## 集成示例
 
 ### HuggingFace Transformers
 
@@ -451,9 +451,9 @@ model.fit(
 )
 ```
 
-## Visualization & Analysis
+## 可视化与分析
 
-### Custom Charts
+### 自定义图表
 
 ```python
 # Log custom visualizations
@@ -472,17 +472,17 @@ wandb.log({"conf_mat": wandb.plot.confusion_matrix(
 )})
 ```
 
-### Reports
+### 报告
 
-Create shareable reports in W&B UI:
-- Combine runs, charts, and text
-- Markdown support
-- Embeddable visualizations
-- Team collaboration
+在 W&B UI 里创建可分享的报告：
+- 把 run、图表与文本组合起来
+- 支持 Markdown
+- 可嵌入的可视化
+- 团队协作
 
-## Best Practices
+## 最佳实践
 
-### 1. Organize with Tags and Groups
+### 1. 用 tag 与 group 组织
 
 ```python
 wandb.init(
@@ -493,7 +493,7 @@ wandb.init(
 )
 ```
 
-### 2. Log Everything Relevant
+### 2. 记录一切相关的东西
 
 ```python
 # Log system metrics
@@ -513,7 +513,7 @@ wandb.log({
 })
 ```
 
-### 3. Use Descriptive Names
+### 3. 用有描述性的命名
 
 ```python
 # ✅ Good: Descriptive run names
@@ -526,7 +526,7 @@ wandb.init(
 wandb.init(project="nlp", name="run1")
 ```
 
-### 4. Save Important Artifacts
+### 4. 保存重要的 artifact
 
 ```python
 # Save final model
@@ -542,7 +542,7 @@ predictions_table = wandb.Table(
 wandb.log({"predictions": predictions_table})
 ```
 
-### 5. Use Offline Mode for Unstable Connections
+### 5. 网络不稳时用离线模式
 
 ```python
 import os
@@ -557,9 +557,9 @@ wandb.init(project="my-project")
 # wandb sync <run_directory>
 ```
 
-## Team Collaboration
+## 团队协作
 
-### Share Runs
+### 分享 run
 
 ```python
 # Runs are automatically shareable via URL
@@ -567,32 +567,32 @@ run = wandb.init(project="team-project")
 print(f"Share this URL: {run.url}")
 ```
 
-### Team Projects
+### 团队 project
 
-- Create team account at wandb.ai
-- Add team members
-- Set project visibility (private/public)
-- Use team-level artifacts and model registry
+- 在 wandb.ai 创建团队账号
+- 添加团队成员
+- 设置 project 可见性（private/public）
+- 使用团队级 artifact 与模型注册表
 
-## Pricing
+## 定价
 
-- **Free**: Unlimited public projects, 100GB storage
-- **Academic**: Free for students/researchers
-- **Teams**: $50/seat/month, private projects, unlimited storage
-- **Enterprise**: Custom pricing, on-prem options
+- **Free**：无限公开 project，100GB 存储
+- **Academic**：学生/研究者免费
+- **Teams**：$50/seat/月，私有 project，无限存储
+- **Enterprise**：定制定价，可选 on-prem
 
-## Resources
+## 资源
 
-- **Documentation**: https://docs.wandb.ai
-- **GitHub**: https://github.com/wandb/wandb (10.5k+ stars)
-- **Examples**: https://github.com/wandb/examples
-- **Community**: https://wandb.ai/community
-- **Discord**: https://wandb.me/discord
+- **文档**：https://docs.wandb.ai
+- **GitHub**：https://github.com/wandb/wandb（10.5k+ stars）
+- **示例**：https://github.com/wandb/examples
+- **社区**：https://wandb.ai/community
+- **Discord**：https://wandb.me/discord
 
-## See Also
+## 另见
 
-- `references/sweeps.md` - Comprehensive hyperparameter optimization guide
-- `references/artifacts.md` - Data and model versioning patterns
-- `references/integrations.md` - Framework-specific examples
+- `references/sweeps.md` - 超参优化的全面指南
+- `references/artifacts.md` - 数据与模型版本化模式
+- `references/integrations.md` - 各框架的具体示例
 
 

@@ -1,13 +1,13 @@
 ---
 name: hermes-desktop-plugins
-description: "给 Hermes 桌面应用写插件（新增面板与命令）时使用。"
+description: "给 Hermes 桌面应用写插件时使用。只要要新增面板或命令，就主动加载。"
 version: 1.0.0
 platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [desktop, plugins, ui, extension]
     category: productivity
-    related_skills: []
+    related_skills: [hermes-context-engine-plugins]
 ---
 
 # Hermes Desktop Plugins Skill
@@ -21,6 +21,11 @@ system (`~/.hermes/plugins/`) is otherwise documented separately.
 
 Full human reference (every export, area payloads, backend, security):
 `website/docs/developer-guide/desktop-plugin-sdk.md`.
+
+Not this skill: a `context.engine` plugin (wrapping `ContextEngine`, owning
+compression/context lifecycle) belongs to `hermes-context-engine-plugins`;
+a headless Python plugin under `~/.hermes/plugins/` without desktop UI uses
+the general plugin system, not this SDK.
 
 ## When to Use
 

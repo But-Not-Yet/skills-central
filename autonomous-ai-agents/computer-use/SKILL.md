@@ -1,6 +1,6 @@
 ---
 name: computer-use
-description: "操作桌面时使用：后台优先驱动，收到信号再升级介入。"
+description: "操作桌面时使用。只要要在后台驱动用户桌面（点击、输入、滚动、拖拽）而不抢光标焦点，就主动加载，收到信号再升级介入。"
 version: 2.1.0
 author: Francesco Bonacci (f-trycua), Hermes Agent
 license: MIT

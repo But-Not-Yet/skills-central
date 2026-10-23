@@ -1,6 +1,6 @@
 ---
 name: openhue
-description: "Control Philips Hue lights, scenes, rooms via OpenHue CLI."
+description: "用 OpenHue CLI 控制 Philips Hue 灯、场景与房间时使用。只要要开关灯、调亮度或改场景，就主动加载，即使用户只说「把灯调暗点」。"
 version: 1.0.1
 author: community
 license: MIT
@@ -15,9 +15,9 @@ prerequisites:
 
 # OpenHue CLI
 
-Control Philips Hue lights and scenes via a Hue Bridge from the terminal.
+从终端经 Hue Bridge 控制 Philips Hue 灯与场景。
 
-## Prerequisites
+## 前置条件
 
 ```bash
 # Linux (pre-built binary — releases ship tarballs, not bare binaries)
@@ -30,19 +30,19 @@ curl -sL "https://github.com/openhue/openhue-cli/releases/latest/download/openhu
 brew install openhue/cli/openhue-cli
 ```
 
-First run requires pressing the button on your Hue Bridge to pair. The bridge must be on the same local network.
+首次运行需按下 Hue Bridge 上的按钮完成配对。Bridge 必须与运行 Hermes 的机器在同一局域网。
 
-## When to Use
+## 何时使用
 
-- "Turn on/off the lights"
-- "Dim the living room lights"
-- "Set a scene" or "movie mode"
-- Controlling specific Hue rooms, zones, or individual bulbs
-- Adjusting brightness, color, or color temperature
+- 「开灯 / 关灯」
+- 「把客厅灯调暗」
+- 「设个场景」或「电影模式」
+- 控制指定的 Hue 房间、区域或单只灯泡
+- 调亮度、颜色或色温
 
-## Common Commands
+## 常用命令
 
-### List Resources
+### 列出资源
 
 ```bash
 openhue get light       # List all lights
@@ -50,7 +50,7 @@ openhue get room        # List all rooms
 openhue get scene       # List all scenes
 ```
 
-### Control Lights
+### 控制灯
 
 ```bash
 # Turn on/off
@@ -68,7 +68,7 @@ openhue set light "Bedroom Lamp" --on --color red
 openhue set light "Bedroom Lamp" --on --rgb "#FF5500"
 ```
 
-### Control Rooms
+### 控制房间
 
 ```bash
 # Turn off entire room
@@ -78,14 +78,14 @@ openhue set room "Bedroom" --off
 openhue set room "Bedroom" --on --brightness 30
 ```
 
-### Scenes
+### 场景
 
 ```bash
 openhue set scene "Relax" --room "Bedroom"
 openhue set scene "Concentrate" --room "Office"
 ```
 
-## Quick Presets
+## 快捷预设
 
 ```bash
 # Bedtime (dim warm)
@@ -103,10 +103,10 @@ openhue set room "Office" --off
 openhue set room "Living Room" --off
 ```
 
-## Notes
+## 注意
 
-- Bridge must be on the same local network as the machine running Hermes
-- First run requires physically pressing the button on the Hue Bridge to authorize
-- Colors only work on color-capable bulbs (not white-only models)
-- Light and room names are case-sensitive — use `openhue get light` to check exact names
-- Works great with cron jobs for scheduled lighting (e.g. dim at bedtime, bright at wake)
+- Bridge 必须与运行 Hermes 的机器在同一局域网
+- 首次运行需物理按下 Hue Bridge 上的按钮授权
+- 颜色只对支持彩色的灯泡生效（纯白型号不支持）
+- 灯与房间名**区分大小写**——用 `openhue get light` 查准确名称
+- 与定时任务配合得很好（如睡前调暗、起床调亮）

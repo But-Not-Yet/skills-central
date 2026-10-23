@@ -1,6 +1,6 @@
 ---
 name: segment-anything-model
-description: "用 SAM 做零样本图像分割时使用：点、框、掩码提示。"
+description: "用 SAM 做零样本图像分割时使用：点、框、掩码提示。只要要分割图像、做标注工具或提取掩码，就主动加载，即使用户只说「抠一下图里这个物体」。"
 version: 1.0.0
 author: Orchestra Research
 license: MIT
@@ -12,37 +12,37 @@ metadata:
 
 ---
 
-# Segment Anything Model (SAM)
+# Segment Anything Model（SAM）
 
-Comprehensive guide to using Meta AI's Segment Anything Model for zero-shot image segmentation.
+Meta AI 的 Segment Anything Model 零样本图像分割全面指南。
 
-## When to use SAM
+## 何时用 SAM
 
-**Use SAM when:**
-- Need to segment any object in images without task-specific training
-- Building interactive annotation tools with point/box prompts
-- Generating training data for other vision models
-- Need zero-shot transfer to new image domains
-- Building object detection/segmentation pipelines
-- Processing medical, satellite, or domain-specific images
+**以下情况用 SAM：**
+- 需要不做任务专属训练就分割图中任意物体
+- 构建用点/框提示的交互式标注工具
+- 为其他视觉模型生成训练数据
+- 需要零样本迁移到新的图像领域
+- 构建目标检测/分割流水线
+- 处理医疗、卫星或特定领域的图像
 
-**Key features:**
-- **Zero-shot segmentation**: Works on any image domain without fine-tuning
-- **Flexible prompts**: Points, bounding boxes, or previous masks
-- **Automatic segmentation**: Generate all object masks automatically
-- **High quality**: Trained on 1.1 billion masks from 11 million images
-- **Multiple model sizes**: ViT-B (fastest), ViT-L, ViT-H (most accurate)
-- **ONNX export**: Deploy in browsers and edge devices
+**关键特性：**
+- **零样本分割**：无需微调，适用于任意图像领域
+- **灵活的提示**：点、边界框或先前的掩码
+- **自动分割**：自动生成所有物体掩码
+- **高质量**：在 1100 万张图的 11 亿个掩码上训练
+- **多种模型规模**：ViT-B（最快）、ViT-L、ViT-H（最准）
+- **ONNX 导出**：部署到浏览器与边缘设备
 
-**Use alternatives instead:**
-- **YOLO/Detectron2**: For real-time object detection with classes
-- **Mask2Former**: For semantic/panoptic segmentation with categories
-- **GroundingDINO + SAM**: For text-prompted segmentation
-- **SAM 2**: For video segmentation tasks
+**以下情况改用替代方案：**
+- **YOLO/Detectron2**：带类别的实时目标检测
+- **Mask2Former**：带类别的语义/全景分割
+- **GroundingDINO + SAM**：文本提示的分割
+- **SAM 2**：视频分割任务
 
-## Quick start
+## 快速开始
 
-### Installation
+### 安装
 
 ```bash
 # From GitHub
@@ -55,7 +55,7 @@ pip install opencv-python pycocotools matplotlib
 pip install transformers
 ```
 
-### Download checkpoints
+### 下载 checkpoint
 
 ```bash
 # ViT-H (largest, most accurate) - 2.4GB
@@ -68,7 +68,7 @@ wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
 wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
 ```
 
-### Basic usage with SamPredictor
+### SamPredictor 基础用法
 
 ```python
 import numpy as np
@@ -131,9 +131,9 @@ masks = processor.image_processor.post_process_masks(
 )
 ```
 
-## Core concepts
+## 核心概念
 
-### Model architecture
+### 模型架构
 
 <!-- ascii-guard-ignore -->
 ```
@@ -148,26 +148,26 @@ SAM Architecture:
 ```
 <!-- ascii-guard-ignore-end -->
 
-### Model variants
+### 模型变体
 
-| Model | Checkpoint | Size | Speed | Accuracy |
+| Model | Checkpoint | 大小 | 速度 | 精度 |
 |-------|------------|------|-------|----------|
-| ViT-H | `vit_h` | 2.4 GB | Slowest | Best |
-| ViT-L | `vit_l` | 1.2 GB | Medium | Good |
-| ViT-B | `vit_b` | 375 MB | Fastest | Good |
+| ViT-H | `vit_h` | 2.4 GB | 最慢 | 最佳 |
+| ViT-L | `vit_l` | 1.2 GB | 中等 | 好 |
+| ViT-B | `vit_b` | 375 MB | 最快 | 好 |
 
-### Prompt types
+### 提示类型
 
-| Prompt | Description | Use Case |
+| 提示 | 说明 | 用途 |
 |--------|-------------|----------|
-| Point (foreground) | Click on object | Single object selection |
-| Point (background) | Click outside object | Exclude regions |
-| Bounding box | Rectangle around object | Larger objects |
-| Previous mask | Low-res mask input | Iterative refinement |
+| 点（前景） | 点在物体上 | 单选一个物体 |
+| 点（背景） | 点在物体外 | 排除区域 |
+| 边界框 | 框住物体的矩形 | 较大物体 |
+| 先前掩码 | 低分辨率掩码输入 | 迭代精修 |
 
-## Interactive segmentation
+## 交互式分割
 
-### Point prompts
+### 点提示
 
 ```python
 # Single foreground point
@@ -191,7 +191,7 @@ masks, scores, logits = predictor.predict(
 )
 ```
 
-### Box prompts
+### 框提示
 
 ```python
 # Bounding box [x1, y1, x2, y2]
@@ -203,7 +203,7 @@ masks, scores, logits = predictor.predict(
 )
 ```
 
-### Combined prompts
+### 组合提示
 
 ```python
 # Box + points for precise control
@@ -215,7 +215,7 @@ masks, scores, logits = predictor.predict(
 )
 ```
 
-### Iterative refinement
+### 迭代精修
 
 ```python
 # Initial prediction
@@ -234,9 +234,9 @@ masks, scores, logits = predictor.predict(
 )
 ```
 
-## Automatic mask generation
+## 自动掩码生成
 
-### Basic automatic segmentation
+### 基础自动分割
 
 ```python
 from segment_anything import SamAutomaticMaskGenerator
@@ -256,7 +256,7 @@ masks = mask_generator.generate(image)
 # - point_coords: generating point
 ```
 
-### Customized generation
+### 定制化生成
 
 ```python
 mask_generator = SamAutomaticMaskGenerator(
@@ -272,7 +272,7 @@ mask_generator = SamAutomaticMaskGenerator(
 masks = mask_generator.generate(image)
 ```
 
-### Filtering masks
+### 过滤掩码
 
 ```python
 # Sort by area (largest first)
@@ -285,9 +285,9 @@ high_quality = [m for m in masks if m['predicted_iou'] > 0.9]
 stable_masks = [m for m in masks if m['stability_score'] > 0.95]
 ```
 
-## Batched inference
+## 批量推理
 
-### Multiple images
+### 多张图
 
 ```python
 # Process multiple images efficiently
@@ -304,7 +304,7 @@ for image in images:
     all_masks.append(masks)
 ```
 
-### Multiple prompts per image
+### 每张图多个提示
 
 ```python
 # Process multiple prompts efficiently (one image encoding)
@@ -327,9 +327,9 @@ for point in points:
     all_masks.append(masks[np.argmax(scores)])
 ```
 
-## ONNX deployment
+## ONNX 部署
 
-### Export model
+### 导出模型
 
 ```bash
 python scripts/export_onnx_model.py \
@@ -339,7 +339,7 @@ python scripts/export_onnx_model.py \
     --return-single-mask
 ```
 
-### Use ONNX model
+### 使用 ONNX 模型
 
 ```python
 import onnxruntime
@@ -361,9 +361,9 @@ masks = ort_session.run(
 )
 ```
 
-## Common workflows
+## 常用工作流
 
-### Workflow 1: Annotation tool
+### 工作流 1：标注工具
 
 ```python
 import cv2
@@ -384,7 +384,7 @@ def on_click(event, x, y, flags, param):
         display_mask(masks[np.argmax(scores)])
 ```
 
-### Workflow 2: Object extraction
+### 工作流 2：物体提取
 
 ```python
 def extract_object(image, point):
@@ -407,7 +407,7 @@ def extract_object(image, point):
     return rgba
 ```
 
-### Workflow 3: Medical image segmentation
+### 工作流 3：医疗图像分割
 
 ```python
 # Process medical images (grayscale to RGB)
@@ -423,9 +423,9 @@ masks, scores, _ = predictor.predict(
 )
 ```
 
-## Output format
+## 输出格式
 
-### Mask data structure
+### 掩码数据结构
 
 ```python
 # SamAutomaticMaskGenerator output
@@ -440,7 +440,7 @@ masks, scores, _ = predictor.predict(
 }
 ```
 
-### COCO RLE format
+### COCO RLE 格式
 
 ```python
 from pycocotools import mask as mask_utils
@@ -453,9 +453,9 @@ rle["counts"] = rle["counts"].decode("utf-8")
 decoded_mask = mask_utils.decode(rle)
 ```
 
-## Performance optimization
+## 性能优化
 
-### GPU memory
+### GPU 显存
 
 ```python
 # Use smaller model for limited VRAM
@@ -466,7 +466,7 @@ sam = sam_model_registry["vit_b"](checkpoint="sam_vit_b_01ec64.pth")
 torch.cuda.empty_cache()
 ```
 
-### Speed optimization
+### 速度优化
 
 ```python
 # Use half precision
@@ -482,25 +482,25 @@ mask_generator = SamAutomaticMaskGenerator(
 # Export with --return-single-mask for faster inference
 ```
 
-## Common issues
+## 常见问题
 
-| Issue | Solution |
+| 问题 | 解决 |
 |-------|----------|
-| Out of memory | Use ViT-B model, reduce image size |
-| Slow inference | Use ViT-B, reduce points_per_side |
-| Poor mask quality | Try different prompts, use box + points |
-| Edge artifacts | Use stability_score filtering |
-| Small objects missed | Increase points_per_side |
+| 显存不足 | 用 ViT-B 模型，缩小图像尺寸 |
+| 推理慢 | 用 ViT-B，减少 points_per_side |
+| 掩码质量差 | 换不同提示，框 + 点结合 |
+| 边缘毛刺 | 用 stability_score 过滤 |
+| 漏掉小物体 | 增大 points_per_side |
 
-## References
+## 参考
 
-- **[Advanced Usage](references/advanced-usage.md)** - Batching, fine-tuning, integration
-- **[Troubleshooting](references/troubleshooting.md)** - Common issues and solutions
+- **[Advanced Usage](references/advanced-usage.md)** - 批处理、微调、集成
+- **[Troubleshooting](references/troubleshooting.md)** - 常见问题与解决
 
-## Resources
+## 资源
 
-- **GitHub**: https://github.com/facebookresearch/segment-anything
-- **Paper**: https://arxiv.org/abs/2304.02643
-- **Demo**: https://segment-anything.com
-- **SAM 2 (Video)**: https://github.com/facebookresearch/segment-anything-2
-- **HuggingFace**: https://huggingface.co/facebook/sam-vit-huge
+- **GitHub**：https://github.com/facebookresearch/segment-anything
+- **论文**：https://arxiv.org/abs/2304.02643
+- **Demo**：https://segment-anything.com
+- **SAM 2（视频）**：https://github.com/facebookresearch/segment-anything-2
+- **HuggingFace**：https://huggingface.co/facebook/sam-vit-huge

@@ -1,6 +1,6 @@
 ---
 name: llama-cpp
-description: "本地跑 llama.cpp GGUF 推理、在 HF Hub 找模型时使用。"
+description: "本地跑 llama.cpp GGUF 推理、在 HF Hub 找模型时使用。只要要用 GGUF 本地推理、挑量化档或找模型，就主动加载，即使用户只说「本地跑一下这个模型」。"
 version: 2.1.2
 author: Orchestra Research
 license: MIT
@@ -13,48 +13,48 @@ metadata:
 
 # llama.cpp + GGUF
 
-Use this skill for local GGUF inference, quant selection, or Hugging Face repo discovery for llama.cpp.
+用于 llama.cpp 的本地 GGUF 推理、量化档选择，或 Hugging Face 仓库发现。
 
-## When to use
+## 何时使用
 
-- Run local models on CPU, Apple Silicon, CUDA, ROCm, or Intel GPUs
-- Find the right GGUF for a specific Hugging Face repo
-- Build a `llama-server` or `llama-cli` command from the Hub
-- Search the Hub for models that already support llama.cpp
-- Enumerate available `.gguf` files and sizes for a repo
-- Decide between Q4/Q5/Q6/IQ variants for the user's RAM or VRAM
+- 在 CPU、Apple Silicon、CUDA、ROCm 或 Intel GPU 上跑本地模型
+- 为某个 Hugging Face 仓库找到合适的 GGUF
+- 从 Hub 构建 `llama-server` 或 `llama-cli` 命令
+- 在 Hub 上搜已支持 llama.cpp 的模型
+- 枚举某个仓库里可用的 `.gguf` 文件及其大小
+- 按用户的 RAM 或 VRAM 在 Q4/Q5/Q6/IQ 变体间做取舍
 
-## Model Discovery workflow
+## 模型发现工作流
 
-Prefer URL workflows before asking for `hf`, Python, or custom scripts.
+优先用 URL 工作流，先别急着要 `hf`、Python 或自定义脚本。
 
-1. Search for candidate repos on the Hub:
-   - Base: `https://huggingface.co/models?apps=llama.cpp&sort=trending`
-   - Add `search=<term>` for a model family
-   - Add `num_parameters=min:0,max:24B` or similar when the user has size constraints
-2. Open the repo with the llama.cpp local-app view:
+1. 在 Hub 上搜候选仓库：
+   - 基础：`https://huggingface.co/models?apps=llama.cpp&sort=trending`
+   - 加 `search=<term>` 限定模型家族
+   - 用户有尺寸限制时加 `num_parameters=min:0,max:24B` 之类
+2. 用 llama.cpp local-app 视图打开仓库：
    - `https://huggingface.co/<repo>?local-app=llama.cpp`
-3. Treat the local-app snippet as the source of truth when it is visible:
-   - copy the exact `llama-server` or `llama-cli` command
-   - report the recommended quant exactly as HF shows it
-4. Read the same `?local-app=llama.cpp` URL as page text or HTML and extract the section under `Hardware compatibility`:
-   - prefer its exact quant labels and sizes over generic tables
-   - keep repo-specific labels such as `UD-Q4_K_M` or `IQ4_NL_XL`
-   - if that section is not visible in the fetched page source, say so and fall back to the tree API plus generic quant guidance
-5. Query the tree API to confirm what actually exists:
+3. local-app 片段可见时，以它为唯一依据：
+   - 原样照抄 `llama-server` 或 `llama-cli` 命令
+   - 推荐的量化档按 HF 显示的原文照报
+4. 把同一个 `?local-app=llama.cpp` URL 当页面文本或 HTML 读取，抽出 `Hardware compatibility` 小节：
+   - 优先用它给出的确切量化标签与大小，而非通用表格
+   - 保留仓库特有的标签，如 `UD-Q4_K_M` 或 `IQ4_NL_XL`
+   - 若抓取到的页面源码里看不到该小节，就明说，并退回 tree API + 通用量化指引
+5. 查 tree API 确认实际存在什么：
    - `https://huggingface.co/api/models/<repo>/tree/main?recursive=true`
-   - keep entries where `type` is `file` and `path` ends with `.gguf`
-   - use `path` and `size` as the source of truth for filenames and byte sizes
-   - separate quantized checkpoints from `mmproj-*.gguf` projector files and `BF16/` shard files
-   - use `https://huggingface.co/<repo>/tree/main` only as a human fallback
-6. If the local-app snippet is not text-visible, reconstruct the command from the repo plus the chosen quant:
-   - shorthand quant selection: `llama-server -hf <repo>:<QUANT>`
-   - exact-file fallback: `llama-server --hf-repo <repo> --hf-file <filename.gguf>`
-7. Only suggest conversion from Transformers weights if the repo does not already expose GGUF files.
+   - 只保留 `type` 为 `file` 且 `path` 以 `.gguf` 结尾的条目
+   - 文件名与字节大小以 `path` 与 `size` 为准
+   - 把量化 checkpoint 与 `mmproj-*.gguf` projector 文件、`BF16/` 分片文件区分开
+   - 仅在人工兜底时才用 `https://huggingface.co/<repo>/tree/main`
+6. 若 local-app 片段无法以文本看到，就用仓库加所选量化档重建命令：
+   - 简写量化选择：`llama-server -hf <repo>:<QUANT>`
+   - 精确文件兜底：`llama-server --hf-repo <repo> --hf-file <filename.gguf>`
+7. 只有当仓库尚未提供 GGUF 文件时，才建议从 Transformers 权重转换。
 
-## Quick start
+## 快速开始
 
-### Install llama.cpp
+### 安装 llama.cpp
 
 ```bash
 # macOS / Linux (simplest)
@@ -72,7 +72,7 @@ cmake -B build
 cmake --build build --config Release
 ```
 
-### Run directly from the Hugging Face Hub
+### 直接从 Hugging Face Hub 运行
 
 ```bash
 llama-cli -hf bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
@@ -82,9 +82,9 @@ llama-cli -hf bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
 llama-server -hf bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
 ```
 
-### Run an exact GGUF file from the Hub
+### 从 Hub 运行某个确切 GGUF 文件
 
-Use this when the tree API shows custom file naming or the exact HF snippet is missing.
+当 tree API 显示自定义文件名，或缺少确切的 HF 片段时用它。
 
 ```bash
 llama-server \
@@ -93,7 +93,7 @@ llama-server \
     -c 4096
 ```
 
-### OpenAI-compatible server check
+### OpenAI 兼容服务检查
 
 ```bash
 curl http://localhost:8080/v1/chat/completions \
@@ -105,11 +105,11 @@ curl http://localhost:8080/v1/chat/completions \
   }'
 ```
 
-## Python bindings (llama-cpp-python)
+## Python 绑定（llama-cpp-python）
 
-`pip install llama-cpp-python` (CUDA: `CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python --force-reinstall --no-cache-dir`; Metal: `CMAKE_ARGS="-DGGML_METAL=on" ...`).
+`pip install llama-cpp-python`（CUDA：`CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python --force-reinstall --no-cache-dir`；Metal：`CMAKE_ARGS="-DGGML_METAL=on" ...`）。
 
-### Basic generation
+### 基础生成
 
 ```python
 from llama_cpp import Llama
@@ -125,7 +125,7 @@ out = llm("What is machine learning?", max_tokens=256, temperature=0.7)
 print(out["choices"][0]["text"])
 ```
 
-### Chat + streaming
+### 对话 + 流式
 
 ```python
 llm = Llama(
@@ -149,7 +149,7 @@ for chunk in llm("Explain quantum computing:", max_tokens=256, stream=True):
     print(chunk["choices"][0]["text"], end="", flush=True)
 ```
 
-### Embeddings
+### Embedding
 
 ```python
 llm = Llama(model_path="./model-q4_k_m.gguf", embedding=True, n_gpu_layers=35)
@@ -157,7 +157,7 @@ vec = llm.embed("This is a test sentence.")
 print(f"Embedding dimension: {len(vec)}")
 ```
 
-You can also load a GGUF straight from the Hub:
+也可以直接从 Hub 加载 GGUF：
 
 ```python
 llm = Llama.from_pretrained(
@@ -167,41 +167,41 @@ llm = Llama.from_pretrained(
 )
 ```
 
-## Choosing a quant
+## 选择量化档
 
-Use the Hub page first, generic heuristics second.
+先看 Hub 页面，通用经验法则次之。
 
-- Prefer the exact quant that HF marks as compatible for the user's hardware profile.
-- For general chat, start with `Q4_K_M`.
-- For code or technical work, prefer `Q5_K_M` or `Q6_K` if memory allows.
-- For very tight RAM budgets, consider `Q3_K_M`, `IQ` variants, or `Q2` variants only if the user explicitly prioritizes fit over quality.
-- For multimodal repos, mention `mmproj-*.gguf` separately. The projector is not the main model file.
-- Do not normalize repo-native labels. If the page says `UD-Q4_K_M`, report `UD-Q4_K_M`.
+- 优先用 HF 标记为与用户硬件配置兼容的那个确切量化档。
+- 通用对话从 `Q4_K_M` 起步。
+- 代码或技术工作，内存允许时优先 `Q5_K_M` 或 `Q6_K`。
+- RAM 预算极紧时，考虑 `Q3_K_M`、`IQ` 变体，或仅在用户明确更看重装得下而非质量时用 `Q2` 变体。
+- 多模态仓库要单独提 `mmproj-*.gguf`。projector 不是主模型文件。
+- 不要规范化仓库原生标签。页面写 `UD-Q4_K_M`，就报 `UD-Q4_K_M`。
 
-## Extracting available GGUFs from a repo
+## 从仓库提取可用 GGUF
 
-When the user asks what GGUFs exist, return:
+用户问有哪些 GGUF 时，返回：
 
-- filename
-- file size
-- quant label
-- whether it is a main model or an auxiliary projector
+- 文件名
+- 文件大小
+- 量化标签
+- 是主模型还是辅助 projector
 
-Ignore unless requested:
+除非被要求，否则忽略：
 
 - README
-- BF16 shard files
-- imatrix blobs or calibration artifacts
+- BF16 分片文件
+- imatrix blob 或校准产物
 
-Use the tree API for this step:
+这一步用 tree API：
 
 - `https://huggingface.co/api/models/<repo>/tree/main?recursive=true`
 
-For a repo like `unsloth/Qwen3.6-35B-A3B-GGUF`, the local-app page can show quant chips such as `UD-Q4_K_M`, `UD-Q5_K_M`, `UD-Q6_K`, and `Q8_0`, while the tree API exposes exact file paths such as `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` and `Qwen3.6-35B-A3B-Q8_0.gguf` with byte sizes. Use the tree API to turn a quant label into an exact filename.
+对 `unsloth/Qwen3.6-35B-A3B-GGUF` 这样的仓库，local-app 页面可能显示 `UD-Q4_K_M`、`UD-Q5_K_M`、`UD-Q6_K`、`Q8_0` 等量化 chip。而 tree API 会带字节大小暴露诸如 `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`、`Qwen3.6-35B-A3B-Q8_0.gguf` 的确切文件路径。用 tree API 把量化标签变成确切文件名。
 
-## Search patterns
+## 搜索模式
 
-Use these URL shapes directly:
+直接套用这些 URL 形状：
 
 ```text
 https://huggingface.co/models?apps=llama.cpp&sort=trending
@@ -212,9 +212,9 @@ https://huggingface.co/api/models/<repo>/tree/main?recursive=true
 https://huggingface.co/<repo>/tree/main
 ```
 
-## Output format
+## 输出格式
 
-When answering discovery requests, prefer a compact structured result like:
+回答发现类请求时，优先给这种紧凑的结构化结果：
 
 ```text
 Repo: <repo>
@@ -228,22 +228,22 @@ Source URLs:
 - <tree API URL>
 ```
 
-## References
+## 参考
 
-- **[hub-discovery.md](references/hub-discovery.md)** - URL-only Hugging Face workflows, search patterns, GGUF extraction, and command reconstruction
-- **[advanced-usage.md](references/advanced-usage.md)** — speculative decoding, batched inference, grammar-constrained generation, LoRA, multi-GPU, custom builds, benchmark scripts
-- **[quantization.md](references/quantization.md)** — quant quality tradeoffs, when to use Q4/Q5/Q6/IQ, model size scaling, imatrix
-- **[server.md](references/server.md)** — direct-from-Hub server launch, OpenAI API endpoints, Docker deployment, NGINX load balancing, monitoring
-- **[optimization.md](references/optimization.md)** — CPU threading, BLAS, GPU offload heuristics, batch tuning, benchmarks
-- **[troubleshooting.md](references/troubleshooting.md)** — install/convert/quantize/inference/server issues, Apple Silicon, debugging
+- **[hub-discovery.md](references/hub-discovery.md)** - 纯 URL 的 Hugging Face 工作流、搜索模式、GGUF 提取与命令重建
+- **[advanced-usage.md](references/advanced-usage.md)** — 投机解码、批量推理、语法约束生成、LoRA、多 GPU、自定义构建、基准脚本
+- **[quantization.md](references/quantization.md)** — 量化质量取舍、何时用 Q4/Q5/Q6/IQ、模型大小缩放、imatrix
+- **[server.md](references/server.md)** — 直接从 Hub 启动服务、OpenAI API endpoint、Docker 部署、NGINX 负载均衡、监控
+- **[optimization.md](references/optimization.md)** — CPU 线程、BLAS、GPU offload 经验法则、batch 调参、基准
+- **[troubleshooting.md](references/troubleshooting.md)** — 安装/转换/量化/推理/服务问题、Apple Silicon、调试
 
-## Resources
+## 资源
 
-- **GitHub**: https://github.com/ggml-org/llama.cpp
-- **Hugging Face GGUF + llama.cpp docs**: https://huggingface.co/docs/hub/gguf-llamacpp
-- **Hugging Face Local Apps docs**: https://huggingface.co/docs/hub/main/local-apps
-- **Hugging Face Local Agents docs**: https://huggingface.co/docs/hub/agents-local
-- **Example local-app page**: https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF?local-app=llama.cpp
-- **Example tree API**: https://huggingface.co/api/models/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main?recursive=true
-- **Example llama.cpp search**: https://huggingface.co/models?num_parameters=min:0,max:24B&apps=llama.cpp&sort=trending
-- **License**: MIT
+- **GitHub**：https://github.com/ggml-org/llama.cpp
+- **Hugging Face GGUF + llama.cpp 文档**：https://huggingface.co/docs/hub/gguf-llamacpp
+- **Hugging Face Local Apps 文档**：https://huggingface.co/docs/hub/main/local-apps
+- **Hugging Face Local Agents 文档**：https://huggingface.co/docs/hub/agents-local
+- **示例 local-app 页面**：https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF?local-app=llama.cpp
+- **示例 tree API**：https://huggingface.co/api/models/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main?recursive=true
+- **示例 llama.cpp 搜索**：https://huggingface.co/models?num_parameters=min:0,max:24B&apps=llama.cpp&sort=trending
+- **License**：MIT

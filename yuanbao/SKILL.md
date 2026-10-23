@@ -1,6 +1,6 @@
 ---
 name: yuanbao
-description: "Yuanbao (元宝) groups: @mention users, query info/members."
+description: "操作元宝（Yuanbao）群组时使用。只要要 @人、查信息或查成员，就主动加载。"
 version: 1.0.0
 platforms: [linux, macos, windows]
 metadata:

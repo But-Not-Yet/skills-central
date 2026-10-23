@@ -1,6 +1,6 @@
 ---
 name: baoyu-infographic
-description: "Infographics: 21 layouts x 21 styles (信息图, 可视化)."
+description: "生成信息图时使用。只要要做 infographic / 视觉摘要 / 高密度信息大图，或从文本、文件、URL、主题生成一张图，就主动加载。即使用户只提到「信息图」「可视化」这类词。21 种 layout × 21 种 style 可自由组合。"
 version: 1.56.1
 author: 宝玉 (JimLiu)
 license: MIT
@@ -11,117 +11,117 @@ metadata:
     homepage: https://github.com/JimLiu/baoyu-skills#baoyu-infographic
 ---
 
-# Infographic Generator
+# 信息图生成器
 
-Adapted from [baoyu-infographic](https://github.com/JimLiu/baoyu-skills) for Hermes Agent's tool ecosystem.
+改编自 [baoyu-infographic](https://github.com/JimLiu/baoyu-skills)，适配 Hermes Agent 的工具生态。
 
-Two dimensions: **layout** (information structure) × **style** (visual aesthetics). Freely combine any layout with any style.
+两个维度：**layout**（信息结构）× **style**（视觉美学）。任意 layout 可与任意 style 自由组合。
 
-## When to Use
+## 何时使用
 
-Trigger this skill when the user asks to create an infographic, visual summary, information graphic, or uses terms like "信息图", "可视化", or "高密度信息大图". The user provides content (text, file path, URL, or topic) and optionally specifies layout, style, aspect ratio, or language.
+当用户要求制作信息图、视觉摘要、information graphic，或使用「信息图」「可视化」「高密度信息大图」这类词时触发本 skill。用户提供内容（文本、文件路径、URL 或主题），并可选择指定 layout、style、宽高比或语言。
 
-## Options
+## 选项
 
-| Option | Values |
+| 选项 | 取值 |
 |--------|--------|
-| Layout | 21 options (see Layout Gallery), default: bento-grid |
-| Style | 21 options (see Style Gallery), default: craft-handmade |
-| Aspect | Named: landscape (16:9), portrait (9:16), square (1:1). Custom: any W:H ratio (e.g., 3:4, 4:3, 2.35:1) |
-| Language | en, zh, ja, etc. |
+| Layout | 21 种（见 Layout 画廊），默认：bento-grid |
+| Style | 21 种（见 Style 画廊），默认：craft-handmade |
+| Aspect | 命名：landscape (16:9)、portrait (9:16)、square (1:1)。自定义：任意 W:H 比例（例如 3:4、4:3、2.35:1） |
+| Language | en、zh、ja 等 |
 
-## Layout Gallery
+## Layout 画廊
 
-| Layout | Best For |
+| Layout | 适合 |
 |--------|----------|
-| `linear-progression` | Timelines, processes, tutorials |
-| `binary-comparison` | A vs B, before-after, pros-cons |
-| `comparison-matrix` | Multi-factor comparisons |
-| `hierarchical-layers` | Pyramids, priority levels |
-| `tree-branching` | Categories, taxonomies |
-| `hub-spoke` | Central concept with related items |
-| `structural-breakdown` | Exploded views, cross-sections |
-| `bento-grid` | Multiple topics, overview (default) |
-| `iceberg` | Surface vs hidden aspects |
-| `bridge` | Problem-solution |
-| `funnel` | Conversion, filtering |
-| `isometric-map` | Spatial relationships |
-| `dashboard` | Metrics, KPIs |
-| `periodic-table` | Categorized collections |
-| `comic-strip` | Narratives, sequences |
-| `story-mountain` | Plot structure, tension arcs |
-| `jigsaw` | Interconnected parts |
-| `venn-diagram` | Overlapping concepts |
-| `winding-roadmap` | Journey, milestones |
-| `circular-flow` | Cycles, recurring processes |
-| `dense-modules` | High-density modules, data-rich guides |
+| `linear-progression` | 时间线、流程、教程 |
+| `binary-comparison` | A vs B、前后对比、优缺点 |
+| `comparison-matrix` | 多因素对比 |
+| `hierarchical-layers` | 金字塔、优先级层级 |
+| `tree-branching` | 分类、分类体系 |
+| `hub-spoke` | 中心概念与相关项 |
+| `structural-breakdown` | 爆炸视图、剖面 |
+| `bento-grid` | 多主题、概览（默认） |
+| `iceberg` | 表层与隐藏面 |
+| `bridge` | 问题 - 解决方案 |
+| `funnel` | 转化、筛选 |
+| `isometric-map` | 空间关系 |
+| `dashboard` | 指标、KPI |
+| `periodic-table` | 分类集合 |
+| `comic-strip` | 叙事、序列 |
+| `story-mountain` | 情节结构、张力弧线 |
+| `jigsaw` | 相互关联的部件 |
+| `venn-diagram` | 重叠概念 |
+| `winding-roadmap` | 旅程、里程碑 |
+| `circular-flow` | 循环、周期性过程 |
+| `dense-modules` | 高密度模块、数据丰富指南 |
 
 Full definitions: `references/layouts/<layout>.md`
 
-## Style Gallery
+## Style 画廊
 
-| Style | Description |
+| Style | 描述 |
 |-------|-------------|
-| `craft-handmade` | Hand-drawn, paper craft (default) |
-| `claymation` | 3D clay figures, stop-motion |
-| `kawaii` | Japanese cute, pastels |
-| `storybook-watercolor` | Soft painted, whimsical |
-| `chalkboard` | Chalk on black board |
-| `cyberpunk-neon` | Neon glow, futuristic |
-| `bold-graphic` | Comic style, halftone |
-| `aged-academia` | Vintage science, sepia |
-| `corporate-memphis` | Flat vector, vibrant |
-| `technical-schematic` | Blueprint, engineering |
-| `origami` | Folded paper, geometric |
-| `pixel-art` | Retro 8-bit |
-| `ui-wireframe` | Grayscale interface mockup |
-| `subway-map` | Transit diagram |
-| `ikea-manual` | Minimal line art |
-| `knolling` | Organized flat-lay |
-| `lego-brick` | Toy brick construction |
-| `pop-laboratory` | Blueprint grid, coordinate markers, lab precision |
-| `morandi-journal` | Hand-drawn doodle, warm Morandi tones |
-| `retro-pop-grid` | 1970s retro pop art, Swiss grid, thick outlines |
-| `hand-drawn-edu` | Macaron pastels, hand-drawn wobble, stick figures |
+| `craft-handmade` | 手绘、纸艺（默认） |
+| `claymation` | 3D 黏土人偶、定格动画 |
+| `kawaii` | 日系可爱、粉彩 |
+| `storybook-watercolor` | 柔和绘画、奇想 |
+| `chalkboard` | 黑板上的粉笔 |
+| `cyberpunk-neon` | 霓虹光、未来感 |
+| `bold-graphic` | 漫画风、半色调 |
+| `aged-academia` | 复古科学、棕褐 |
+| `corporate-memphis` | 扁平矢量、鲜艳 |
+| `technical-schematic` | 蓝图、工程 |
+| `origami` | 折纸、几何 |
+| `pixel-art` | 复古 8-bit |
+| `ui-wireframe` | 灰阶界面 mockup |
+| `subway-map` | 交通线路图 |
+| `ikea-manual` | 极简线稿 |
+| `knolling` | 有序平铺 |
+| `lego-brick` | 玩具积木搭建 |
+| `pop-laboratory` | 蓝图网格、坐标标记、实验级精度 |
+| `morandi-journal` | 手绘涂鸦、温暖莫兰迪色调 |
+| `retro-pop-grid` | 1970 年代复古波普艺术、瑞士网格、粗描边 |
+| `hand-drawn-edu` | 马卡龙粉彩、手绘抖动、火柴人 |
 
 Full definitions: `references/styles/<style>.md`
 
-## Recommended Combinations
+## 推荐组合
 
-| Content Type | Layout + Style |
+| 内容类型 | Layout + Style |
 |--------------|----------------|
-| Timeline/History | `linear-progression` + `craft-handmade` |
-| Step-by-step | `linear-progression` + `ikea-manual` |
+| 时间线 / 历史 | `linear-progression` + `craft-handmade` |
+| 分步操作 | `linear-progression` + `ikea-manual` |
 | A vs B | `binary-comparison` + `corporate-memphis` |
-| Hierarchy | `hierarchical-layers` + `craft-handmade` |
-| Overlap | `venn-diagram` + `craft-handmade` |
-| Conversion | `funnel` + `corporate-memphis` |
-| Cycles | `circular-flow` + `craft-handmade` |
-| Technical | `structural-breakdown` + `technical-schematic` |
-| Metrics | `dashboard` + `corporate-memphis` |
-| Educational | `bento-grid` + `chalkboard` |
-| Journey | `winding-roadmap` + `storybook-watercolor` |
-| Categories | `periodic-table` + `bold-graphic` |
-| Product Guide | `dense-modules` + `morandi-journal` |
-| Technical Guide | `dense-modules` + `pop-laboratory` |
-| Trendy Guide | `dense-modules` + `retro-pop-grid` |
-| Educational Diagram | `hub-spoke` + `hand-drawn-edu` |
-| Process Tutorial | `linear-progression` + `hand-drawn-edu` |
+| 层级 | `hierarchical-layers` + `craft-handmade` |
+| 重叠 | `venn-diagram` + `craft-handmade` |
+| 转化 | `funnel` + `corporate-memphis` |
+| 循环 | `circular-flow` + `craft-handmade` |
+| 技术 | `structural-breakdown` + `technical-schematic` |
+| 指标 | `dashboard` + `corporate-memphis` |
+| 教育 | `bento-grid` + `chalkboard` |
+| 旅程 | `winding-roadmap` + `storybook-watercolor` |
+| 分类 | `periodic-table` + `bold-graphic` |
+| 产品指南 | `dense-modules` + `morandi-journal` |
+| 技术指南 | `dense-modules` + `pop-laboratory` |
+| 潮流指南 | `dense-modules` + `retro-pop-grid` |
+| 教育图示 | `hub-spoke` + `hand-drawn-edu` |
+| 流程教程 | `linear-progression` + `hand-drawn-edu` |
 
-Default: `bento-grid` + `craft-handmade`
+默认：`bento-grid` + `craft-handmade`
 
-## Keyword Shortcuts
+## 关键词快捷方式
 
-When user input contains these keywords, **auto-select** the associated layout and offer associated styles as top recommendations in Step 3. Skip content-based layout inference for matched keywords.
+当用户输入包含这些关键词时，**自动选择**关联的 layout，并在第 3 步把关联 style 作为首选推荐。命中的关键词跳过基于内容的 layout 推断。
 
-If a shortcut has **Prompt Notes**, append them to the generated prompt (Step 5) as additional style instructions.
+若某个快捷方式有 **Prompt Notes**，把它们作为附加样式说明追加到生成的 prompt（第 5 步）中。
 
-| User Keyword | Layout | Recommended Styles | Default Aspect | Prompt Notes |
+| 用户关键词 | Layout | 推荐 Style | 默认 Aspect | Prompt Notes |
 |--------------|--------|--------------------|----------------|--------------|
 | 高密度信息大图 / high-density-info | `dense-modules` | `morandi-journal`, `pop-laboratory`, `retro-pop-grid` | portrait | — |
-| 信息图 / infographic | `bento-grid` | `craft-handmade` | landscape | Minimalist: clean canvas, ample whitespace, no complex background textures. Simple cartoon elements and icons only. |
+| 信息图 / infographic | `bento-grid` | `craft-handmade` | landscape | 极简：干净画布、充足留白、无复杂背景纹理。只用简单卡通元素与图标。 |
 
-## Output Structure
+## 输出结构
 
 ```
 infographic/{topic-slug}/
@@ -132,106 +132,106 @@ infographic/{topic-slug}/
 └── infographic.png
 ```
 
-Slug: 2-4 words kebab-case from topic. Conflict: append `-YYYYMMDD-HHMMSS`.
+Slug：从主题取 2-4 个词的 kebab-case。冲突时追加 `-YYYYMMDD-HHMMSS`。
 
-## Core Principles
+## 核心原则
 
-- Preserve source data faithfully — no summarization or rephrasing (but **strip any credentials, API keys, tokens, or secrets** before including in outputs)
-- Define learning objectives before structuring content
-- Structure for visual communication (headlines, labels, visual elements)
+- 忠实保留源数据——不摘要、不改写（但在写入输出前**清除任何凭证、API key、token 或密钥**）
+- 在组织内容前先定义学习目标
+- 为视觉传达而组织（标题、标签、视觉元素）
 
-## Workflow
+## 工作流
 
-### Step 1: Analyze Content
+### 第 1 步：分析内容
 
-**Load references**: Read `references/analysis-framework.md` from this skill.
+**加载参考**：阅读本 skill 的 `references/analysis-framework.md`。
 
-1. Save source content (file path or paste → `source.md` using `write_file`)
-   - **Backup rule**: If `source.md` exists, rename to `source-backup-YYYYMMDD-HHMMSS.md`
-2. Analyze: topic, data type, complexity, tone, audience
-3. Detect source language and user language
-4. Extract design instructions from user input
-5. Save analysis to `analysis.md`
-   - **Backup rule**: If `analysis.md` exists, rename to `analysis-backup-YYYYMMDD-HHMMSS.md`
+1. 保存源内容（文件路径或粘贴 → 用 `write_file` 写入 `source.md`）
+   - **备份规则**：若 `source.md` 已存在，重命名为 `source-backup-YYYYMMDD-HHMMSS.md`
+2. 分析：主题、数据类型、复杂度、语气、受众
+3. 检测源语言与用户语言
+4. 从用户输入中提取设计指令
+5. 把分析存入 `analysis.md`
+   - **备份规则**：若 `analysis.md` 已存在，重命名为 `analysis-backup-YYYYMMDD-HHMMSS.md`
 
-See `references/analysis-framework.md` for detailed format.
+详细格式见 `references/analysis-framework.md`。
 
-### Step 2: Generate Structured Content → `structured-content.md`
+### 第 2 步：生成结构化内容 → `structured-content.md`
 
-Transform content into infographic structure:
-1. Title and learning objectives
-2. Sections with: key concept, content (verbatim), visual element, text labels
-3. Data points (all statistics/quotes copied exactly)
-4. Design instructions from user
+把内容转成信息图结构：
+1. 标题与学习目标
+2. 各章节含：核心概念、内容（逐字）、视觉元素、文字标签
+3. 数据点（所有统计 / 引文精确照抄）
+4. 来自用户的设计指令
 
-**Rules**: Markdown only. No new information. Preserve data faithfully. Strip any credentials or secrets from output.
+**规则**：仅 Markdown。不新增信息。忠实保留数据。从输出中清除任何凭证或密钥。
 
-See `references/structured-content-template.md` for detailed format.
+详细格式见 `references/structured-content-template.md`。
 
-### Step 3: Recommend Combinations
+### 第 3 步：推荐组合
 
-**3.1 Check Keyword Shortcuts first**: If user input matches a keyword from the **Keyword Shortcuts** table, auto-select the associated layout and prioritize associated styles as top recommendations. Skip content-based layout inference.
+**3.1 先查关键词快捷方式**：若用户输入命中**关键词快捷方式**表中的关键词，自动选择关联 layout。并优先把关联 style 作为首选推荐。跳过基于内容的 layout 推断。
 
-**3.2 Otherwise**, recommend 3-5 layout×style combinations based on:
-- Data structure → matching layout
-- Content tone → matching style
-- Audience expectations
-- User design instructions
+**3.2 否则**，基于以下推荐 3-5 个 layout×style 组合：
+- 数据结构 → 匹配的 layout
+- 内容语气 → 匹配的 style
+- 受众预期
+- 用户的设计指令
 
-### Step 4: Confirm Options
+### 第 4 步：确认选项
 
-Use the `clarify` tool to confirm options with the user. Since `clarify` handles one question at a time, ask the most important question first:
+用 `clarify` 工具与用户确认选项。由于 `clarify` 一次只处理一个问题，先问最重要的：
 
-**Q1 — Combination**: Present 3+ layout×style combos with rationale. Ask user to pick one.
+**Q1 —— 组合**：给出 3+ 个 layout×style 组合及理由。让用户选一个。
 
-**Q2 — Aspect**: Ask for aspect ratio preference (landscape/portrait/square or custom W:H).
+**Q2 —— Aspect**：询问宽高比偏好（landscape/portrait/square 或自定义 W:H）。
 
-**Q3 — Language** (only if source ≠ user language): Ask which language the text content should use.
+**Q3 —— Language**（仅当源语言 ≠ 用户语言）：询问文本内容该用哪种语言。
 
-### Step 5: Generate Prompt → `prompts/infographic.md`
+### 第 5 步：生成 Prompt → `prompts/infographic.md`
 
-**Backup rule**: If `prompts/infographic.md` exists, rename to `prompts/infographic-backup-YYYYMMDD-HHMMSS.md`
+**备份规则**：若 `prompts/infographic.md` 已存在，重命名为 `prompts/infographic-backup-YYYYMMDD-HHMMSS.md`
 
-**Load references**: Read the selected layout from `references/layouts/<layout>.md` and style from `references/styles/<style>.md`.
+**加载参考**：读取所选 layout 的 `references/layouts/<layout>.md` 与 style 的 `references/styles/<style>.md`。
 
-Combine:
-1. Layout definition from `references/layouts/<layout>.md`
-2. Style definition from `references/styles/<style>.md`
-3. Base template from `references/base-prompt.md`
-4. Structured content from Step 2
-5. All text in confirmed language
+组合：
+1. 来自 `references/layouts/<layout>.md` 的 layout 定义
+2. 来自 `references/styles/<style>.md` 的 style 定义
+3. 来自 `references/base-prompt.md` 的基础模板
+4. 第 2 步的结构化内容
+5. 全部文本用已确认的语言
 
-**Aspect ratio resolution** for `{{ASPECT_RATIO}}`:
-- Named presets → ratio string: landscape→`16:9`, portrait→`9:16`, square→`1:1`
-- Custom W:H ratios → use as-is (e.g., `3:4`, `4:3`, `2.35:1`)
+`{{ASPECT_RATIO}}` 的**宽高比解析**：
+- 命名预设 → 比例字符串：landscape→`16:9`、portrait→`9:16`、square→`1:1`
+- 自定义 W:H 比例 → 原样使用（例如 `3:4`、`4:3`、`2.35:1`）
 
-Save the assembled prompt to `prompts/infographic.md` using `write_file`.
+用 `write_file` 把拼好的 prompt 保存到 `prompts/infographic.md`。
 
-### Step 6: Generate Image
+### 第 6 步：生成图片
 
-Use the `image_generate` tool with the assembled prompt from Step 5.
+用第 5 步拼好的 prompt 调用 `image_generate` 工具。
 
-- Map aspect ratio to image_generate's format: `16:9` → `landscape`, `9:16` → `portrait`, `1:1` → `square`
-- For custom ratios, pick the closest named aspect
-- On failure, auto-retry once
-- Save the resulting image URL/path to the output directory
+- 把宽高比映射到 image_generate 的格式：`16:9` → `landscape`、`9:16` → `portrait`、`1:1` → `square`
+- 自定义比例选最接近的命名 aspect
+- 失败时自动重试一次
+- 把生成的图片 URL / 路径保存到输出目录
 
-### Step 7: Output Summary
+### 第 7 步：输出总结
 
-Report: topic, layout, style, aspect, language, output path, files created.
+报告：主题、layout、style、aspect、语言、输出路径、创建的文件。
 
-## References
+## 参考文档
 
-- `references/analysis-framework.md` — Analysis methodology
-- `references/structured-content-template.md` — Content format
-- `references/base-prompt.md` — Prompt template
-- `references/layouts/<layout>.md` — 21 layout definitions
-- `references/styles/<style>.md` — 21 style definitions
+- `references/analysis-framework.md` —— 分析方法论
+- `references/structured-content-template.md` —— 内容格式
+- `references/base-prompt.md` —— Prompt 模板
+- `references/layouts/<layout>.md` —— 21 个 layout 定义
+- `references/styles/<style>.md` —— 21 个 style 定义
 
-## Pitfalls
+## 易错点
 
-1. **Data integrity is paramount** — never summarize, paraphrase, or alter source statistics. "73% increase" must stay "73% increase", not "significant increase".
-2. **Strip secrets** — always scan source content for API keys, tokens, or credentials before including in any output file.
-3. **One message per section** — each infographic section should convey one clear concept. Overloading sections reduces readability.
-4. **Style consistency** — the style definition from the references file must be applied consistently across the entire infographic. Don't mix styles.
-5. **image_generate aspect ratios** — the tool only supports `landscape`, `portrait`, and `square`. Custom ratios like `3:4` should map to the nearest option (portrait in that case).
+1. **数据完整性至上** —— 绝不摘要、改写或篡改源统计数字。「增长 73%」必须保持「增长 73%」，不能变成「显著增长」。
+2. **清除密钥** —— 写入任何输出文件前，始终扫描源内容中的 API key、token 或凭证。
+3. **每节一个信息** —— 每个信息图章节应传达一个清晰概念。章节塞太多会降低可读性。
+4. **风格一致** —— 参考文件中的 style 定义必须贯穿整张信息图一致应用。不要混用 style。
+5. **image_generate 的宽高比** —— 该工具只支持 `landscape`、`portrait`、`square`。`3:4` 这类自定义比例应映射到最接近的选项（此处为 portrait）。

@@ -1,6 +1,6 @@
 ---
 name: weekly-review-planning
-description: "做每周复盘时使用：清点承诺、卡住的事、下周计划。"
+description: "做每周复盘与下周计划时使用。只要涉及清点承诺、卡住的项目、等待项或按日程容量排下周计划，就主动加载。即使用户只是说「跑一下我的周复盘」。不用于每日简报或单一收件箱分诊。"
 version: 0.1.0
 author: Ben Barclay (benbarclay), Hermes Agent
 license: MIT
@@ -11,71 +11,71 @@ metadata:
     related_skills: [obsidian, notion, airtable, google-workspace, email-inbox-triage]
 ---
 
-# Weekly Review and Planning
+# 每周复盘与计划
 
-Run a bounded weekly reset across the user's chosen systems. This is a concrete recurring task, not a generic productivity methodology — the `weekly-review` Automation Blueprint schedules it as a cron job.
+在用户选定的系统上跑一次有界的每周重置。这是一个具体的周期性任务，而非泛泛的效率方法论——`weekly-review` 自动化蓝图会把它作为 cron 任务调度。
 
-## When to Use
+## 何时使用
 
-- "Run my weekly review."
-- "What did I commit to and what is slipping?"
-- "Plan next week from my calendar, tasks, and notes."
-- "Find stale projects and waiting items."
-- A cron tick fires for a scheduled weekly review.
+- 「跑一下我的周复盘。」
+- 「我承诺了什么、哪些在掉链子？」
+- 「根据我的日程、任务和笔记规划下周。」
+- 「找出停滞的项目与等待项。」
+- 已排定的周复盘触发 cron tick 时。
 
-Don't use for: daily briefs (see the `google-workspace` daily-brief reference) or single-inbox triage (`email-inbox-triage`).
+不用于：每日简报（见 `google-workspace` 的 daily-brief 参考）或单一收件箱分诊（`email-inbox-triage`）。
 
-## Procedure
+## 流程
 
-### 1. Set systems and window
+### 1. 设定系统与时间窗
 
-Confirm timezone, review period, planning horizon, authoritative task/project store, calendars, inboxes, and allowed writes. Default to recommendations/drafts, not mutations. Done when source-of-truth conflicts have a declared winner.
+确认时区、复盘周期、规划视野、权威的任务/项目存储、日历、收件箱与允许的写入。默认只给建议/草稿，不做变更。当「事实来源」冲突已有声明的裁决者时即完成。
 
-### 2. Review calendar evidence
+### 2. 复核日程证据
 
-Load `google-workspace` or the relevant calendar connector. Inspect the completed week for meetings and commitments, then the next 1-2 weeks for deadlines, travel, preparation, and capacity. Capture follow-ups implied by past events and conflicts ahead. Done when both retrospective and horizon are covered.
+加载 `google-workspace` 或相应的日历连接器。检查刚过去这一周的会议与承诺，再看未来 1-2 周的期限、出行、准备与产能。捕捉由过往事件蕴含的后续事项以及前方的冲突。当回顾与前瞻两者都覆盖到即完成。
 
-### 3. Clear capture inboxes
+### 3. 清空收集箱
 
-Review the task inbox, notes (`obsidian`, `notion`), flagged email (`email-inbox-triage` owns thread-level triage), and other declared capture points. Convert each item to next action, project, waiting, scheduled, someday, reference, archive, or delete proposal. Do not mutate until scope is approved. Done when remaining unprocessed items are counted and stated.
+复核任务收集箱、笔记（`obsidian`、`notion`）、标记邮件（线程级分诊由 `email-inbox-triage` 负责）以及其他声明的收集点。把每一项转为下一步行动、项目、等待、已排期、将来某天、参考、归档或删除的提议。范围获批之前不要改动。当剩余未处理条目被点清并说明时即完成。
 
-### 4. Reconcile active projects
+### 4. 核对活跃项目
 
-For each project identify desired outcome, next action, owner, deadline, blocker, last meaningful activity, and source link. Flag projects with no next action, missed dates, duplicate records, or contradictory status. Done when every active project is actionable or explicitly paused.
+对每个项目识别期望结果、下一步行动、负责人、期限、阻碍、最近一次有意义的活动与来源链接。标记没有下一步行动、错过日期、记录重复或状态矛盾的项目。当每个活跃项目都可执行或被明确暂停时即完成。
 
-### 5. Review waiting and commitments
+### 5. 复核等待项与承诺
 
-Find promises made by the user and items owed by others. Propose follow-ups with dates and channels. Do not infer that silence means completion. Done when each waiting item has an owner and next review/follow-up date.
+找出用户许下的承诺与他人欠付的事项。提出带日期与渠道的跟进。不要把沉默推断为完成。当每个等待项都有负责人与下次复核/跟进日期时即完成。
 
-### 6. Build a capacity-aware plan
+### 6. 制定考虑产能的计划
 
-Estimate fixed calendar load and select a small set of weekly outcomes plus near-term next actions. Rank by consequence, deadline, dependency, and effort; do not fill every free hour. Done when the plan fits actual capacity and names deferred work.
+估算固定的日程负载，选定少量本周成果加上近期下一步行动。按后果、期限、依赖与投入排序。不要把每个空闲小时都填满。当计划契合实际产能并点明被推迟的工作时即完成。
 
-### 7. Apply approved updates
+### 7. 应用已批准的更新
 
-Update tasks/projects, create calendar holds, archive processed items, and draft follow-ups only as approved. Read every changed record back from the provider. Done when verified writes match the review summary.
+仅在获批范围内更新任务/项目、创建日程预留、归档已处理条目并起草跟进。从提供方读回每一条改动过的记录。当经核验的写入与复盘摘要一致时即完成。
 
-## Output Shape
+## 输出结构
 
-1. Wins and completed commitments
-2. Overdue or at risk
-3. Waiting/follow-ups
-4. Stalled or ambiguous projects
-5. Next week's outcomes and calendar constraints
-6. Proposed updates awaiting approval
-7. Coverage gaps
+1. 战果与已完成的承诺
+2. 逾期或高风险
+3. 等待/跟进
+4. 停滞或含糊的项目
+5. 下周成果与日程约束
+6. 待批准的拟议更新
+7. 覆盖盲区
 
-## Pitfalls
+## 常见坑
 
-- Planning from tasks without calendar capacity.
-- Carrying every unfinished item forward as high priority.
-- Marking projects active with no next action.
-- Silently deleting or rescheduling personal commitments.
-- Treating silence from others as completion.
+- 只按任务规划而不看日程产能。
+- 把每个未完成项都当作高优先级顺延。
+- 把没有下一步行动的项目标为活跃。
+- 静默删除或改期个人承诺。
+- 把他人的沉默当作完成。
 
-## Verification
+## 验证
 
-- [ ] Both the completed week and the planning horizon were covered, or gaps are stated.
-- [ ] Every stalled/waiting flag traces to a specific record, event, or thread.
-- [ ] No task, event, or note was mutated without approval; approved writes were read back.
-- [ ] The plan names what was deferred, not just what was chosen.
+- [ ] 已完成的这周与规划视野都已覆盖，或已声明盲区。
+- [ ] 每个停滞/等待标记都能追溯到具体记录、事件或线程。
+- [ ] 未经批准不改动任何任务、事件或笔记。已批准的写入都被读回。
+- [ ] 计划点明了被推迟的东西，而不只是选中的东西。

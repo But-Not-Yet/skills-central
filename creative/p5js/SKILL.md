@@ -1,6 +1,6 @@
 ---
 name: p5js
-description: "p5.js sketches: gen art, shaders, interactive, 3D."
+description: "用 p5.js 写生成艺术时使用。只要要做草图、shader 或交互 demo，就主动加载，即使用户只说「画个东西」。覆盖 2D/3D、粒子、噪声、WebGL、音频反应与导出。"
 version: 1.0.0
 platforms: [linux, macos, windows]
 metadata:
@@ -9,169 +9,169 @@ metadata:
     related_skills: [ascii-video, manim-video, excalidraw]
 ---
 
-# p5.js Production Pipeline
+# p5.js 制作流水线
 
-## When to use
+## 何时使用
 
-Use when users request: p5.js sketches, creative coding, generative art, interactive visualizations, canvas animations, browser-based visual art, data viz, shader effects, or any p5.js project.
+当用户要求：p5.js 草图、创意编程、生成艺术、交互可视化、canvas 动画、浏览器视觉艺术、数据可视化、shader 效果。或任何 p5.js 项目时使用。
 
-## What's inside
+## 内容概览
 
-Production pipeline for interactive and generative visual art using p5.js. Creates browser-based sketches, generative art, data visualizations, interactive experiences, 3D scenes, audio-reactive visuals, and motion graphics — exported as HTML, PNG, GIF, MP4, or SVG. Covers: 2D/3D rendering, noise and particle systems, flow fields, shaders (GLSL), pixel manipulation, kinetic typography, WebGL scenes, audio analysis, mouse/keyboard interaction, and headless high-res export.
+使用 p5.js 的交互与生成视觉艺术制作流水线。制作基于浏览器的草图、生成艺术、数据可视化、交互体验、3D 场景、音频反应视觉与动态图形。可导出为 HTML、PNG、GIF、MP4 或 SVG。涵盖：2D/3D 渲染、噪声与粒子系统、流场、shader（GLSL）、像素操作、动态排版、WebGL 场景、音频分析、鼠标 / 键盘交互。以及无头高分辨率导出。
 
-## Creative Standard
+## 创作标准
 
-This is visual art rendered in the browser. The canvas is the medium; the algorithm is the brush.
+这是在浏览器中渲染的视觉艺术。canvas 是媒介。算法是画笔。
 
-**Before writing a single line of code**, articulate the creative concept. What does this piece communicate? What makes the viewer stop scrolling? What separates this from a code tutorial example? The user's prompt is a starting point — interpret it with creative ambition.
+**在写下第一行代码之前**，先明确创作概念。这件作品传达什么？是什么让观者停下滚动？是什么让它区别于一个代码教程示例？用户的提示词只是起点——要以创作野心去诠释。
 
-**First-render excellence is non-negotiable.** The output must be visually striking on first load. If it looks like a p5.js tutorial exercise, a default configuration, or "AI-generated creative coding," it is wrong. Rethink before shipping.
+**首次渲染即达到优秀，不可妥协。** 输出必须一加载就视觉惊艳。若看起来像 p5.js 教程练习、默认配置，或「AI 生成的创意编程」，那就是错的。交付前重新思考。
 
-**Go beyond the reference vocabulary.** The noise functions, particle systems, color palettes, and shader effects in the references are a starting vocabulary. For every project, combine, layer, and invent. The catalog is a palette of paints — you write the painting.
+**超越参考词库。** 参考文档里的噪声函数、粒子系统、调色板与 shader 效果只是起始词库。每个项目都要组合、分层、发明。目录是颜料盒——画由你来画。
 
-**Be proactively creative.** If the user asks for "a particle system," deliver a particle system with emergent flocking behavior, trailing ghost echoes, palette-shifted depth fog, and a background noise field that breathes. Include at least one visual detail the user didn't ask for but will appreciate.
+**主动发挥创造力。** 若用户要「一个粒子系统」，就交付一个带涌现集群行为、拖尾幽影回响、调色板偏移的深度雾。以及会呼吸的背景噪声场的粒子系统。至少包含一个用户没要求但会欣赏的视觉细节。
 
-**Dense, layered, considered.** Every frame should reward viewing. Never flat white backgrounds. Always compositional hierarchy. Always intentional color. Always micro-detail that only appears on close inspection.
+**密集、分层、考究。** 每一帧都应值得观看。绝不用纯白平面背景。始终有构图层级。始终有意的配色。始终有只在不经意细看时才显现的微细节。
 
-**Cohesive aesthetic over feature count.** All elements must serve a unified visual language — shared color temperature, consistent stroke weight vocabulary, harmonious motion speeds. A sketch with ten unrelated effects is worse than one with three that belong together.
+**整体美学优先于功能数量。** 所有元素必须服务于统一的视觉语言——共享的色温、一致的描边粗细词汇、和谐的运动速度。一个有十个互不相关效果的草图，比有三个彼此契合的效果更糟。
 
-## Modes
+## 模式
 
-| Mode | Input | Output | Reference |
+| 模式 | 输入 | 输出 | 参考 |
 |------|-------|--------|-----------|
-| **Generative art** | Seed / parameters | Procedural visual composition (still or animated) | `references/visual-effects.md` |
-| **Data visualization** | Dataset / API | Interactive charts, graphs, custom data displays | `references/interaction.md` |
-| **Interactive experience** | None (user drives) | Mouse/keyboard/touch-driven sketch | `references/interaction.md` |
-| **Animation / motion graphics** | Timeline / storyboard | Timed sequences, kinetic typography, transitions | `references/animation.md` |
-| **3D scene** | Concept description | WebGL geometry, lighting, camera, materials | `references/webgl-and-3d.md` |
-| **Image processing** | Image file(s) | Pixel manipulation, filters, mosaic, pointillism | `references/visual-effects.md` § Pixel Manipulation |
-| **Audio-reactive** | Audio file / mic | Sound-driven generative visuals | `references/interaction.md` § Audio Input |
+| **生成艺术** | 种子 / 参数 | 程序化视觉构图（静态或动画） | `references/visual-effects.md` |
+| **数据可视化** | 数据集 / API | 交互式图表、图、自定义数据展示 | `references/interaction.md` |
+| **交互体验** | 无（由用户驱动） | 鼠标 / 键盘 / 触摸驱动的草图 | `references/interaction.md` |
+| **动画 / 动态图形** | 时间线 / 分镜 | 定时序列、动态排版、转场 | `references/animation.md` |
+| **3D 场景** | 概念描述 | WebGL 几何、光照、相机、材质 | `references/webgl-and-3d.md` |
+| **图像处理** | 图像文件 | 像素操作、滤镜、马赛克、点彩 | `references/visual-effects.md` § Pixel Manipulation |
+| **音频反应** | 音频文件 / 麦克风 | 声音驱动的生成视觉 | `references/interaction.md` § Audio Input |
 
-## Stack
+## 技术栈
 
-Single self-contained HTML file per project. No build step required.
+每个项目一个自包含的 HTML 文件。无需构建步骤。
 
-| Layer | Tool | Purpose |
+| 层 | 工具 | 用途 |
 |-------|------|---------|
-| Core | p5.js 1.11.3 (CDN) | Canvas rendering, math, transforms, event handling |
-| 3D | p5.js WebGL mode | 3D geometry, camera, lighting, GLSL shaders |
-| Audio | p5.sound.js (CDN) | FFT analysis, amplitude, mic input, oscillators |
-| Export | Built-in `saveCanvas()` / `saveGif()` / `saveFrames()` | PNG, GIF, frame sequence output |
-| Capture | CCapture.js (optional) | Deterministic framerate video capture (WebM, GIF) |
-| Headless | Puppeteer + Node.js (optional) | Automated high-res rendering, MP4 via ffmpeg |
-| SVG | p5.js-svg 1.6.0 (optional) | Vector output for print — requires p5.js 1.x |
-| Natural media | p5.brush (optional) | Watercolor, charcoal, pen — requires p5.js 2.x + WEBGL |
-| Texture | p5.grain (optional) | Film grain, texture overlays |
-| Fonts | Google Fonts / `loadFont()` | Custom typography via OTF/TTF/WOFF2 |
+| 核心 | p5.js 1.11.3 (CDN) | canvas 渲染、数学、变换、事件处理 |
+| 3D | p5.js WebGL mode | 3D 几何、相机、光照、GLSL shader |
+| 音频 | p5.sound.js (CDN) | FFT 分析、振幅、麦克风输入、振荡器 |
+| 导出 | 内置 `saveCanvas()` / `saveGif()` / `saveFrames()` | PNG、GIF、帧序列输出 |
+| 捕获 | CCapture.js（可选） | 确定性帧率视频捕获（WebM、GIF） |
+| 无头 | Puppeteer + Node.js（可选） | 自动化高分辨率渲染，经 ffmpeg 输出 MP4 |
+| SVG | p5.js-svg 1.6.0（可选） | 用于印刷的矢量输出——需要 p5.js 1.x |
+| 自然媒介 | p5.brush（可选） | 水彩、炭笔、钢笔——需要 p5.js 2.x + WEBGL |
+| 纹理 | p5.grain（可选） | 胶片颗粒、纹理叠加 |
+| 字体 | Google Fonts / `loadFont()` | 通过 OTF/TTF/WOFF2 使用自定义字体 |
 
-### Version Note
+### 版本说明
 
-**p5.js 1.x** (1.11.3) is the default — stable, well-documented, broadest library compatibility. Use this unless a project requires 2.x features.
+**p5.js 1.x**（1.11.3）是默认版本——稳定、文档齐全、库兼容性最广。除非项目需要 2.x 特性，否则用它。
 
-**p5.js 2.x** (2.2+) adds: `async setup()` replacing `preload()`, OKLCH/OKLAB color modes, `splineVertex()`, shader `.modify()` API, variable fonts, `textToContours()`, pointer events. Required for p5.brush. See `references/core-api.md` § p5.js 2.0.
+**p5.js 2.x**（2.2+）新增：取代 `preload()` 的 `async setup()`、OKLCH/OKLAB 颜色模式、`splineVertex()`、shader `.modify()` API、可变字体、`textToContours()`、pointer 事件。使用 p5.brush 必需。见 `references/core-api.md` § p5.js 2.0。
 
-## Pipeline
+## 流水线
 
-Every project follows the same 6-stage path:
+每个项目都走同一条 6 阶段路径：
 
 ```
 CONCEPT → DESIGN → CODE → PREVIEW → EXPORT → VERIFY
 ```
 
-1. **CONCEPT** — Articulate the creative vision: mood, color world, motion vocabulary, what makes this unique
-2. **DESIGN** — Choose mode, canvas size, interaction model, color system, export format. Map concept to technical decisions
-3. **CODE** — Write single HTML file with inline p5.js. Structure: globals → `preload()` → `setup()` → `draw()` → helpers → classes → event handlers
-4. **PREVIEW** — Open in browser, verify visual quality. Test at target resolution. Check performance
-5. **EXPORT** — Capture output: `saveCanvas()` for PNG, `saveGif()` for GIF, `saveFrames()` + ffmpeg for MP4, Puppeteer for headless batch
-6. **VERIFY** — Does the output match the concept? Is it visually striking at the intended display size? Would you frame it?
+1. **CONCEPT** —— 明确创作构想：情绪、色彩世界、运动词汇、让它独一无二之处
+2. **DESIGN** —— 选择模式、画布尺寸、交互模型、配色系统、导出格式。把概念映射到技术决策
+3. **CODE** —— 写单个 HTML 文件，内联 p5.js。结构：全局变量 → `preload()` → `setup()` → `draw()` → 辅助函数 → 类 → 事件处理器
+4. **PREVIEW** —— 在浏览器中打开，校验视觉质量。在目标分辨率下测试。检查性能
+5. **EXPORT** —— 捕获输出：PNG 用 `saveCanvas()`，GIF 用 `saveGif()`，MP4 用 `saveFrames()` + ffmpeg，无头批量用 Puppeteer
+6. **VERIFY** —— 输出是否契合概念？在目标展示尺寸下是否视觉惊艳？你会把它裱起来吗？
 
-## Creative Direction
+## 创作方向
 
-### Aesthetic Dimensions
+### 美学维度
 
-| Dimension | Options | Reference |
+| 维度 | 选项 | 参考 |
 |-----------|---------|-----------|
-| **Color system** | HSB/HSL, RGB, named palettes, procedural harmony, gradient interpolation | `references/color-systems.md` |
-| **Noise vocabulary** | Perlin noise, simplex, fractal (octaved), domain warping, curl noise | `references/visual-effects.md` § Noise |
-| **Particle systems** | Physics-based, flocking, trail-drawing, attractor-driven, flow-field following | `references/visual-effects.md` § Particles |
-| **Shape language** | Geometric primitives, custom vertices, bezier curves, SVG paths | `references/shapes-and-geometry.md` |
-| **Motion style** | Eased, spring-based, noise-driven, physics sim, lerped, stepped | `references/animation.md` |
-| **Typography** | System fonts, loaded OTF, `textToPoints()` particle text, kinetic | `references/typography.md` |
-| **Shader effects** | GLSL fragment/vertex, filter shaders, post-processing, feedback loops | `references/webgl-and-3d.md` § Shaders |
-| **Composition** | Grid, radial, golden ratio, rule of thirds, organic scatter, tiled | `references/core-api.md` § Composition |
-| **Interaction model** | Mouse follow, click spawn, drag, keyboard state, scroll-driven, mic input | `references/interaction.md` |
-| **Blend modes** | `BLEND`, `ADD`, `MULTIPLY`, `SCREEN`, `DIFFERENCE`, `EXCLUSION`, `OVERLAY` | `references/color-systems.md` § Blend Modes |
-| **Layering** | `createGraphics()` offscreen buffers, alpha compositing, masking | `references/core-api.md` § Offscreen Buffers |
-| **Texture** | Perlin surface, stippling, hatching, halftone, pixel sorting | `references/visual-effects.md` § Texture Generation |
+| **配色系统** | HSB/HSL、RGB、命名调色板、程序化调和、渐变插值 | `references/color-systems.md` |
+| **噪声词汇** | Perlin 噪声、simplex、分形（多倍频）、domain warping、curl 噪声 | `references/visual-effects.md` § Noise |
+| **粒子系统** | 基于物理、集群、拖尾、吸引子驱动、流场跟随 | `references/visual-effects.md` § Particles |
+| **形状语言** | 几何图元、自定义顶点、贝塞尔曲线、SVG 路径 | `references/shapes-and-geometry.md` |
+| **运动风格** | 缓动、弹簧、噪声驱动、物理模拟、lerp、阶梯 | `references/animation.md` |
+| **排版** | 系统字体、加载的 OTF、`textToPoints()` 粒子文字、动态 | `references/typography.md` |
+| **Shader 效果** | GLSL fragment/vertex、filter shader、后处理、反馈循环 | `references/webgl-and-3d.md` § Shaders |
+| **构图** | 网格、放射、黄金比例、三分法、有机散布、平铺 | `references/core-api.md` § Composition |
+| **交互模型** | 鼠标跟随、点击生成、拖拽、键盘状态、滚动驱动、麦克风输入 | `references/interaction.md` |
+| **混合模式** | `BLEND`, `ADD`, `MULTIPLY`, `SCREEN`, `DIFFERENCE`, `EXCLUSION`, `OVERLAY` | `references/color-systems.md` § Blend Modes |
+| **分层** | `createGraphics()` 离屏缓冲、alpha 合成、遮罩 | `references/core-api.md` § Offscreen Buffers |
+| **纹理** | Perlin 表面、点绘、排线、半色调、像素排序 | `references/visual-effects.md` § Texture Generation |
 
-### Per-Project Variation Rules
+### 逐项目变化规则
 
-Never use default configurations. For every project:
-- **Custom color palette** — never raw `fill(255, 0, 0)`. Always a designed palette with 3-7 colors
-- **Custom stroke weight vocabulary** — thin accents (0.5), medium structure (1-2), bold emphasis (3-5)
-- **Background treatment** — never plain `background(0)` or `background(255)`. Always textured, gradient, or layered
-- **Motion variety** — different speeds for different elements. Primary at 1x, secondary at 0.3x, ambient at 0.1x
-- **At least one invented element** — a custom particle behavior, a novel noise application, a unique interaction response
+绝不用默认配置。对每个项目：
+- **自定义调色板**——绝不用裸 `fill(255, 0, 0)`。始终用一个设计过的、含 3-7 种颜色的调色板
+- **自定义描边粗细词汇**——细强调（0.5）、中等结构（1-2）、粗强调（3-5）
+- **背景处理**——绝不用朴素的 `background(0)` 或 `background(255)`。始终有纹理、渐变或分层
+- **运动多样性**——不同元素不同速度。主要的 1x，次要的 0.3x，氛围的 0.1x
+- **至少一个自创元素**——自定义粒子行为、新颖的噪声应用、独特的交互响应
 
-### Project-Specific Invention
+### 项目专属发明
 
-For every project, invent at least one of:
-- A custom color palette matching the mood (not a preset)
-- A novel noise field combination (e.g., curl noise + domain warp + feedback)
-- A unique particle behavior (custom forces, custom trails, custom spawning)
-- An interaction mechanic the user didn't request but that elevates the piece
-- A compositional technique that creates visual hierarchy
+每个项目至少发明以下之一：
+- 匹配情绪的自定义调色板（非预设）
+- 新颖的噪声场组合（例如 curl 噪声 + domain warp + 反馈）
+- 独特的粒子行为（自定义力、自定义拖尾、自定义生成）
+- 用户没要求、但提升作品档次的交互机制
+- 制造视觉层级的构图技法
 
-### Parameter Design Philosophy
+### 参数设计哲学
 
-Parameters should emerge from the algorithm, not from a generic menu. Ask: "What properties of *this* system should be tunable?"
+参数应从算法中自然生长，而非来自通用菜单。问自己：「*这个*系统的哪些属性该可调？」
 
-**Good parameters** expose the algorithm's character:
-- **Quantities** — how many particles, branches, cells (controls density)
-- **Scales** — noise frequency, element size, spacing (controls texture)
-- **Rates** — speed, growth rate, decay (controls energy)
-- **Thresholds** — when does behavior change? (controls drama)
-- **Ratios** — proportions, balance between forces (controls harmony)
+**好参数**揭示算法的性格：
+- **数量**——多少粒子、分支、细胞（控制密度）
+- **尺度**——噪声频率、元素大小、间距（控制纹理）
+- **速率**——速度、增长率、衰减（控制能量）
+- **阈值**——行为何时改变？（控制戏剧性）
+- **比例**——占比、力之间的平衡（控制和谐）
 
-**Bad parameters** are generic controls unrelated to the algorithm:
-- "color1", "color2", "size" — meaningless without context
-- Toggle switches for unrelated effects
-- Parameters that only change cosmetics, not behavior
+**坏参数**是与算法无关的通用控件：
+- 「color1」「color2」「size」——脱离上下文毫无意义
+- 针对无关效果的开关
+- 只改变外观、不改变行为的参数
 
-Every parameter should change how the algorithm *thinks*, not just how it *looks*. A "turbulence" parameter that changes noise octaves is good. A "particle size" slider that only changes `ellipse()` radius is shallow.
+每个参数都应改变算法*如何思考*，而不只是它*看起来如何*。改变噪声倍频的「turbulence」参数是好的。只改变 `ellipse()` 半径的「particle size」滑块则很肤浅。
 
-## Workflow
+## 工作流
 
-### Step 1: Creative Vision
+### 第 1 步：创作构想
 
-Before any code, articulate:
+写任何代码之前，先明确：
 
-- **Mood / atmosphere**: What should the viewer feel? Contemplative? Energized? Unsettled? Playful?
-- **Visual story**: What happens over time (or on interaction)? Build? Decay? Transform? Oscillate?
-- **Color world**: Warm/cool? Monochrome? Complementary? What's the dominant hue? The accent?
-- **Shape language**: Organic curves? Sharp geometry? Dots? Lines? Mixed?
-- **Motion vocabulary**: Slow drift? Explosive burst? Breathing pulse? Mechanical precision?
-- **What makes THIS different**: What is the one thing that makes this sketch unique?
+- **情绪 / 氛围**：观者该有什么感受？沉思？振奋？不安？俏皮？
+- **视觉故事**：随时间（或交互时）发生什么？积累？衰减？蜕变？振荡？
+- **色彩世界**：暖 / 冷？单色？互补？主色调是什么？强调色呢？
+- **形状语言**：有机曲线？锐利几何？圆点？线条？混合？
+- **运动词汇**：缓慢漂移？爆发性迸发？呼吸般的脉动？机械般精确？
+- **让它独一无二之处**：让这个草图与众不同的那一点是什么？
 
-Map the user's prompt to aesthetic choices. "Relaxing generative background" demands different everything from "glitch data visualization."
+把用户的提示词映射到美学选择。「放松的生成艺术背景」与「故障数据可视化」所需的一切都不同。
 
-### Step 2: Technical Design
+### 第 2 步：技术设计
 
-- **Mode** — which of the 7 modes from the table above
-- **Canvas size** — landscape 1920x1080, portrait 1080x1920, square 1080x1080, or responsive `windowWidth/windowHeight`
-- **Renderer** — `P2D` (default) or `WEBGL` (for 3D, shaders, advanced blend modes)
-- **Frame rate** — 60fps (interactive), 30fps (ambient animation), or `noLoop()` (static generative)
-- **Export target** — browser display, PNG still, GIF loop, MP4 video, SVG vector
-- **Interaction model** — passive (no input), mouse-driven, keyboard-driven, audio-reactive, scroll-driven
-- **Viewer UI** — for interactive generative art, start from `templates/viewer.html` which provides seed navigation, parameter sliders, and download. For simple sketches or video export, use bare HTML
+- **模式** —— 上表 7 种中的哪一种
+- **画布尺寸** —— 横屏 1920x1080、竖屏 1080x1920、方形 1080x1080，或响应式 `windowWidth/windowHeight`
+- **渲染器** —— `P2D`（默认）或 `WEBGL`（用于 3D、shader、高级混合模式）
+- **帧率** —— 60fps（交互）、30fps（氛围动画），或 `noLoop()`（静态生成）
+- **导出目标** —— 浏览器展示、PNG 静帧、GIF 循环、MP4 视频、SVG 矢量
+- **交互模型** —— 被动（无输入）、鼠标驱动、键盘驱动、音频反应、滚动驱动
+- **查看器 UI** —— 对交互式生成艺术，从 `templates/viewer.html` 起步，它提供种子导航、参数滑块与下载。对简单草图或视频导出，用裸 HTML
 
-### Step 3: Code the Sketch
+### 第 3 步：编写草图
 
-For **interactive generative art** (seed exploration, parameter tuning): start from `templates/viewer.html`. Read the template first, keep the fixed sections (seed nav, actions), replace the algorithm and parameter controls. This gives the user seed prev/next/random/jump, parameter sliders with live update, and PNG download — all wired up.
+对**交互式生成艺术**（种子探索、参数调优）：从 `templates/viewer.html` 起步。先读模板，保留固定部分（种子导航、操作），替换算法与参数控件。这样用户就得到种子 prev/next/random/jump、实时更新的参数滑块，以及 PNG 下载——全部已接好。
 
-For **animations, video export, or simple sketches**: use bare HTML:
+对**动画、视频导出或简单草图**：用裸 HTML：
 
-Single HTML file. Structure:
+单个 HTML 文件。结构：
 
 ```html
 <!DOCTYPE html>
@@ -244,45 +244,45 @@ function windowResized() { resizeCanvas(windowWidth, windowHeight); }
 </html>
 ```
 
-Key implementation patterns:
-- **Seeded randomness**: Always `randomSeed()` + `noiseSeed()` for reproducibility
-- **Color mode**: Use `colorMode(HSB, 360, 100, 100, 100)` for intuitive color control
-- **State separation**: CONFIG for parameters, PALETTE for colors, globals for mutable state
-- **Class-based entities**: Particles, agents, shapes as classes with `update()` + `display()` methods
-- **Offscreen buffers**: `createGraphics()` for layered composition, trails, masks
+关键实现模式：
+- **种子随机性**：始终用 `randomSeed()` + `noiseSeed()` 保证可复现
+- **颜色模式**：用 `colorMode(HSB, 360, 100, 100, 100)` 获得直观的颜色控制
+- **状态分离**：CONFIG 存参数、PALETTE 存颜色、全局变量存可变状态
+- **基于类的实体**：粒子、agent、形状作为类，带 `update()` + `display()` 方法
+- **离屏缓冲**：用 `createGraphics()` 做分层构图、拖尾、遮罩
 
-### Step 4: Preview & Iterate
+### 第 4 步：预览与迭代
 
-- Open HTML file directly in browser — no server needed for basic sketches
-- For `loadImage()`/`loadFont()` from local files: use `scripts/serve.sh` or `python3 -m http.server`
-- Chrome DevTools Performance tab to verify 60fps
-- Test at target export resolution, not just the window size
-- Adjust parameters until the visual matches the concept from Step 1
+- 直接在浏览器中打开 HTML 文件——基础草图无需服务器
+- 从本地文件 `loadImage()`/`loadFont()` 时：用 `scripts/serve.sh` 或 `python3 -m http.server`
+- 用 Chrome DevTools 的 Performance 标签验证 60fps
+- 在目标导出分辨率下测试，而不只是窗口尺寸
+- 调参数直到视觉效果契合第 1 步的概念
 
-### Step 5: Export
+### 第 5 步：导出
 
-| Format | Method | Command |
+| 格式 | 方法 | 命令 |
 |--------|--------|---------|
-| **PNG** | `saveCanvas('output', 'png')` in `keyPressed()` | Press 's' to save |
-| **High-res PNG** | Puppeteer headless capture | `node scripts/export-frames.js sketch.html --width 3840 --height 2160 --frames 1` |
-| **GIF** | `saveGif('output', 5)` — captures N seconds | Press 'g' to save |
-| **Frame sequence** | `saveFrames('frame', 'png', 10, 30)` — 10s at 30fps | Then `ffmpeg -i frame-%04d.png -c:v libx264 output.mp4` |
-| **MP4** | Puppeteer frame capture + ffmpeg | `bash scripts/render.sh sketch.html output.mp4 --duration 30 --fps 30` |
-| **SVG** | `createCanvas(w, h, SVG)` with p5.js-svg | `save('output.svg')` |
+| **PNG** | 在 `keyPressed()` 中用 `saveCanvas('output', 'png')` | 按 's' 保存 |
+| **高分辨率 PNG** | Puppeteer 无头捕获 | `node scripts/export-frames.js sketch.html --width 3840 --height 2160 --frames 1` |
+| **GIF** | `saveGif('output', 5)` —— 捕获 N 秒 | 按 'g' 保存 |
+| **帧序列** | `saveFrames('frame', 'png', 10, 30)` —— 30fps 下 10s | 然后 `ffmpeg -i frame-%04d.png -c:v libx264 output.mp4` |
+| **MP4** | Puppeteer 帧捕获 + ffmpeg | `bash scripts/render.sh sketch.html output.mp4 --duration 30 --fps 30` |
+| **SVG** | 配合 p5.js-svg 用 `createCanvas(w, h, SVG)` | `save('output.svg')` |
 
-### Step 6: Quality Verification
+### 第 6 步：质量验证
 
-- **Does it match the vision?** Compare output to the creative concept. If it looks generic, go back to Step 1
-- **Resolution check**: Is it sharp at the target display size? No aliasing artifacts?
-- **Performance check**: Does it hold 60fps in browser? (30fps minimum for animations)
-- **Color check**: Do the colors work together? Test on both light and dark monitors
-- **Edge cases**: What happens at canvas edges? On resize? After running for 10 minutes?
+- **是否契合构想？** 把输出与创作概念对照。若看起来平庸，回到第 1 步
+- **分辨率检查**：在目标展示尺寸下是否锐利？没有锯齿伪影？
+- **性能检查**：在浏览器中能否保持 60fps？（动画最低 30fps）
+- **颜色检查**：各颜色搭配是否和谐？在亮色与暗色显示器上都测一遍
+- **边界情况**：画布边缘会怎样？窗口变化时？运行 10 分钟后？
 
-## Critical Implementation Notes
+## 关键实现要点
 
-### Performance — Disable FES First
+### 性能——先禁用 FES
 
-The Friendly Error System (FES) adds up to 10x overhead. Disable it in every production sketch:
+Friendly Error System（FES）会增加最多 10 倍开销。每个生产草图都要禁用它：
 
 ```javascript
 p5.disableFriendlyErrors = true;  // BEFORE setup()
@@ -293,7 +293,7 @@ function setup() {
 }
 ```
 
-In hot loops (particles, pixel ops), use `Math.*` instead of p5 wrappers — measurably faster:
+在热点循环（粒子、像素操作）中，用 `Math.*` 而非 p5 包装函数——实测更快：
 
 ```javascript
 // In draw() or update() hot paths:
@@ -303,11 +303,11 @@ let v = Math.random();        // not random() — when seed not needed
 let m = Math.min(a, b);       // not min(a, b)
 ```
 
-Never `console.log()` inside `draw()`. Never manipulate DOM in `draw()`. See `references/troubleshooting.md` § Performance.
+绝不在 `draw()` 里 `console.log()`。绝不在 `draw()` 里操作 DOM。见 `references/troubleshooting.md` § Performance。
 
-### Seeded Randomness — Always
+### 种子随机性——始终
 
-Every generative sketch must be reproducible. Same seed, same output.
+每个生成艺术草图都必须可复现。相同种子，相同输出。
 
 ```javascript
 function setup() {
@@ -317,11 +317,11 @@ function setup() {
 }
 ```
 
-Never use `Math.random()` for generative content — only for performance-critical non-visual code. Always `random()` for visual elements. If you need a random seed: `CONFIG.seed = floor(random(99999))`.
+生成内容绝不用 `Math.random()`——只用于性能关键的非视觉代码。视觉元素始终用 `random()`。若需要随机种子：`CONFIG.seed = floor(random(99999))`。
 
-### Generative Art Platform Support (fxhash / Art Blocks)
+### 生成艺术平台支持（fxhash / Art Blocks）
 
-For generative art platforms, replace p5's PRNG with the platform's deterministic random:
+对生成艺术平台，把 p5 的 PRNG 换成平台的确定性随机：
 
 ```javascript
 // fxhash convention
@@ -337,11 +337,11 @@ noiseSeed(SEED);
 let x = rng() * width;  // instead of random(width)
 ```
 
-See `references/export-pipeline.md` § Platform Export.
+见 `references/export-pipeline.md` § Platform Export。
 
-### Color Mode — Use HSB
+### 颜色模式——用 HSB
 
-HSB (Hue, Saturation, Brightness) is dramatically easier to work with than RGB for generative art:
+对生成艺术而言，HSB（色相、饱和度、明度）比 RGB 好操作得多：
 
 ```javascript
 colorMode(HSB, 360, 100, 100, 100);
@@ -351,11 +351,11 @@ colorMode(HSB, 360, 100, 100, 100);
 // Darken: fill(hue, sat, bri * 0.5)
 ```
 
-Never hardcode raw RGB values. Define a palette object, derive variations procedurally. See `references/color-systems.md`.
+绝不硬编码裸 RGB 值。定义调色板对象，程序化派生变化。见 `references/color-systems.md`。
 
-### Noise — Multi-Octave, Not Raw
+### 噪声——多倍频，而非原始
 
-Raw `noise(x, y)` looks like smooth blobs. Layer octaves for natural texture:
+原始 `noise(x, y)` 看起来像平滑的团块。叠加倍频以获得自然纹理：
 
 ```javascript
 function fbm(x, y, octaves = 4) {
@@ -370,11 +370,11 @@ function fbm(x, y, octaves = 4) {
 }
 ```
 
-For flowing organic forms, use **domain warping**: feed noise output back as noise input coordinates. See `references/visual-effects.md`.
+对流动的有机形态，用 **domain warping**：把噪声输出回喂为噪声输入坐标。见 `references/visual-effects.md`。
 
-### createGraphics() for Layers — Not Optional
+### 用 createGraphics() 做分层——不是可选项
 
-Flat single-pass rendering looks flat. Use offscreen buffers for composition:
+单遍平铺渲染看起来很平。用离屏缓冲做构图：
 
 ```javascript
 let bgLayer, fgLayer, trailLayer;
@@ -394,9 +394,9 @@ function draw() {
 }
 ```
 
-### Performance — Vectorize Where Possible
+### 性能——尽可能向量化
 
-p5.js draw calls are expensive. For thousands of particles:
+p5.js 的 draw 调用很贵。面对成千上万的粒子：
 
 ```javascript
 // SLOW: individual shapes
@@ -420,11 +420,11 @@ for (let p of particles) {
 updatePixels();
 ```
 
-See `references/troubleshooting.md` § Performance.
+见 `references/troubleshooting.md` § Performance。
 
-### Instance Mode for Multiple Sketches
+### 多草图的 Instance 模式
 
-Global mode pollutes `window`. For production, use instance mode:
+全局模式会污染 `window`。生产环境用 instance 模式：
 
 ```javascript
 const sketch = (p) => {
@@ -439,20 +439,20 @@ const sketch = (p) => {
 new p5(sketch, 'canvas-container');
 ```
 
-Required when embedding multiple sketches on one page or integrating with frameworks.
+在一个页面里嵌入多个草图或与框架集成时必需。
 
-### WebGL Mode Gotchas
+### WebGL 模式坑
 
-- `createCanvas(w, h, WEBGL)` — origin is center, not top-left
-- Y-axis is inverted (positive Y goes up in WEBGL, down in P2D)
-- `translate(-width/2, -height/2)` to get P2D-like coordinates
-- `push()`/`pop()` around every transform — matrix stack overflows silently
-- `texture()` before `rect()`/`plane()` — not after
-- Custom shaders: `createShader(vert, frag)` — test on multiple browsers
+- `createCanvas(w, h, WEBGL)`——原点是中心，不是左上角
+- Y 轴是反的（WEBGL 中正 Y 向上，P2D 中向下）
+- `translate(-width/2, -height/2)` 以获得类 P2D 坐标
+- 每个变换周围都要 `push()`/`pop()`——矩阵栈会静默溢出
+- `texture()` 要放在 `rect()`/`plane()` 之前——不是之后
+- 自定义 shader：`createShader(vert, frag)`——在多个浏览器上测试
 
-### Export — Key Bindings Convention
+### 导出——按键绑定约定
 
-Every sketch should include these in `keyPressed()`:
+每个草图都应在 `keyPressed()` 中包含这些：
 
 ```javascript
 function keyPressed() {
@@ -463,9 +463,9 @@ function keyPressed() {
 }
 ```
 
-### Headless Video Export — Use noLoop()
+### 无头视频导出——用 noLoop()
 
-For headless rendering via Puppeteer, the sketch **must** use `noLoop()` in setup. Without it, p5's draw loop runs freely while screenshots are slow — the sketch races ahead and you get skipped/duplicate frames.
+用 Puppeteer 做无头渲染时，草图**必须**在 setup 里用 `noLoop()`。否则，在截图很慢的同时 p5 的 draw 循环自由运行——草图跑得太快，就会产生跳帧 / 重复帧。
 
 ```javascript
 function setup() {
@@ -476,81 +476,81 @@ function setup() {
 }
 ```
 
-The bundled `scripts/export-frames.js` detects `_p5Ready` and calls `redraw()` once per capture for exact 1:1 frame correspondence. See `references/export-pipeline.md` § Deterministic Capture.
+自带的 `scripts/export-frames.js` 会检测 `_p5Ready`，每次捕获调用一次 `redraw()`，实现精确的 1:1 帧对应。见 `references/export-pipeline.md` § Deterministic Capture。
 
-For multi-scene videos, use the per-clip architecture: one HTML per scene, render independently, stitch with `ffmpeg -f concat`. See `references/export-pipeline.md` § Per-Clip Architecture.
+多场景视频用按片段架构：每个场景一个 HTML，独立渲染，用 `ffmpeg -f concat` 拼接。见 `references/export-pipeline.md` § Per-Clip Architecture。
 
-### Agent Workflow
+### Agent 工作流
 
-When building p5.js sketches:
+构建 p5.js 草图时：
 
-1. **Write the HTML file** — single self-contained file, all code inline
-2. **Open in browser** — `open sketch.html` (macOS) or `xdg-open sketch.html` (Linux)
-3. **Local assets** (fonts, images) require a server: `python3 -m http.server 8080` in the project directory, then open `http://localhost:8080/sketch.html`
-4. **Export PNG/GIF** — add `keyPressed()` shortcuts as shown above, tell the user which key to press
-5. **Headless export** — `node scripts/export-frames.js sketch.html --frames 300` for automated frame capture (sketch must use `noLoop()` + `_p5Ready`)
-6. **MP4 rendering** — `bash scripts/render.sh sketch.html output.mp4 --duration 30`
-7. **Iterative refinement** — edit the HTML file, user refreshes browser to see changes
-8. **Load references on demand** — use `skill_view(name="p5js", file_path="references/...")` to load specific reference files as needed during implementation
+1. **写 HTML 文件**——单个自包含文件，所有代码内联
+2. **在浏览器中打开**——`open sketch.html`（macOS）或 `xdg-open sketch.html`（Linux）
+3. **本地资源**（字体、图片）需要服务器：在项目目录里 `python3 -m http.server 8080`，然后打开 `http://localhost:8080/sketch.html`
+4. **导出 PNG/GIF**——按上文加 `keyPressed()` 快捷键，告诉用户按哪个键
+5. **无头导出**——`node scripts/export-frames.js sketch.html --frames 300` 自动帧捕获（草图必须用 `noLoop()` + `_p5Ready`）
+6. **MP4 渲染**——`bash scripts/render.sh sketch.html output.mp4 --duration 30`
+7. **迭代打磨**——编辑 HTML 文件，用户刷新浏览器看变化
+8. **按需加载参考**——实现过程中用 `skill_view(name="p5js", file_path="references/...")` 加载具体参考文件
 
-## Performance Targets
+## 性能目标
 
-| Metric | Target |
+| 指标 | 目标 |
 |--------|--------|
-| Frame rate (interactive) | 60fps sustained |
-| Frame rate (animated export) | 30fps minimum |
-| Particle count (P2D shapes) | 5,000-10,000 at 60fps |
-| Particle count (pixel buffer) | 50,000-100,000 at 60fps |
-| Canvas resolution | Up to 3840x2160 (export), 1920x1080 (interactive) |
-| File size (HTML) | < 100KB (excluding CDN libraries) |
-| Load time | < 2s to first frame |
+| 帧率（交互） | 持续 60fps |
+| 帧率（动画导出） | 最低 30fps |
+| 粒子数（P2D 形状） | 60fps 下 5,000-10,000 |
+| 粒子数（像素缓冲） | 60fps 下 50,000-100,000 |
+| 画布分辨率 | 最高 3840x2160（导出）、1920x1080（交互） |
+| 文件大小（HTML） | < 100KB（不含 CDN 库） |
+| 加载时间 | < 2s 首帧 |
 
-## References
+## 参考文档
 
-| File | Contents |
+| 文件 | 内容 |
 |------|----------|
-| `references/core-api.md` | Canvas setup, coordinate system, draw loop, `push()`/`pop()`, offscreen buffers, composition patterns, `pixelDensity()`, responsive design |
-| `references/shapes-and-geometry.md` | 2D primitives, `beginShape()`/`endShape()`, Bezier/Catmull-Rom curves, `vertex()` systems, custom shapes, `p5.Vector`, signed distance fields, SVG path conversion |
-| `references/visual-effects.md` | Noise (Perlin, fractal, domain warp, curl), flow fields, particle systems (physics, flocking, trails), pixel manipulation, texture generation (stipple, hatch, halftone), feedback loops, reaction-diffusion |
-| `references/animation.md` | Frame-based animation, easing functions, `lerp()`/`map()`, spring physics, state machines, timeline sequencing, `millis()`-based timing, transition patterns |
-| `references/typography.md` | `text()`, `loadFont()`, `textToPoints()`, kinetic typography, text masks, font metrics, responsive text sizing |
-| `references/color-systems.md` | `colorMode()`, HSB/HSL/RGB, `lerpColor()`, `paletteLerp()`, procedural palettes, color harmony, `blendMode()`, gradient rendering, curated palette library |
-| `references/webgl-and-3d.md` | WEBGL renderer, 3D primitives, camera, lighting, materials, custom geometry, GLSL shaders (`createShader()`, `createFilterShader()`), framebuffers, post-processing |
-| `references/interaction.md` | Mouse events, keyboard state, touch input, DOM elements, `createSlider()`/`createButton()`, audio input (p5.sound FFT/amplitude), scroll-driven animation, responsive events |
-| `references/export-pipeline.md` | `saveCanvas()`, `saveGif()`, `saveFrames()`, deterministic headless capture, ffmpeg frame-to-video, CCapture.js, SVG export, per-clip architecture, platform export (fxhash), video gotchas |
-| `references/troubleshooting.md` | Performance profiling, per-pixel budgets, common mistakes, browser compatibility, WebGL debugging, font loading issues, pixel density traps, memory leaks, CORS |
-| `templates/viewer.html` | Interactive viewer template: seed navigation (prev/next/random/jump), parameter sliders, download PNG, responsive canvas. Start from this for explorable generative art |
+| `references/core-api.md` | canvas 设置、坐标系、draw 循环、`push()`/`pop()`、离屏缓冲、构图模式、`pixelDensity()`、响应式设计 |
+| `references/shapes-and-geometry.md` | 2D 图元、`beginShape()`/`endShape()`、Bezier/Catmull-Rom 曲线、`vertex()` 系统、自定义形状、`p5.Vector`、有符号距离场、SVG 路径转换 |
+| `references/visual-effects.md` | 噪声（Perlin、分形、domain warp、curl）、流场、粒子系统（物理、集群、拖尾）、像素操作、纹理生成（点绘、排线、半色调）、反馈循环、反应扩散 |
+| `references/animation.md` | 基于帧的动画、缓动函数、`lerp()`/`map()`、弹簧物理、状态机、时间线排序、基于 `millis()` 的计时、转场模式 |
+| `references/typography.md` | `text()`、`loadFont()`、`textToPoints()`、动态排版、文字遮罩、字体度量、响应式文字尺寸 |
+| `references/color-systems.md` | `colorMode()`、HSB/HSL/RGB、`lerpColor()`、`paletteLerp()`、程序化调色板、色彩调和、`blendMode()`、渐变渲染、精选调色板库 |
+| `references/webgl-and-3d.md` | WEBGL 渲染器、3D 图元、相机、光照、材质、自定义几何、GLSL shader（`createShader()`、`createFilterShader()`）、帧缓冲、后处理 |
+| `references/interaction.md` | 鼠标事件、键盘状态、触摸输入、DOM 元素、`createSlider()`/`createButton()`、音频输入（p5.sound FFT/振幅）、滚动驱动动画、响应式事件 |
+| `references/export-pipeline.md` | `saveCanvas()`、`saveGif()`、`saveFrames()`、确定性无头捕获、ffmpeg 帧转视频、CCapture.js、SVG 导出、按片段架构、平台导出（fxhash）、视频坑 |
+| `references/troubleshooting.md` | 性能剖析、逐像素预算、常见错误、浏览器兼容性、WebGL 调试、字体加载问题、像素密度陷阱、内存泄漏、CORS |
+| `templates/viewer.html` | 交互式查看器模板：种子导航（prev/next/random/jump）、参数滑块、下载 PNG、响应式画布。可探索的生成艺术从这里起步 |
 
 ---
 
-## Creative Divergence (use only when user requests experimental/creative/unique output)
+## 创作发散（仅在用户要求实验性 / 创意 / 独特输出时使用）
 
-If the user asks for creative, experimental, surprising, or unconventional output, select the strategy that best fits and reason through its steps BEFORE generating code.
+若用户要求创意、实验、出人意料或不循常规的输出，选择最契合的策略。并在生成代码*之前*推演其步骤。
 
-- **Conceptual Blending** — when the user names two things to combine or wants hybrid aesthetics
-- **SCAMPER** — when the user wants a twist on a known generative art pattern
-- **Distance Association** — when the user gives a single concept and wants exploration ("make something about time")
+- **概念融合（Conceptual Blending）** —— 当用户点名两个事物来结合，或想要混合美学
+- **SCAMPER** —— 当用户想对某个已知生成艺术模式来点变化
+- **距离联想（Distance Association）** —— 当用户给出单个概念并想探索（「做点关于时间的东西」）
 
-### Conceptual Blending
-1. Name two distinct visual systems (e.g., particle physics + handwriting)
-2. Map correspondences (particles = ink drops, forces = pen pressure, fields = letterforms)
-3. Blend selectively — keep mappings that produce interesting emergent visuals
-4. Code the blend as a unified system, not two systems side-by-side
+### 概念融合
+1. 说出两个不同的视觉系统（例如粒子物理 + 手写）
+2. 建立对应（粒子 = 墨滴，力 = 笔压，场 = 字形）
+3. 有选择地融合——保留能产生有趣涌现视觉的映射
+4. 把这个融合写成统一系统，而非两个系统并排
 
-### SCAMPER Transformation
-Take a known generative pattern (flow field, particle system, L-system, cellular automata) and systematically transform it:
-- **Substitute**: replace circles with text characters, lines with gradients
-- **Combine**: merge two patterns (flow field + voronoi)
-- **Adapt**: apply a 2D pattern to a 3D projection
-- **Modify**: exaggerate scale, warp the coordinate space
-- **Purpose**: use a physics sim for typography, a sorting algorithm for color
-- **Eliminate**: remove the grid, remove color, remove symmetry
-- **Reverse**: run the simulation backward, invert the parameter space
+### SCAMPER 变换
+拿一个已知生成模式（流场、粒子系统、L-system、元胞自动机）并系统地改造它：
+- **Substitute（替换）**：把圆换成文字字符，把线换成渐变
+- **Combine（组合）**：融合两个模式（流场 + voronoi）
+- **Adapt（适配）**：把 2D 模式应用到 3D 投影
+- **Modify（修改）**：夸大尺度，扭曲坐标空间
+- **Purpose（换用途）**：用物理模拟做排版，用排序算法做颜色
+- **Eliminate（消除）**：去掉网格、去掉颜色、去掉对称
+- **Reverse（反转）**：反向运行模拟，反转参数空间
 
-### Distance Association
-1. Anchor on the user's concept (e.g., "loneliness")
-2. Generate associations at three distances:
-   - Close (obvious): empty room, single figure, silence
-   - Medium (interesting): one fish in a school swimming the wrong way, a phone with no notifications, the gap between subway cars
-   - Far (abstract): prime numbers, asymptotic curves, the color of 3am
-3. Develop the medium-distance associations — they're specific enough to visualize but unexpected enough to be interesting
+### 距离联想
+1. 锚定在用户的概念上（例如「孤独」）
+2. 在三种距离上生成联想：
+   - 近（显而易见）：空房间、单独的身影、寂静
+   - 中（有趣）：鱼群里逆游的一条鱼、没有通知的手机、地铁车厢之间的缝隙
+   - 远（抽象）：质数、渐近曲线、凌晨 3 点的颜色
+3. 发展中距离联想——它们足够具体可可视化，又足够出人意料而有趣

@@ -1,6 +1,6 @@
 ---
 name: jupyter-live-kernel
-description: "用常驻 Jupyter 内核跑迭代式 Python（hamelnb）时使用。"
+description: "用常驻 Jupyter 内核跑迭代式 Python（hamelnb）时使用。只要要在长驻内核里反复跑片段、保住变量状态，就主动加载，即使用户只说「用 notebook 试一下」。"
 version: 1.0.0
 author: Hermes Agent
 license: MIT

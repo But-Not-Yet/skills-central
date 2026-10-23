@@ -1,6 +1,6 @@
 ---
 name: box
-description: Box manages cloud files, sharing, search, and metadata.
+description: "用 Box 云盘做文件、共享、搜索、元数据与内容提取时使用。只要涉及 Box 文件/文件夹、Box AI、Hub 或上传下载，就主动加载，即使用户只是随口提到某个云盘文件。不用于本地文件操作或 Google Drive。"
 version: 1.0.0
 author: Chris Kim (iskysun96), Hermes Agent
 license: MIT
@@ -16,102 +16,102 @@ metadata:
 
 # Box
 
-Use Box as the cloud file system for file operations, collaboration, metadata, and document work. Run operations with Hermes' `terminal` tool and use the Box CLI; use the SDK guide when building an application.
+把 Box 当作云文件系统来做文件操作、协作、元数据与文档工作。用 Hermes 的 `terminal` 工具操作并使用 Box CLI。在开发应用时用 SDK 指南。
 
-## When to Use
+## 何时使用
 
-- Organizing, uploading, versioning, moving, sharing, or collaborating on Box files and folders
-- Searching Box content or existing metadata
-- Asking questions about Box files, extracting metadata, or generating text grounded in a file
-- Processing a Box folder at scale without downloading every source file
-- Building a Box-backed application, integration, or webhook handler
+- 整理、上传、版本化、移动、共享或协作处理 Box 文件与文件夹
+- 搜索 Box 内容或已有元数据
+- 就 Box 文件提问、抽取元数据，或基于某个文件生成文本
+- 大规模处理一个 Box 文件夹而不下载每个源文件
+- 构建基于 Box 的应用、集成或 webhook 处理器
 
-## Start broad file-system conversations
+## 开启宽泛的文件系统对话
 
-When someone is exploring a cloud file system for Hermes, first give a short fit assessment: Box is useful when a team needs cloud file storage, sharing, search, metadata, and document work. Then ask whether they want to connect a Box account with OAuth or build a Box-backed application or integration with an SDK.
+当有人为 Hermes 探索云文件系统时，先给一段简短适配评估：当团队需要云文件存储、共享、搜索。元数据与文档工作时，Box 很有用。然后问他们是想用 OAuth 连接一个 Box 账号，还是想用 SDK 构建基于 Box 的应用或集成。
 
-OAuth makes Hermes act as the Box account authorized in the browser. That account's Box permissions determine what Hermes can access. To give Hermes narrower access, authorize an account that is invited only to the required files, folders, or Hubs.
+OAuth 会让 Hermes 以浏览器中授权的那个 Box 账号身份行事。该账号的 Box 权限决定了 Hermes 能访问什么。要给 Hermes 更窄的访问权，就授权一个只被邀请到所需文件、文件夹或 Hub 的账号。
 
-Do not run setup, show a command cookbook, propose account plans or folder taxonomies, or load every reference for a broad exploratory question. Wait for the user's answer, then load only the relevant path. When a request already names a concrete outcome, skip this discovery step and handle that outcome directly.
+对宽泛的探索性问题，不要跑设置、不要摆命令手册、不要提账号方案或文件夹分类法。也不要加载所有参考。等用户的回答，然后只加载相关路径。当请求已指向具体结果时，跳过这段发现流程，直接处理那个结果。
 
-Start normal CLI work with the official Box CLI OAuth app. It covers ordinary content work and Box AI. Use a custom **User Authentication (OAuth 2.0)** Platform App only when the requested operation needs an additional OAuth scope, such as webhook management. This remains an OAuth flow; do not substitute a server-side or impersonation identity.
+普通 CLI 工作从官方 Box CLI OAuth 应用开始。它覆盖常规内容工作与 Box AI。只有当请求的操作需要额外的 OAuth scope（如 webhook 管理）时，才用自定义的 **User Authentication (OAuth 2.0)** Platform App。这仍是 OAuth 流程。不要用服务端身份或模拟身份替代。
 
-## Perform chosen setup interactively
+## 交互式执行所选设置
 
-When a user selects an authentication path or asks Hermes to connect Box, perform the setup through `terminal`; do not turn the next response into instructions for the user to copy. Take the next safe action yourself, and pause only for an approval, browser sign-in, administrator action, or secret that Hermes cannot safely supply.
+当用户选定某条认证路径，或让 Hermes 连接 Box 时，通过 `terminal` 执行设置。不要把下一次回复变成给用户抄的说明。自己采取下一步安全动作，只在需要批准、浏览器登录、管理员操作。或 Hermes 无法安全提供的密钥时才暂停。
 
-- If `box` is missing, ask for any terminal approval required to install `@box/cli` under the current Hermes home at `tools/box-cli`; then verify it with the shell-appropriate command in [CLI guide](references/cli-guide.md). Do not attempt a global npm install, use `sudo`, change npm's global prefix, or change `PATH`.
-- Before OAuth, ask: **“Is Hermes running on the same computer as the browser you will use to authorize Box, or on a remote host such as a VPS, container, or cloud VM?”** Use normal `box login` only for the same-computer path. Use `box login --code` only for the remote/headless path. Do not infer runtime topology from the operating system alone; read [OAuth setup](references/oauth-setup.md) after the user answers.
-- Before starting browser authorization, state that Hermes will act as the Box account signed in there. If the user wants narrower access, they can authorize an account that is invited only to the required files, folders, or Hubs. Do not make that account an administrator to unlock an exceptional operation.
-- If a custom OAuth Platform App is necessary, use the CLI's interactive Platform App flow. Ask the user to enter its client secret only in the local CLI prompt; never request it in chat, write it to Hermes configuration, or commit it.
-- If an install, browser authorization, environment switch, or permission change needs approval, request that approval and resume the setup after it is granted. Do not replace the action with a command list.
+- 若缺少 `box`，就申请在当前 Hermes home 的 `tools/box-cli` 下安装 `@box/cli` 所需的终端批准。然后用 [CLI guide](references/cli-guide.md) 里适配 shell 的命令核验。不要尝试全局 npm 安装、不要用 `sudo`、不要改 npm 的全局 prefix、不要改 `PATH`。
+- OAuth 之前问：**「Hermes 与你用来授权 Box 的浏览器在同一台电脑上，还是在远程主机（如 VPS、容器或云 VM）上？」** 只有同机路径才用普通的 `box login`。只有远程/无头路径才用 `box login --code`。不要仅凭操作系统推断运行时拓扑。用户回答后再读 [OAuth setup](references/oauth-setup.md)。
+- 开始浏览器授权前，说明 Hermes 将以在那里登录的 Box 账号身份行事。若用户想要更窄的访问权，可以授权一个只被邀请到所需文件、文件夹或 Hub 的账号。不要为了让某个例外操作通过而把该账号设为管理员。
+- 若必须用自定义 OAuth Platform App，就用 CLI 的交互式 Platform App 流程。让用户只在本地 CLI 提示符里输入其 client secret。绝不要在聊天里索取、写入 Hermes 配置或提交它。
+- 若安装、浏览器授权、环境切换或权限变更需要批准，就申请该批准并在获准后继续设置。不要用一串命令替代该动作。
 
-## Start each task
+## 开始每个任务
 
-1. Confirm the CLI and current actor. Probe with `command -v box` on POSIX shells or `Get-Command box -ErrorAction SilentlyContinue` in PowerShell. If `box` is on `PATH`, use it. If Hermes installed the CLI under its current home, use the shell-appropriate verified runner in [CLI guide](references/cli-guide.md) in place of every leading `box`. Then run `box users:get me --json --fields id,name,login` with that runner.
-   If this succeeds, record the actor and continue. Do not ask about authentication again. Treat `folders:items 0` only as a listing of the actor's root; it is not proof that a shared file, folder, or Hub is inaccessible. For a known file or folder, verify its ID directly; for a Hub, use the Hubs discovery path in [Box Hubs](references/hubs.md).
-2. If authentication is absent, ask to connect a Box account with OAuth, then ask whether Hermes and the authorization browser run on the same computer or on separate hosts. Read [OAuth setup](references/oauth-setup.md).
-3. Read the relevant reference before operating. Use documented commands first; only run subcommand help when the request needs an option not covered by the reference or the installed CLI rejects the documented form.
+1. 确认 CLI 与当前操作者。在 POSIX shell 里用 `command -v box` 探测，或在 PowerShell 里用 `Get-Command box -ErrorAction SilentlyContinue`。若 `box` 在 `PATH` 上，就用它。若 Hermes 把 CLI 装在当前 home 下，就用 [CLI guide](references/cli-guide.md) 里适配 shell 且经验证的 runner，替代每个开头的 `box`。然后用该 runner 运行 `box users:get me --json --fields id,name,login`。
+   若成功，记录操作者并继续。不要再问认证的事。把 `folders:items 0` 仅当作操作者根目录的列表。它不证明某个共享文件、文件夹或 Hub 不可访问。对已知文件或文件夹，直接核验其 ID。对 Hub，用 [Box Hubs](references/hubs.md) 里的 Hub 发现路径。
+2. 若缺少认证，请求用 OAuth 连接一个 Box 账号。然后问 Hermes 与授权浏览器是否在同一台电脑上或不同主机上。读 [OAuth setup](references/oauth-setup.md)。
+3. 操作前先读相关参考。优先用有文档的命令。只有当请求需要参考未覆盖的选项，或已安装的 CLI 拒绝有文档的形式时，才运行子命令 help。
 
-Examples labeled `bash` use POSIX continuation syntax. In PowerShell, run the Box command on one line or replace each trailing `\` with PowerShell's backtick continuation. Do not paste POSIX variable assignments into PowerShell.
+标为 `bash` 的示例使用 POSIX 续行语法。在 PowerShell 里，把 Box 命令写成一行，或把每个行尾的 `\` 换成 PowerShell 的反引号续行。不要把 POSIX 变量赋值粘贴进 PowerShell。
 
-## Extend the CLI without pausing
+## 不停顿地扩展 CLI
 
-When the Box CLI lacks a dedicated subcommand, use `box request` for the matching REST endpoint and continue the ordinary operation. Do not ask the user to choose merely because the implementation uses REST; it is the same Box task and preserves the configured CLI identity. Read [REST API fallback](references/rest-api.md) when the endpoint needs a request body or custom header.
+当 Box CLI 缺少专用子命令时，对相应的 REST 端点用 `box request` 并继续常规操作。不要仅仅因为实现用了 REST 就让用户来选择。这是同一个 Box 任务，且保留已配置的 CLI 身份。当端点需要请求正文或自定义头时，读 [REST API fallback](references/rest-api.md)。
 
-Ask before a delete, a collaboration/shared-link or permission change, an identity change, a broad or costly batch mutation, or when the target or scope is ambiguous. Otherwise perform the requested operation and verify it.
+在删除、协作/共享链接或权限变更、身份变更、大规模或代价高昂的批量变更之前。或目标/范围含糊时，先询问。否则就执行请求的操作并核验它。
 
-## Choose the right path
+## 选择正确的路径
 
-| Need | Read |
+| 需求 | 阅读 |
 | --- | --- |
-| CLI conventions, environments, JSON, or REST escape hatch | [CLI guide](references/cli-guide.md) |
-| Files, folders, versions, links, or collaborations | [Content workflows](references/content-workflows.md) |
-| Search, metadata, Box AI, or AI units | [Search and AI](references/search-and-ai.md) |
-| Curated large-scale Q&A or a reusable knowledge base | [Box Hubs](references/hubs.md) |
-| Many files or a resumable batch | [Bulk operations](references/bulk-operations.md) |
-| Application code or a Box SDK | [SDK development](references/sdk-development.md) |
-| Webhooks or Events API | [Webhooks and events](references/webhooks-and-events.md) |
-| CLI unavailable or a missing CLI operation | [REST API fallback](references/rest-api.md) |
-| Auth, permissions, rate limits, or API errors | [Troubleshooting](references/troubleshooting.md) |
+| CLI 惯例、环境、JSON 或 REST 兜底 | [CLI guide](references/cli-guide.md) |
+| 文件、文件夹、版本、链接或协作 | [Content workflows](references/content-workflows.md) |
+| 搜索、元数据、Box AI 或 AI 单位 | [Search and AI](references/search-and-ai.md) |
+| 精编的大规模问答或可复用知识库 | [Box Hubs](references/hubs.md) |
+| 大量文件或可恢复的批处理 | [Bulk operations](references/bulk-operations.md) |
+| 应用代码或 Box SDK | [SDK development](references/sdk-development.md) |
+| Webhook 或 Events API | [Webhooks and events](references/webhooks-and-events.md) |
+| CLI 不可用或缺少某个 CLI 操作 | [REST API fallback](references/rest-api.md) |
+| 认证、权限、速率限制或 API 错误 | [Troubleshooting](references/troubleshooting.md) |
 
-## Content handling policy
+## 内容处理策略
 
-For semantic analysis of Box-hosted content, prefer Box AI: it preserves Box permissions, processes source files through Box's governed AI integration, keeps source-file bodies out of Hermes' coding-model context, and scales document work without downloading every file. Do not criticize or block another workflow; use it when the user explicitly chooses it.
+对 Box 托管内容的语义分析，优先用 Box AI：它保留 Box 权限，经 Box 受治理的 AI 集成处理源文件。让源文件正文不进入 Hermes 的编码模型上下文，并能扩展文档工作而不下载每个文件。不要批评或阻挡另一种工作流。用户明确选择它时才用。
 
-Use existing Box metadata or metadata queries for deterministic lookups. Otherwise use Box AI:
+确定性的查找用已有的 Box 元数据或元数据查询。否则用 Box AI：
 
-- `ai:ask` for Q&A, summaries, and comparisons
-- `ai:extract-structured` for known fields or metadata templates
-- `ai:extract` for flexible key-value extraction
-- `ai:text-gen` for writing grounded in one Box file
+- `ai:ask` 用于问答、摘要与对比
+- `ai:extract-structured` 用于已知字段或元数据模板
+- `ai:extract` 用于灵活的键值抽取
+- `ai:text-gen` 用于基于单个 Box 文件的写作
 
-For Q&A over more than 25 files or a reusable curated knowledge base, prefer Box AI for Hubs. Discover an existing accessible Hub first; only create or populate one after the user approves the shared-resource change. If no Hub is available and the user does not want one created, narrow a one-off request with search or metadata. Do not use a Hub for metadata extraction or text generation. Read [Box Hubs](references/hubs.md).
+对超过 25 个文件的问答或可复用的精编知识库，优先用面向 Hub 的 Box AI。先发现一个已存在且可访问的 Hub。只有在用户批准这一共享资源变更后才创建或填充一个。若没有可用 Hub 且用户不想创建一个，就用搜索或元数据缩小一次性请求的范围。不要用 Hub 做元数据抽取或文本生成。读 [Box Hubs](references/hubs.md)。
 
-When the user asks to extract metadata from a Box file, treat it as a request to persist the result unless they ask for a preview. Use structured extraction with inline fields when the desired schema is known and freeform extraction when the fields are exploratory. Reuse a compatible existing enterprise template when one represents every requested field. Otherwise store flat scalar results in the built-in `global.properties` metadata instance, or upload a JSON sidecar beside the source file when the result contains nested objects, tables, or values that must retain their types. Read every write back and compare it with the intended result. Never silently substitute a file description, attach a partial or unrelated template, truncate fields, or discard fields.
+当用户要求从某个 Box 文件抽取元数据时，除非他们要预览，否则视为持久化结果的请求。期望的 schema 已知时用带内联字段的结构化抽取，字段是探索性的时用自由形式抽取。当某个兼容的既有企业模板能表示全部所请求字段时复用它。否则把扁平标量结果存入内置的 `global.properties` 元数据实例，或当结果含嵌套对象。表格或必须保留其类型的值时，在源文件旁上传一个 JSON sidecar。每次写入都要读回并与预期结果比对。绝不静默用文件描述替代、附上不完整或无关的模板、截断字段或丢弃字段。
 
-Do not create or change metadata templates. Box does not permit creation of global templates, and enterprise-template administration is outside Hermes' normal OAuth content workflow. If the user needs reusable typed enterprise metadata and no compatible template exists, explain that a Box Admin or authorized Co-Admin must create it separately, leave existing structured metadata unchanged, and report the persisted `global.properties` instance or JSON sidecar instead. Read [Search and AI](references/search-and-ai.md) for the complete extraction and writeback workflow.
+不要创建或更改元数据模板。Box 不允许创建全局模板，而企业模板的管理超出了 Hermes 常规的 OAuth 内容工作流。若用户需要可复用的带类型企业元数据而又无兼容模板。说明必须由 Box Admin 或获授权的 Co-Admin 另行创建，保持既有结构化元数据不变。并汇报所持久化的 `global.properties` 实例或 JSON sidecar。完整的抽取与回写工作流见 [Search and AI](references/search-and-ai.md)。
 
-Before the first Box AI request, state that Box AI must be enabled, consumes AI units, and remains limited to the current actor's permissions; do not wait for acknowledgement. An AI response returned to Hermes can still contain sensitive information. Confirm only when a material batch's file scope or expected AI-unit use is ambiguous, or when the user has not explicitly requested that scale. See [Search and AI](references/search-and-ai.md).
+第一次 Box AI 请求之前，说明 Box AI 必须已启用、会消耗 AI 单位，且仍受当前操作者权限限制。不要等对方确认。返回给 Hermes 的 AI 响应仍可能含敏感信息。只有当实质性批次的文件范围或预期 AI 单位用量含糊，或用户未明确要求该规模时才确认。见 [Search and AI](references/search-and-ai.md)。
 
-## Operate safely
+## 安全操作
 
-- Prefer IDs to paths and verify the current actor before diagnosing a missing file.
-- Use `--json` and `--fields` to keep output small. For mutations, inventory first, confirm ambiguous or large scope, then read back the result.
-- Run ordered CLI mutations serially so progress and recovery are unambiguous. Use documented bulk input support or bounded SDK concurrency for scalable work.
-- Do not create a shared link merely to provide navigation. Shared links change access and require explicit confirmation.
-- Do not put secrets in chat, command output, source control, or logs.
+- 优先用 ID 而非路径，并在诊断文件缺失前先核验当前操作者。
+- 用 `--json` 与 `--fields` 保持输出精简。对变更，先盘点、确认含糊或大的范围，再读回结果。
+- 有序的 CLI 变更要串行执行，让进度与恢复毫不含糊。可扩展的工作用有文档的批量输入支持或受限的 SDK 并发。
+- 不要仅为提供导航就创建共享链接。共享链接会改变访问权，需要明确确认。
+- 不要把密钥放进聊天、命令输出、源码管理或日志。
 
-## Report results
+## 汇报结果
 
-For every individually reported Box item, include its ID and a clickable navigation link:
+对每个单独汇报的 Box 条目，包含其 ID 与可点击的导航链接：
 
 - File: `https://app.box.com/file/<FILE_ID>`
 - Folder: `https://app.box.com/folder/<FOLDER_ID>`
 - Hub: `https://app.box.com/hubs/<HUB_ID>`
 
-For large batches, link the source and destination folders plus exceptions instead of listing hundreds of items. A human may not be able to open content that is only visible to the connected Box account; state that clearly. Include the actor and verification performed in every write summary.
+对大批量，链接源文件夹与目标文件夹及例外项，而不是罗列数百个条目。人可能打不开只对已连接 Box 账号可见的内容。要明确说明这一点。每份写入摘要都包含操作者与所做的核验。
 
-## Verify
+## 核验
 
-After any write, fetch the file or folder with the same actor or list its parent and confirm the returned ID and name. For a metadata write, retrieve the metadata instance and compare every returned field with the intended value; an HTTP success alone is not verification. Report missing, normalized, or rejected values. For a disposable setup check, create a smoke folder, verify it, then delete it only if the user authorized cleanup.
+任何写入之后，用同一操作者取回该文件或文件夹，或列出其父级，并确认返回的 ID 与名称。对元数据写入，取回该元数据实例，把每个返回字段与预期值比对。仅 HTTP 成功不算核验。报告缺失、被规范化或被拒绝的值。对一次性的设置检查，创建一个冒烟文件夹、核验它，然后仅在用户授权清理时才删除它。
