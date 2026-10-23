@@ -111,4 +111,3 @@ git cat-file --batch < /tmp/shas | grep -c '<email>'   # 0 = 干净
 - 主人偏好：本地仓库修复直提交 `main`、不搞分支仪式。git 的用途 = 留历史。
 - 分批提交按逻辑单元（功能一笔、文档/meta 一笔）。提交信息头部一行 + 正文条目。
 - **回滚必须实测**：`git revert --no-commit HEAD`（或提交范围）干跑 → 看 `git diff --cached --stat` 合理 → `git reset --hard -q` 还原 → 核验工作树干净。内容完好。没干跑过的回滚不算存在。
-% 演练标记 default-20261022
