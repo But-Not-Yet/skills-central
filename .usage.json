@@ -1291,15 +1291,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T15:13:28.739889+00:00",
-    "last_reused_patch_generation": 4,
-    "last_used_at": "2026-10-23T15:13:01.124394+00:00",
-    "last_viewed_at": "2026-10-23T15:13:01.108322+00:00",
+    "last_reused_patch_generation": 6,
+    "last_used_at": "2026-10-23T19:19:38.969250+00:00",
+    "last_viewed_at": "2026-10-23T19:19:38.961795+00:00",
     "patch_count": 6,
     "patch_generation": 6,
     "pinned": false,
     "state": "active",
-    "use_count": 3,
-    "view_count": 3
+    "use_count": 4,
+    "view_count": 4
   },
   "powerpoint": {
     "archived_at": null,
