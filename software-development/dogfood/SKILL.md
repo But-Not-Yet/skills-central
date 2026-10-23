@@ -147,7 +147,7 @@ metadata:
 | `browser_scroll` | 页面上/下滚动 |
 | `browser_back` | 浏览器历史后退 |
 | `browser_press` | 按键 |
-| `browser_vision` | 截图 + AI 分析；用 `annotate=true` 加元素标签 |
+| `browser_vision` | 截图 + AI 分析。用 `annotate=true` 加元素标签 |
 | `browser_console` | 取 JS 控制台输出与报错 |
 
 ## Tips（技巧）

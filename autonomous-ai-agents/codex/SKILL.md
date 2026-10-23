@@ -31,7 +31,7 @@ metadata:
 - **必须在 git 仓库内运行** —— Codex 拒绝在仓库外运行
 - 在 terminal 调用中用 `pty=true` —— Codex 是交互式终端应用
 
-对 Hermes 自身，`model.provider: openai-codex` 在 `hermes auth add openai-codex` 之后使用来自 `~/.hermes/auth.json` 的 Hermes 托管 Codex OAuth。对独立 Codex CLI，有效的 CLI OAuth 会话可能位于 `~/.codex/auth.json`；不要仅凭缺少 `OPENAI_API_KEY` 就断定 Codex 认证缺失。
+对 Hermes 自身，`model.provider: openai-codex` 在 `hermes auth add openai-codex` 之后使用来自 `~/.hermes/auth.json` 的 Hermes 托管 Codex OAuth。对独立 Codex CLI，有效的 CLI OAuth 会话可能位于 `~/.codex/auth.json`。不要仅凭缺少 `OPENAI_API_KEY` 就断定 Codex 认证缺失。
 
 ## 一次性任务
 
@@ -68,14 +68,14 @@ process(action="kill", session_id="<id>")
 |------|--------|
 | `exec "prompt"` | 一次性执行，完成后退出 |
 | `--sandbox workspace-write` (`-s`) | 沙箱化，但自动批准 workspace 内的文件改动（推荐的自动构建模式） |
-| `--dangerously-bypass-approvals-and-sandbox` | 无沙箱、无批准（最快也最危险；`--yolo` 仍作为隐藏别名可用） |
-| `--sandbox danger-full-access` | 无 Codex 沙箱；当宿主 service 上下文破坏 bubblewrap 时有用 |
+| `--dangerously-bypass-approvals-and-sandbox` | 无沙箱、无批准（最快也最危险。`--yolo` 仍作为隐藏别名可用） |
+| `--sandbox danger-full-access` | 无 Codex 沙箱。当宿主 service 上下文破坏 bubblewrap 时有用 |
 
 > **已弃用：** `--full-auto` 仍可用，但现行 CLI 会提示改用 `--sandbox workspace-write`。
 
 ## Hermes Gateway 注意事项
 
-从 Hermes gateway/service 上下文（例如 Telegram 驱动的 agent 会话）调用 Codex CLI 时，即使同一命令在用户的交互式 shell 中可用，Codex 的 `workspace-write` 沙箱化也可能失败。典型症状是 bubblewrap/user-namespace 错误，如 `setting up uid map: Permission denied` 或 `loopback: Failed RTM_NEWADDR: Operation not permitted`。
+从 Hermes gateway/service 上下文（例如 Telegram 驱动的 agent 会话）调用 Codex CLI 时，即使同一命令在用户的交互式 shell 中可用。Codex 的 `workspace-write` 沙箱化也可能失败。典型症状是 bubblewrap/user-namespace 错误，如 `setting up uid map: Permission denied` 或 `loopback: Failed RTM_NEWADDR: Operation not permitted`。
 
 在该上下文中，优先用：
 
@@ -83,7 +83,7 @@ process(action="kill", session_id="<id>")
 codex exec --sandbox danger-full-access "<task>"
 ```
 
-改为以进程边界作为安全层：显式 `workdir`、启动前干净的 git 状态、收窄的任务提示、`git diff` 审查、针对性测试，以及在提交大范围改动前的人工/agent 确认。
+改为以进程边界作为安全层：显式 `workdir`、启动前干净的 git 状态、收窄的任务提示、`git diff` 审查、针对性测试。以及在提交大范围改动前的人工/agent 确认。
 
 ## PR 审查
 

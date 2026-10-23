@@ -38,7 +38,7 @@ metadata:
 - **端点：** `https://api.airtable.com/v0`
 - **认证头：** `Authorization: Bearer $AIRTABLE_API_KEY`
 - **所有请求**都用 JSON（任何 POST/PATCH/PUT 正文都带 `Content-Type: application/json`）。
-- **对象 ID：** base `app...`、table `tbl...`、record `rec...`、field `fld...`。ID 永不改变；名称会变。自动化中优先用 ID。
+- **对象 ID：** base `app...`、table `tbl...`、record `rec...`、field `fld...`。ID 永不改变。名称会变。自动化中优先用 ID。
 - **速率限制：** 每个 base 5 请求/秒。`429` → 退避。对单个 base 突发会被限流。
 
 基础 curl 模式：
@@ -217,7 +217,7 @@ done
 - **PATCH vs PUT。** `PATCH` 把所提供的字段合并进记录。`PUT` 完全替换记录，并清空你没包含的任何字段。默认用 `PATCH`。
 - **单选选项必须已存在。** 当 `Shipping` 不在字段选项列表里时写 `"Status": "Shipping"` 会报 `INVALID_MULTIPLE_CHOICE_OPTIONS`，除非传 `"typecast": true`（它会自动创建该选项）。
 - **按 base 的 token 限定。** 一个 base 报 `403` 而另一个正常，说明该 token 的 Access 列表不含那个 base——不是 scope 或认证问题。把用户引到 https://airtable.com/create/tokens 去授予。
-- **速率限制按 base，而非按 token。** 在 `baseA` 上 5 req/sec 且 `baseB` 上 5 req/sec 没问题；光在 `baseA` 上 6 req/sec 会被限流。留意 `429` 上的 `Retry-After` 头。
+- **速率限制按 base，而非按 token。** 在 `baseA` 上 5 req/sec 且 `baseB` 上 5 req/sec 没问题。光在 `baseA` 上 6 req/sec 会被限流。留意 `429` 上的 `Retry-After` 头。
 
 ## 给 Hermes 的重要提示
 
@@ -225,5 +225,5 @@ done
 - **加载本 skill 时，`AIRTABLE_API_KEY` 会自动从 `${HERMES_HOME:-~/.hermes}/.env` 流入子进程**——无需在每次 `curl` 调用前重新导出。
 - **小心转义公式里的花括号。** 在 heredoc 正文里，`{Status}` 是字面量。在 shell 参数里，`{Status}` 在 `{...}` 花括号展开语境之外是安全的——但动态字符串要先经 `python urllib.parse.quote` 再拼进 URL。
 - **用 `python -m json.tool` 美化输出**（总是存在），而非 `jq`（可选）。只有需要筛选/投影时才动用 `jq`。
-- **分页是按页，而非全局。** Airtable 的 100 条记录上限是硬限制；无法提高。用 `offset` 循环直到该字段不存在。
+- **分页是按页，而非全局。** Airtable 的 100 条记录上限是硬限制。无法提高。用 `offset` 循环直到该字段不存在。
 - **读非 2xx 响应里的 `errors` 数组**——Airtable 会返回结构化错误码，如 `AUTHENTICATION_REQUIRED`、`INVALID_PERMISSIONS`、`MODEL_ID_NOT_FOUND`、`INVALID_MULTIPLE_CHOICE_OPTIONS`，精确告诉你哪里不对。

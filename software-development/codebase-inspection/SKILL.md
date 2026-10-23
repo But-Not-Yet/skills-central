@@ -112,5 +112,5 @@ pygount --format=summary . 2>/dev/null
 
 1. **始终排除 .git、node_modules、venv** — 不设 `--folders-to-skip`，pygount 会爬遍一切，在庞大依赖树上可能耗时数分钟甚至卡死。
 2. **Markdown 显示 0 代码行** — pygount 把全部 Markdown 内容归为注释而非代码，这是预期行为。
-3. **JSON 文件代码行偏低** — pygount 统计 JSON 行可能偏保守；要准确统计 JSON 行数，直接用 `wc -l`。
+3. **JSON 文件代码行偏低** — pygount 统计 JSON 行可能偏保守。要准确统计 JSON 行数，直接用 `wc -l`。
 4. **大型 monorepo** — 超大仓库考虑用 `--suffix` 只针对特定语言，而非全量扫描。

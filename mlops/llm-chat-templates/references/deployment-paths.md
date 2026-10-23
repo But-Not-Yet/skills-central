@@ -9,9 +9,9 @@
 | `tokenizer_config.json` 里的 `chat_template` 键 | 较老的运行时（只读内嵌键，**忽略 .jinja 文件**） |
 | 自建引擎的 tokenizer 包目录（如 `.../packs/<model>/tokenizer/chat_template.jinja`） | 那个引擎自己 |
 
-**双子源陷阱（最常见的「我换了但没生效」）**：目录里同时有 `.jinja` 文件和旧的 `tokenizer_config.json` 内嵌副本时，**新旧运行时各读一个**，拿到的行为不一样。放新文件到旧内嵌副本旁边 = 静默无效果。
+**双子源陷阱（最常见的「我换了但没生效」）**：目录里同时有 `.jinja` 文件和旧的 `tokenizer_config.json` 内嵌副本时。**新旧运行时各读一个**，拿到的行为不一样。放新文件到旧内嵌副本旁边 = 静默无效果。
 
-不确定运行时读哪个时，**两边都打**：`.jinja` 文件放完整版，`tokenizer_config.json` 放**压缩成单行的同一模板**。注意：两个副本的**文本必然不同**（完整 vs 压缩），所以**不能拿文本比对当校验——要比渲染输出**（见 `rendering-and-comparison.md`）。
+不确定运行时读哪个时，**两边都打**：`.jinja` 文件放完整版，`tokenizer_config.json` 放**压缩成单行的同一模板**。注意：两个副本的**文本必然不同**（完整 vs 压缩），所以**不能拿文本比对当校验。要比渲染输出**（见 `rendering-and-comparison.md`）。
 
 ## 验证清单：模板真的生效了吗
 
@@ -38,7 +38,7 @@ gguf-new-metadata --chat-template-file my.jinja input.gguf output.gguf
 ```
 
 两个顺序陷阱：
-- `--jinja` 在现行 build **已默认开**；老 build 要显式加，且**必须放在 `--chat-template-file` 之前**（否则模板会被当成「不认识的模板名」而只接受内置列表）。
+- `--jinja` 在现行 build **已默认开**。老 build 要显式加，且**必须放在 `--chat-template-file` 之前**（否则模板会被当成「不认识的模板名」而只接受内置列表）。
 - flag 是**单次生效**的：忘一次就静默退回内置模板。要跨多次启稳定生效，用 `gguf-new-metadata` 写回去，或写进启动脚本。
 
 `--reasoning-format` 是 **API 响应层**的设置，对 `llama-cli` 无效。
@@ -46,7 +46,7 @@ gguf-new-metadata --chat-template-file my.jinja input.gguf output.gguf
 ## 自建引擎（tokenizer 包目录）
 
 引擎从自己的 tokenizer 包目录读 `chat_template.jinja`。验证方式一样：拉 `/props` 拿哈希与文件比。
-**仍然要先读引擎自己的源码/配置**，确认它确实读这个文件、以及有没有缓存——不要凭目录里有个 `.jinja` 就断定它在用。
+**仍然要先读引擎自己的源码/配置**，确认它确实读这个文件、以及有没有缓存。不要凭目录里有个 `.jinja` 就断定它在用。
 
 ## 换了模板会连带改变什么（迁移前必须写下来）
 
@@ -61,7 +61,7 @@ gguf-new-metadata --chat-template-file my.jinja input.gguf output.gguf
 同一个自定义模板**不是对所有模型都适用**：
 
 - 同家族同代：迁移通常是**空操作**（先渲染确认，可能本来就是一个模板），或者一次净升级。
-- 同家族跨代：可行，但**新增特性未必被旧模型理解**（例：模板里注入的推理强度提示是给新代设计的，旧代没有这个能力）——当作**待 A/B 的实验**，不要当场宣定。
+- 同家族跨代：可行。但**新增特性未必被旧模型理解**（例：模板里注入的推理强度提示是给新代设计的，旧代没有这个能力）——当作**待 A/B 的实验**，不要当场宣定。
 - 异家族：**不可行**，控制符零重叠（见 `rendering-and-comparison.md`）。
 
-先跑词表检查分类，再对可行的那一档设计 A/B（同一批 agentic 题，带模板 / 不带模板各一轮），而不是直接全量替换。
+先跑词表检查分类，再对可行的那一档设计 A/B（同一批 agentic 题，带模板 / 不带模板各一轮）。而不是直接全量替换。

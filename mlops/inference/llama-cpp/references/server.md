@@ -135,6 +135,8 @@ server {
     -np 4  # 4 parallel slots
 ```
 
+> **`-c` is TOTAL context; `-np N` divides it evenly — `n_ctx_slot = -c / N`.** A single long-prompt request (e.g. ~20k tokens of document + instructions) needs `-np 1` even at `-c 65536`; with `-np 2` each slot caps at 32768 and the request overflows. After any restart, the sole proof is the startup log line `load_model: initializing … n_ctx_slot = …` — health 200 does not prove the new context is live.
+
 **Continuous batching**:
 ```bash
 ./llama-server \

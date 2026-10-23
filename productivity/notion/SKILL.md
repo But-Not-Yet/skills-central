@@ -1,6 +1,6 @@
 ---
 name: notion
-description: "用 Notion API 或 ntn CLI 操作页面、数据库与 Workers 时使用。只要涉及 Notion 页面读写、数据库查询、markdown 端点、文件上传或其 CLI/CDN、Workers，就主动加载，即使用户只是提到某个 Notion 页面。"
+description: "用 Notion API 或 ntn CLI 操作页面、数据库与 Workers 时使用。只要涉及 Notion 页面读写、数据库查询、markdown 端点、文件上传或其 CLI/CDN、Workers，就主动加载。即使用户只是提到某个 Notion 页面。"
 version: 2.0.0
 author: community
 license: MIT
@@ -335,7 +335,7 @@ Workers 是 Notion 替你托管的 TypeScript 程序。一个 worker 可以暴�
 **套餐 / 平台门槛：**
 - CLI 在所有套餐可用。**部署 Workers 需要 Business 或 Enterprise。**
 - 截至 2026 年 5 月 `ntn` 仅 macOS/Linux。Windows 用户需要 WSL2 或等待原生支持。
-- 2026 年 8 月 11 日前免费；之后按 Notion 点数计费。
+- 2026 年 8 月 11 日前免费。之后按 Notion 点数计费。
 
 ### 最小 Worker
 
@@ -445,4 +445,4 @@ ntn workers webhooks list
 - 创建 data source 时用 `"is_inline": true` 把它嵌入页面。
 - 给 curl 始终传 `-s` 抑制进度条（代理输出更干净）。
 - 读取时把 JSON 管道过 `jq`：`... | jq '.results[0].properties'`。
-- Notion 现在还提供了一个 MCP server（`Notion MCP`，在 DB 操作上比上一版约省 91% token）——若你想在会话里流式访问 Notion，可经 Hermes 的 MCP 支持把它接上，但上面的路径对多数一次性任务已经够用。
+- Notion 现在还提供了一个 MCP server（`Notion MCP`，在 DB 操作上比上一版约省 91% token）——若你想在会话里流式访问 Notion。可经 Hermes 的 MCP 支持把它接上，但上面的路径对多数一次性任务已经够用。

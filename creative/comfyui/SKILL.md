@@ -1,6 +1,6 @@
 ---
 name: comfyui
-description: "用 ComfyUI 跑扩散工作流生成图像 / 视频 / 音频时使用。只要要出图、跑 SDXL/Flux/SD3 工作流、做 img2img / inpaint / ControlNet，或装模型与自定义节点，就主动加载，即使用户只说「生成一张图」。支持本地与 Comfy Cloud。"
+description: "用 ComfyUI 跑扩散工作流生成图像 / 视频 / 音频时使用。只要要出图、跑 SDXL/Flux/SD3 工作流、做 img2img / inpaint / ControlNet，或装模型与自定义节点，就主动加载。即使用户只说「生成一张图」。支持本地与 Comfy Cloud。"
 version: 5.1.0
 author: [kshitijk4poor, alt-glitch, purzbeats]
 license: MIT
@@ -29,7 +29,7 @@ metadata:
 
 # ComfyUI
 
-通过 ComfyUI 生成图像、视频、音频与 3D 内容：用官方 `comfy-cli` 做安装 / 生命周期管理，用直接的 REST/WebSocket API 执行工作流。
+通过 ComfyUI 生成图像、视频、音频与 3D 内容：用官方 `comfy-cli` 做安装 / 生命周期管理。用直接的 REST/WebSocket API 执行工作流。
 
 ## 本 skill 内容
 
@@ -38,7 +38,7 @@ metadata:
 - `official-cli.md` —— 每一条 `comfy ...` 命令，含标志
 - `rest-api.md` —— REST + WebSocket 端点（本地 + 云端）、负载 schema
 - `workflow-format.md` —— API 格式 JSON、常见节点类型、参数映射
-- `template-integrity.md` —— 把 `comfyui-workflow-templates` 从编辑器格式转成 API 格式：Reroute 绕过、带点的动态输入 key（`values.a`、`resize_type.width`）、云端的怪癖（302 重定向、免费档 1 个并发任务、1080p VRAM 上限）、Discord 兼容的 ffmpeg 拼接。作者 [@purzbeats](https://github.com/purzbeats)。只要你从官方模板起步，就加载它。
+- `template-integrity.md` —— 把 `comfyui-workflow-templates` 从编辑器格式转成 API 格式：Reroute 绕过、带点的动态输入 key（`values.a`、`resize_type.width`）。云端的怪癖（302 重定向、免费档 1 个并发任务、1080p VRAM 上限）、Discord 兼容的 ffmpeg 拼接。作者 [@purzbeats](https://github.com/purzbeats)。只要你从官方模板起步，就加载它。
 
 **脚本（`scripts/`）：**
 
@@ -213,7 +213,7 @@ python3 scripts/run_batch.py \
 
 ## 安装与上手
 
-当用户要求安装 ComfyUI 时，**第一件事是问他们想要 Comfy Cloud（托管、零安装、需 API key）还是本地（在自己机器上装 ComfyUI）**。在他们回答之前，不要开始跑安装命令或硬件检测。
+当用户要求安装 ComfyUI 时。**第一件事是问他们想要 Comfy Cloud（托管、零安装、需 API key）还是本地（在自己机器上装 ComfyUI）**。在他们回答之前，不要开始跑安装命令或硬件检测。
 
 **Official docs:** https://docs.comfy.org/installation
 **CLI docs:** https://docs.comfy.org/comfy-cli/getting-started
@@ -226,7 +226,7 @@ python3 scripts/run_batch.py \
 
 > 「你想在本机本地运行 ComfyUI，还是用 Comfy Cloud？
 >
-> - **Comfy Cloud** —— 托管在 RTX 6000 Pro GPU 上，所有常见模型预装，零安装。需要 API key（实际运行工作流需要付费订阅；免费档只读）。没有够用的 GPU 时最佳。
+> - **Comfy Cloud** —— 托管在 RTX 6000 Pro GPU 上，所有常见模型预装，零安装。需要 API key（实际运行工作流需要付费订阅。免费档只读）。没有够用的 GPU 时最佳。
 > - **本地** —— 免费，但你的机器*必须*满足硬件要求：
 >   - NVIDIA GPU，**≥6 GB VRAM**（SDXL 需 ≥8 GB，Flux / 视频需 ≥12 GB），或
 >   - 支持 ROCm 的 AMD GPU（Linux），或
@@ -252,7 +252,7 @@ python3 scripts/hardware_check.py --json --check-pytorch
 | 结论    | 含义                                                       | 动作 |
 |------------|---------------------------------------------------------------|--------|
 | `ok`       | ≥8 GB VRAM（独显）或 ≥32 GB 统一内存（Apple Silicon）       | 本地安装——用报告里的 `comfy_cli_flag` |
-| `marginal` | SD1.5 可用；SDXL 吃紧；Flux / 视频基本不行                  | 轻量工作流可本地，否则 **Path A（云端）** |
+| `marginal` | SD1.5 可用。SDXL 吃紧。Flux / 视频基本不行                  | 轻量工作流可本地，否则 **Path A（云端）** |
 | `cloud`    | 无可用 GPU、<6 GB VRAM、<16 GB Apple 统一内存、Intel Mac、Rosetta Python | **改用云端**，除非用户明确强制本地 |
 
 脚本还会显示 `wsl: true`（带 NVIDIA 直通的 WSL2）与 `rosetta: true`（Apple Silicon 上的 x86_64 Python——必须以 ARM64 重装）。
@@ -281,7 +281,7 @@ bash scripts/comfyui_setup.sh
 bash scripts/comfyui_setup.sh --m-series --port=8190 --workspace=/data/comfy
 ```
 
-它内部会跑 `hardware_check.py`，当结论是 `cloud` 时拒绝本地安装（除非 `--force-cloud-override`），挑选正确的 `comfy-cli` 标志，并优先用 `pipx`/`uvx` 而非全局 `pip`，以免污染系统 Python。
+它内部会跑 `hardware_check.py`，当结论是 `cloud` 时拒绝本地安装（除非 `--force-cloud-override`），挑选正确的 `comfy-cli` 标志。并优先用 `pipx`/`uvx` 而非全局 `pip`，以免污染系统 Python。
 
 ---
 
@@ -483,9 +483,9 @@ curl -X POST "https://cloud.comfy.org/api/upload/image" \
 - **Base URL：** `https://cloud.comfy.org`
 - **认证：** `X-API-Key` 头（WebSocket 用 `?token=KEY`）
 - **API key：** 设置一次 `$COMFY_CLOUD_API_KEY`，脚本会自动读取
-- **输出下载：** `/api/view` 返回 302 到签名 URL；脚本会跟随它，并在从存储后端拉取前剥离 `X-API-Key`（不要把 API key 泄漏给 S3/CloudFront）。
+- **输出下载：** `/api/view` 返回 302 到签名 URL。脚本会跟随它，并在从存储后端拉取前剥离 `X-API-Key`（不要把 API key 泄漏给 S3/CloudFront）。
 - **与本地 ComfyUI 的端点差异：**
-  - `/api/object_info`、`/api/queue`、`/api/userdata` —— 免费档 **403**；仅付费可用。
+  - `/api/object_info`、`/api/queue`、`/api/userdata` —— 免费档 **403**。仅付费可用。
   - `/history` 在云端重命名为 `/history_v2`（脚本自动路由）。
   - `/models/<folder>` 在云端重命名为 `/experiment/models/<folder>`（脚本自动路由）。
   - WebSocket 里的 `clientId` 目前被忽略——某用户的所有连接会收到同一广播。在客户端按 `prompt_id` 过滤。
@@ -515,13 +515,13 @@ python3 scripts/fetch_logs.py --tail-queue --host https://cloud.comfy.org
 
 3. **模型名必须精确** —— 区分大小写，包含文件扩展名。`check_deps.py` 会做模糊匹配（带 / 不带扩展名与文件夹前缀），但工作流本身必须用规范名。用 `comfy model list` 查看已安装内容。
 
-4. **缺失自定义节点** —— "class_type not found" 意味着某个必需节点没安装。`check_deps.py` 会报告该装哪个包；`auto_fix_deps.py` 替你执行安装。
+4. **缺失自定义节点** —— "class_type not found" 意味着某个必需节点没安装。`check_deps.py` 会报告该装哪个包。`auto_fix_deps.py` 替你执行安装。
 
 5. **工作目录** —— `comfy-cli` 会自动检测 ComfyUI 工作区。若命令报 "no workspace found"，用 `comfy --workspace /path/to/ComfyUI <command>` 或 `comfy set-default /path/to/ComfyUI`。
 
 6. **云端免费档 API 限制** —— 免费账号下 `/api/prompt`、`/api/view`、`/api/upload/*`、`/api/object_info` 都返回 403。`health_check.py` 与 `check_deps.py` 会优雅处理并给出清晰提示。
 
-7. **视频 / 音频工作流的超时** —— 当输出节点是 `VHS_VideoCombine`、`SaveVideo` 等时会自动检测；默认从 300 秒跳到 900 秒。用 `--timeout 1800` 显式覆盖。
+7. **视频 / 音频工作流的超时** —— 当输出节点是 `VHS_VideoCombine`、`SaveVideo` 等时会自动检测。默认从 300 秒跳到 900 秒。用 `--timeout 1800` 显式覆盖。
 
 8. **输出文件名里的路径穿越** —— 服务器提供的文件名会经 `safe_path_join`，拒绝任何逃出 `--output-dir` 的路径。保持这个保护开启——带自定义保存节点的工作流可能产生任意路径。
 
@@ -543,4 +543,4 @@ python3 scripts/fetch_logs.py --tail-queue --host https://cloud.comfy.org
 - [ ] 工作流 JSON 是 API 格式
 - [ ] `check_deps.py` 报告 `is_ready: true`（或云端免费档仅有
       `node_check_skipped`）
-- [ ] 用小工作流试跑完成；输出落在 `--output-dir`
+- [ ] 用小工作流试跑完成。输出落在 `--output-dir`

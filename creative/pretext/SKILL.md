@@ -1,6 +1,6 @@
 ---
 name: pretext
-description: "用 pretext 做创意浏览器 demo 时使用。只要要做 DOM-free 文本排版类演示——文字绕移动图形回流、文字几何游戏、逐字粒子、动态排版，就主动加载，即使用户只说「做个炫酷的文字 demo」。不用于纯 CSS 能解决的静态页面或无文字角色的 canvas 生成艺术（考虑 p5js）。"
+description: "用 pretext 做创意浏览器 demo 时使用。只要要做 DOM-free 文本排版类演示——文字绕移动图形回流、文字几何游戏、逐字粒子、动态排版。就主动加载，即使用户只说「做个炫酷的文字 demo」。不用于纯 CSS 能解决的静态页面或无文字角色的 canvas 生成艺术（考虑 p5js）。"
 version: 1.0.0
 author: Hermes Agent
 license: MIT
@@ -17,7 +17,7 @@ metadata:
 
 [`@chenglou/pretext`](https://github.com/chenglou/pretext) 是 Cheng Lou（React core、ReasonML、Midjourney）写的 15KB 零依赖 TypeScript 库，用于 **DOM-free 的多行文本测量与排版**。它只做一件事：给定 `(text, font, width)`，返回换行位置、逐行宽度、逐字形位置与总高度——全部通过 canvas 测量，无回流。
 
-听起来像底层管道。其实不是。因为它快且几何化，它是一个**创意原语**：你可以在 60fps 下让段落绕着一个移动的精灵回流，做以真实单词构成关卡几何的游戏，让 ASCII logo 由散文驱动，把文字打碎成带有精确逐字形起始位置的粒子，或在没有任何 `getBoundingClientRect` 抖动的情况下紧凑排布多行 UI。
+听起来像底层管道。其实不是。因为它快且几何化，它是一个**创意原语**：你可以在 60fps 下让段落绕着一个移动的精灵回流。做以真实单词构成关卡几何的游戏，让 ASCII logo 由散文驱动。把文字打碎成带有精确逐字形起始位置的粒子，或在没有任何 `getBoundingClientRect` 抖动的情况下紧凑排布多行 UI。
 
 本 skill 的存在是为了让 Hermes 用它做出**炫酷 demo**——那种人们会发到 X 上的。社区 demo 合集见 `pretext.cool` 与 `chenglou.me/pretext`。
 
@@ -41,7 +41,7 @@ metadata:
 
 ## 创作标准
 
-这是在浏览器中渲染的视觉艺术。pretext 返回数字；*画东西的是你*。
+这是在浏览器中渲染的视觉艺术。pretext 返回数字。*画东西的是你*。
 
 - **不要交付「hello world」demo。** `hello-orb-flow.html` 模板只是*起点*。每个交付的 demo 都必须加入有意的配色、动效、构图，以及一个用户没要求但会欣赏的视觉细节。
 - **深色背景、暖色核心、考究的调色板。** 经典的琥珀配黑（CRT / 终端）可以，冷白配炭灰（编辑风）与低饱和粉彩（孔版印刷）也行。挑一种并坚持。
@@ -152,27 +152,27 @@ while (true) {
 1. 依据用户的 brief，从上面的表里**挑一个模式**。
 2. **从模板起步**：
    - `templates/hello-orb-flow.html` —— 文字绕着移动的球回流（绕障碍回流模式）
-   - `templates/donut-orbit.html` —— 进阶示例：量到的 ASCII logo 障碍、可拖拽的线框球体 / 立方体、变形的形状场、可选择的 DOM 文本，以及仅开发用的控件
+   - `templates/donut-orbit.html` —— 进阶示例：量到的 ASCII logo 障碍、可拖拽的线框球体 / 立方体、变形的形状场、可选择的 DOM 文本。以及仅开发用的控件。
    - 用 `write_file` 在 `/tmp/` 或用户工作区写一个新的 `.html`。
 3. **替换语料**为契合 brief 的内容。真实散文，10-100 句，无 lorem。
-4. **调校美学**——字体、调色板、构图、交互。这才是正经工作；不要跳过。
+4. **调校美学**——字体、调色板、构图、交互。这才是正经工作。不要跳过。
 5. **本地验证**：
    ```sh
    cd <dir-with-html> && python3 -m http.server 8765
    # then open http://localhost:8765/<file>.html
    ```
-6. **检查控制台**——若用错误的字体字符串调用 `prepareWithSegments`，pretext 会抛错；`Intl.Segmenter` 在每个现代浏览器中都可用。
+6. **检查控制台**——若用错误的字体字符串调用 `prepareWithSegments`，pretext 会抛错。`Intl.Segmenter` 在每个现代浏览器中都可用。
 7. **把文件路径给用户**，而不只是代码——他们想打开它。
 
 ## 性能注意事项
 
 - `prepare()` / `prepareWithSegments()` 是昂贵的调用。每个文本 + 字体组合只做**一次**。缓存句柄。
 - 窗口变化时，只重跑 `layout()` / `layoutWithLines()`——绝不重新 prepare。
-- 对于文本不变但几何每帧变化的动画，对正常长度的段落，在紧凑循环里跑 `layoutNextLineRange` 足够便宜，可以每帧在 60fps 下执行。
-- 逐帧渲染 ASCII 遮罩时，保留一个单元格缓冲（`Uint8Array` / 类型化数组），从单元格或投影几何推导量到的逐行障碍跨度，合并跨度，然后在绘制文字前把这些跨度喂给 `layoutNextLineRange`。
-- 让视觉动画与布局动画保持耦合。若球体变形为立方体，用同一个值对渲染的单元格缓冲与障碍跨度一起做补间；否则 demo 看起来像是贴上去的，而非物理回流。
+- 对于文本不变但几何每帧变化的动画，对正常长度的段落，在紧凑循环里跑 `layoutNextLineRange` 足够便宜。可以每帧在 60fps 下执行。
+- 逐帧渲染 ASCII 遮罩时，保留一个单元格缓冲（`Uint8Array` / 类型化数组）。从单元格或投影几何推导量到的逐行障碍跨度，合并跨度，然后在绘制文字前把这些跨度喂给 `layoutNextLineRange`。
+- 让视觉动画与布局动画保持耦合。若球体变形为立方体，用同一个值对渲染的单元格缓冲与障碍跨度一起做补间。否则 demo 看起来像是贴上去的，而非物理回流。
 - 做淡出时，优先用图层不透明度，而非改变字形强度或障碍缩放。把瞬态 ASCII 精灵放在自己的 canvas 上，用 CSS/GSAP 的不透明度淡化该 canvas，这样几何看起来不会缩小。
-- canvas 的 `ctx.font` 设置出奇地慢；若字体不变，每帧只设**一次**，而非每次 `fillText` 都设。
+- canvas 的 `ctx.font` 设置出奇地慢。若字体不变，每帧只设**一次**，而非每次 `fillText` 都设。
 
 ## 常见坑
 
@@ -188,7 +188,7 @@ while (true) {
 
 6. **等宽回退悄悄毁掉整个重点。** 看到像是等宽输出的用户，往往是 CSS `font-family` 掉到了 `monospace`。用 DevTools 核实实际渲染的字体。
 
-7. **绕形状流动时跳过行 vs 调整宽度。** 若这一行的走廊太窄放不下一个行，就*跳过这一行*（`y += lineHeight; continue;`），而不是给 `layoutNextLineRange` 传一个极小的 maxWidth——pretext 会返回看起来像坏掉的单字形行。
+7. **绕形状流动时跳过行 vs 调整宽度。** 若这一行的走廊太窄放不下一个行，就*跳过这一行*（`y += lineHeight; continue;`），而不是给 `layoutNextLineRange` 传一个极小的 maxWidth。pretext 会返回看起来像坏掉的单字形行。
 
 8. **交付一个冷冰冰的 demo。** 默认首帧看起来像教程级。加上：暗角、细微扫描线、闲置自动运动、一个精心挑选的交互响应（拖拽、hover、滚动、点击）。没有这些，「炫酷的 pretext demo」只会沦为「实习生复刻 README」。
 

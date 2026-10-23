@@ -17,7 +17,7 @@ prerequisites:
 
 Himalaya 是一个 CLI 邮件客户端，让你从终端经 IMAP、SMTP、Notmuch 或 Sendmail 后端管理邮件。
 
-本技能与 Hermes 的邮件网关适配器是两回事。网关适配器让别人给 agent 发邮件，用的是 Hermes 内置的 IMAP/SMTP 适配器；本技能让 agent 用终端工具操作邮箱，依赖外部的 `himalaya` CLI。
+本技能与 Hermes 的邮件网关适配器是两回事。网关适配器让别人给 agent 发邮件，用的是 Hermes 内置的 IMAP/SMTP 适配器。本技能让 agent 用终端工具操作邮箱，依赖外部的 `himalaya` CLI。
 
 ## 参考件
 
@@ -294,6 +294,6 @@ RUST_LOG=trace RUST_BACKTRACE=1 himalaya envelope list
 ## 提示
 
 - 用 `himalaya --help` 或 `himalaya <command> --help` 查详细用法。
-- 邮件 ID 相对于当前文件夹；切换文件夹后要重新列一次。
+- 邮件 ID 相对于当前文件夹。切换文件夹后要重新列一次。
 - 要写带附件的富文本邮件，用 MML 语法（见 `references/message-composition.md`）。
 - 密码用 `pass`、系统 keyring，或任何能输出密码的命令安全存放。

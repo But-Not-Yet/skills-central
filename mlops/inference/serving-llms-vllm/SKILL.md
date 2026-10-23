@@ -337,7 +337,7 @@ vllm serve MODEL --max-num-seqs 512
 vllm serve MODEL --tensor-parallel-size 4  # Not 3
 ```
 
-开启投机解码加速生成（把 config 当 JSON 传；
+开启投机解码加速生成（把 config 当 JSON 传。
 `--speculative-model` 已被弃用，改用 `--speculative-config`）：
 ```bash
 vllm serve MODEL \

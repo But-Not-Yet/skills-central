@@ -12,7 +12,7 @@ Anthropic 官方 `skill-creator/SKILL.md` 原文：
 
 ## 二、机制：描述是唯一的选拔信号
 
-启动时只预载元数据（name + description）；SKILL.md 只在命中后才读。
+启动时只预载元数据（name + description）。SKILL.md 只在命中后才读。
 
 官方原话：
 
@@ -25,7 +25,7 @@ Anthropic 官方 `skill-creator/SKILL.md` 原文：
 1. **触发词前置**。description 的第一句必须自洽——万一被截断，触发语义不能丢。
 2. **写明「即使…」**。列出显式触发场景，并用「即使用户没明说 X」封住欠触发的缝。
 3. **加排除条款**。社区（Ruben Hassid）称其为描述里最重要的一行：「正面触发把技能拉进来，排除条款把它推出去，两者抢同一份预算。」
-4. **预算意识**。开放 Agent Skills 规范中 description 上限 1024 字符；Claude Code 把 `description` + 可选 `when_to_use` 合计截断在 1536。**本机实测：Hermes 运行时索引不截断**（137 字符描述完整回显）；`hermes-agent-skill-authoring` 里的 60 字符硬线是**仓库投稿/docs 标准**，与本机运行时不矛盾。
+4. **预算意识**。开放 Agent Skills 规范中 description 上限 1024 字符。Claude Code 把 `description` + 可选 `when_to_use` 合计截断在 1536。**本机实测：Hermes 运行时索引不截断**（137 字符描述完整回显）。`hermes-agent-skill-authoring` 里的 60 字符硬线是**仓库投稿/docs 标准**，与本机运行时不矛盾。
 
 ## 四、可套用的描述公式
 
@@ -61,5 +61,5 @@ Anthropic 官方 `skill-creator/SKILL.md` 原文：
 
 落地成本用户侧的两条：
 
-1. **开工前点名**：任务开始时，把手上的事与技能索引描述逐条比对；命中先加载再动手。
+1. **开工前点名**：任务开始时，把手上的事与技能索引描述逐条比对。命中先加载再动手。
 2. **收尾自查**：「有没有哪个 skill 本该防住这次的坑？」答非空 = 回去补。

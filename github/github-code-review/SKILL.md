@@ -384,7 +384,7 @@ git diff main...HEAD --name-only
 git diff main...HEAD -- path/to/file.py
 ```
 
-对每个改动文件，用 `read_file` 看改动周围的完整上下文 — 只看 diff 会漏掉只有结合周边代码才看得见的问题。
+对每个改动文件。用 `read_file` 看改动周围的完整上下文 — 只看 diff 会漏掉只有结合周边代码才看得见的问题。
 
 ### 第 5 步：在本地跑自动化检查（若适用）
 

@@ -13,7 +13,7 @@
 先判定一个词：**哪些层真的有 KV 缓存**。看 `layer_types`：
 
 - `full_attention` → 有 KV
-- `linear_attention` / `sliding_attention` → 线性层只有**常量状态**（不算 KV）；滑动窗口层被 window 封顶
+- `linear_attention` / `sliding_attention` → 线性层只有**常量状态**（不算 KV）。滑动窗口层被 window 封顶
 
 **A. 标准 / GQA：**
 
@@ -44,7 +44,7 @@ KV_per_token = n_layer × (kv_lora_rank + qk_rope_head_dim) × dtype_bytes
 - **二手站的 KV 估算不可信**。实测：某站给 Ornith-1.5-35B 标「128K 要 67.2 GB KV」，而按 config 算（同 Qwen 同构）只要 2.5 GB——差了 26 倍。**冲突时以主件为准。**
 - **只读半个 config 就下判定**。实例：只看到 `num_key_value_heads=32` 就判「MHA，KV 爆炸」，补读才发现有 `kv_lora_rank`——是 MLA。**先把 config 读全。**
 - **拿 `num_layers` 当真**。某些仓的层数藏在其它字键下（如 `num_hidden_layers` vs `num_layers` vs `text_config.*`），不一致时以索引里实际出现的层号为准。
-- **忽略可用内存折扣**。宣称「12 GiB 显存 + 32 GB 内存 = 44 GB」是理论值；实际要扣系统与后台（Windows 下约 4–6 GB）。算能不能装时用**可用值**，不用理论值。
+- **忽略可用内存折扣**。宣称「12 GiB 显存 + 32 GB 内存 = 44 GB」是理论值。实际要扣系统与后台（Windows 下约 4–6 GB）。算能不能装时用**可用值**，不用理论值。
 
 ## 输出格式
 

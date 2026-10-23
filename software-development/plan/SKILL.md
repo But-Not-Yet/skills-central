@@ -17,13 +17,19 @@ metadata:
 
 ## Core behavior（核心行为）
 
-本轮你只做规划。
+规划任务只产出计划，不实施代码。
 
-- 不要实现代码。
-- 除计划 markdown 文件外，不要编辑项目文件。
-- 不要跑会改动状态的终端命令、不要 commit、push 或做任何外部动作。
-- 需要时可以只用读命令/工具查看仓库或其他上下文。
-- 你的交付物是一份 markdown 计划，存进活动工作区下的 `.hermes/plans/`。
+- 除计划 Markdown 外，不编辑项目源码、冻结件或模型文件，不 commit、push，不自行启动实验。
+- 用户另行明确授权的停止任务、派发本地规划卡等运维或交接动作，可按相应技能独立执行。不能借它扩大为实施授权。
+- 按需只读仓库与证据，交付计划存进活动工作区的 `.hermes/plans/`。
+
+### 本用户的分工与成本顺序
+
+1. 接续被中断的工作，先读最新日志、已有计划与核验工件，区分已完成、待验收、未实施。不把连接中断当成工作未发生。
+2. 主会话确定目标、约束、关键判据和需要用户裁定的边界。用户要求本地 worker 时，把这些压成短 brief，给绝对证据路径和明确不做项。详细源码调查、测试设计与计划正文交一个本地 worker 起草，主会话不同时重复起草。
+3. 本地服务未就绪时先准备 blocked 的规划卡。按 `kanban-dispatch` 核客户端 endpoint、模型/provider、board 和真实运行记录再放行。不得用云端子代理兜底，除非用户逐次批准。
+4. 主会话验收计划是否仍回答原始问题、是否偷换测量对象或放宽判据，并复核承重证据。文件存在不等于方案通过。需要修改时给具体纠偏项，让原本地 worker 修订，不重做全部正文。
+5. 规划卡与实施卡分开。用户批准方案和实施范围后，才交本地 worker 实施。研究目标、留出划分、实验阈值或干预策略的变化须单列待裁，不能藏在代码整改里。
 
 ## Output requirements（产出要求）
 
@@ -45,14 +51,14 @@ metadata:
 用 `write_file` 把计划存到：
 - `.hermes/plans/YYYY-MM-DD_HHMMSS-<slug>.md`
 
-把它视为相对于活动工作目录 / 后端工作区。Hermes 的文件工具是后端感知的，所以用这个相对路径能在 local、docker、ssh、modal、daytona 各后端上把计划留在工作区里。
+把它视为相对于活动工作目录 / 后端工作区。Hermes 的文件工具是后端感知的，所以用这个相对路径能在 local、docker、ssh、modal。daytona 各后端上把计划留在工作区里。
 
 若运行时给了具体目标路径，就用那个精确路径。
 若没有，自己在 `.hermes/plans/` 下起一个像样的带时间戳文件名。
 
 ## Interaction style（交互风格）
 
-- 请求足够清楚，就直接写计划。
+- 请求足够清楚，就直接完成规划交付。用户要求节省 API 开销时先按上述分工交本地 worker 起草，不让主会话逐行代做。
 - `/plan` 没带明确指令，就从当前对话上下文推断任务。
 - 若真的欠定，问一句简短的澄清，而不是猜。
 - 存好计划后，简要回复你规划了什么、以及保存路径。
@@ -85,7 +91,7 @@ metadata:
 
 ## Bite-Sized Task Granularity（一口大小的任务粒度）
 
-**每个任务 = 2-5 分钟的专注工作。**
+**每个任务 = 一个可独立验收的最小变更。** 2–5 分钟仅是人工专注颗粒度参考，不是本地模型 ETA。模型耗时须按同模型实际记录或明确标出的推算报告。
 
 每一步是一个动作：
 - "写失败的测试" —— 一步
@@ -121,7 +127,7 @@ metadata:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
+> **For Hermes:** Keep this task plan-only. After user approval, hand implementation to the explicitly authorized local worker; the main session owns scope decisions and verification.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -180,6 +186,15 @@ git commit -m "feat: add specific feature"
 ````
 
 ## Writing Process（写作流程）
+
+### Step 0: 项目考古（已有仓库必做）
+
+先读项目史，再读需求：
+
+- `git log --oneline --all`、`git tag`、`git remote -v`、工作树状态；用 commit 出现顺序区分「主干」与「后挂模块」。
+- 跑现有测试，记下基线数字；读最新审查报告、缺陷台账、进度文件。
+- 找到项目自己的词：它把约束叫「闸」还是「导向」，把模块叫什么，把验收叫什么。计划用项目的词写。
+- 反例：把最近改动的模块当主干，会写出方向相反的路线图，返工成本最高。
 
 ### Step 1: Understand Requirements（搞懂需求）
 
@@ -311,17 +326,18 @@ git commit -m "type: description"
 **坏：** "建 model 文件"
 **好：** "创建：`src/models/user.py`"
 
+### Planning from the Most Recent Module（把最近模块当主干）
+
+**坏：** 只读最近改的文件，就给它排下一步路线。
+**好：** 先读 commit 历史、测试基线、审查台账，确认核心与模块的边界，再写计划。
+
 ## Execution Handoff（执行交接）
 
-存好计划后，给出执行方案：
+交付时简报计划路径、关键方向、待拍板项与真实验收状态，不重新向用户朗读整份技术调查。
 
-**"计划已完成并保存。可以用 subagent-driven-development 来执行——我会每个任务派一个全新子代理，走两阶段审查（先规格合规、再代码质量）。要开始吗？"**
+实施授权未给时，不开实施 worker。已经明确授权本地实施时，按 `kanban-dispatch` 把批准版本及证据路径交本地 coder，主会话保留目标。判据和范围裁决。不默认每个小任务新开子代理，也不因主会话运行在云 API 上就把执行层放到云端。
 
-执行时，用 `subagent-driven-development` 技能：
-- 每个任务派一个新的 `delegate_task`，带完整上下文
-- 每个任务后做规格合规审查
-- 规格通过后做代码质量审查
-- 两项审查都通过才继续
+实施按有限批次走 TDD：先核规格符合性，再核代码行为、回归和产物。需要新实验或改变预注册时停在待裁点。每批验收不过，把具体问题送回原 worker 修订，不以报告措辞替代修复。
 
 ## Remember（记住）
 

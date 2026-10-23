@@ -1,6 +1,6 @@
 ---
 name: baoyu-infographic
-description: "生成信息图时使用。只要要做 infographic / 视觉摘要 / 高密度信息大图，或从文本、文件、URL、主题生成一张图，就主动加载，即使用户只提到「信息图」「可视化」这类词。21 种 layout × 21 种 style 可自由组合。"
+description: "生成信息图时使用。只要要做 infographic / 视觉摘要 / 高密度信息大图，或从文本、文件、URL、主题生成一张图，就主动加载。即使用户只提到「信息图」「可视化」这类词。21 种 layout × 21 种 style 可自由组合。"
 version: 1.56.1
 author: 宝玉 (JimLiu)
 license: MIT
@@ -170,7 +170,7 @@ Slug：从主题取 2-4 个词的 kebab-case。冲突时追加 `-YYYYMMDD-HHMMSS
 
 ### 第 3 步：推荐组合
 
-**3.1 先查关键词快捷方式**：若用户输入命中**关键词快捷方式**表中的关键词，自动选择关联 layout，并优先把关联 style 作为首选推荐。跳过基于内容的 layout 推断。
+**3.1 先查关键词快捷方式**：若用户输入命中**关键词快捷方式**表中的关键词，自动选择关联 layout。并优先把关联 style 作为首选推荐。跳过基于内容的 layout 推断。
 
 **3.2 否则**，基于以下推荐 3-5 个 layout×style 组合：
 - 数据结构 → 匹配的 layout

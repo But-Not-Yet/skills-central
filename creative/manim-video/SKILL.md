@@ -1,6 +1,6 @@
 ---
 name: manim-video
-description: "用 Manim CE 做数学 / 算法动画讲解视频时使用。只要要做 3Blue1Brown 风格讲解、方程推导、算法可视化或数据故事动画，就主动加载，即使用户只说「做个数学动画」。需要 Manim CE、LaTeX 与 ffmpeg。"
+description: "用 Manim CE 做数学 / 算法动画讲解视频时使用。只要要做 3Blue1Brown 风格讲解、方程推导、算法可视化或数据故事动画，就主动加载。即使用户只说「做个数学动画」。需要 Manim CE、LaTeX 与 ffmpeg。"
 version: 1.0.0
 platforms: [linux, macos, windows]
 ---
@@ -9,7 +9,7 @@ platforms: [linux, macos, windows]
 
 ## 何时使用
 
-当用户要求：动态讲解、数学动画、概念可视化、算法逐步演示、技术科普、3Blue1Brown 风格视频，或任何带几何 / 数学内容的程序化动画时使用。用 Manim Community Edition 制作 3Blue1Brown 风格科普视频、算法可视化、方程推导、架构图与数据故事。
+当用户要求：动态讲解、数学动画、概念可视化、算法逐步演示、技术科普、3Blue1Brown 风格视频。或任何带几何 / 数学内容的程序化动画时使用。用 Manim Community Edition 制作 3Blue1Brown 风格科普视频、算法可视化、方程推导、架构图与数据故事。
 
 ## 创作标准
 

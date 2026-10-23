@@ -25,7 +25,7 @@ The `hf` command is the modern command-line interface for interacting with the H
 
 ### 通用操作
 *   `hf download REPO_ID`：从 Hub 下载文件。
-*   `hf upload REPO_ID`：上传文件/文件夹（推荐用于单次提交；也支持大目录的断点续传）。
+*   `hf upload REPO_ID`：上传文件/文件夹（推荐用于单次提交。也支持大目录的断点续传）。
 *   `hf upload-large-folder REPO_ID LOCAL_PATH`：**[已废弃]** — 改用 `hf upload`。
 *   `hf sync`：在本地目录与 bucket 之间同步文件。
 *   `hf env` / `hf version`：查看环境与版本详情。
@@ -71,6 +71,12 @@ The `hf` command is the modern command-line interface for interacting with the H
 ---
 
 ## 进阶用法与技巧
+
+### 不下载整包、抽样数据集（datasets-server rows API）
+*   `curl "https://datasets-server.huggingface.co/rows?dataset=OWNER/NAME&config=default&split=train&offset=N&limit=100"` — 分页返回行。每条记录嵌在 `{"row": {...}}` 下，字段要先取 `row` 再取列名（直接按列名取会 KeyError）。
+*   很多数据集按类别/type 排序存储：只在头部取样只会看到第一个类别。按 offset 步长（≈ 总行数/10）扫多个窗口才能覆盖全部类别。
+*   偶发 502：跳过该 offset 继续或重试，不要中断整轮扫描。
+*   需要聚合统计时改用 `hf datasets sql`（DuckDB 跑 parquet URL）。
 
 ### 全局 flag
 *   `--format json`：产出机器可读输出，便于自动化。

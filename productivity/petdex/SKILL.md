@@ -1,6 +1,6 @@
 ---
 name: petdex
-description: "安装、选择或排查 Hermes 动画宠物（petdex）时使用。只要涉及 hermes pets、桌面/终端吉祥物、display.pet 配置或宠物不显示的问题，就主动加载，即使用户只是说「换个宠物」。"
+description: "安装、选择或排查 Hermes 动画宠物（petdex）时使用。只要涉及 hermes pets、桌面/终端吉祥物、display.pet 配置或宠物不显示的问题，就主动加载。即使用户只是说「换个宠物」。"
 version: 1.0.0
 author: Hermes Agent
 license: MIT
@@ -68,10 +68,10 @@ Hermes CLI、TUI 和桌面应用中做出反应。本 skill 驱动 `hermes pets`
 `config.yaml` 中 `display.pet` 下：
 
 - `enabled`（bool）——总开关。
-- `slug`（str）——当前宠物；留空 = 第一个已安装的。
+- `slug`（str）——当前宠物。留空 = 第一个已安装的。
 - `render_mode`——`auto`（自动检测）| `kitty` | `iterm` | `sixel` | `unicode` | `off`。
 - `scale`（float）——原生 192×208 帧的屏幕尺寸（默认 0.33，
-  限制在 0.1–3.0）。一个旋钮即可缩放所有界面；可用
+  限制在 0.1–3.0）。一个旋钮即可缩放所有界面。可用
   `hermes pets scale <factor>`、`/pet scale` 斜杠命令或桌面端
   外观滑块设置。
 - `unicode_cols`（int）——Unicode 回退渲染的列宽。
@@ -80,7 +80,7 @@ Hermes CLI、TUI 和桌面应用中做出反应。本 skill 驱动 `hermes pets`
 
 - 只有既安装又选中（`enabled: true`）宠物才会显示。
 - 在管道/重定向中（无 TTY）终端渲染按设计禁用。
-- petdex npm CLI 安装到 `~/.codex/pets`；Hermes 改用自己
+- petdex npm CLI 安装到 `~/.codex/pets`。Hermes 改用自己
   按 profile 隔离的 `<HERMES_HOME>/pets/`——请通过 `hermes pets` 安装。
 
 ## 验证

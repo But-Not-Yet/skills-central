@@ -1,6 +1,6 @@
 ---
 name: teams-meeting-pipeline
-description: "运行或排查 Teams 会议管线（摘要、转写、Graph 订阅）时使用。只要涉及微软 Teams 会议摘要、action items、pipeline status、replay job 或 Graph webhook 订阅，就主动加载，即使用户只是问「今天的会议摘要怎么没到」。"
+description: "运行或排查 Teams 会议管线（摘要、转写、Graph 订阅）时使用。只要涉及微软 Teams 会议摘要、action items、pipeline status、replay job 或 Graph webhook 订阅，就主动加载。即使用户只是问「今天的会议摘要怎么没到」。"
 version: 1.1.0
 author: Hermes Agent + Teknium
 license: MIT
@@ -23,7 +23,7 @@ metadata:
 
 # Teams 会议管线
 
-只要用户问起微软 Teams 会议摘要、转写、录音、action items、Graph 订阅，或任何关于 Teams 会议管线的运维问题，就用本 skill。支持任何语言——下方的触发词只是示例，并非穷尽列表。
+只要用户问起微软 Teams 会议摘要、转写、录音、action items、Graph 订阅，或任何关于 Teams 会议管线的运维问题。就用本 skill。支持任何语言——下方的触发词只是示例，并非穷尽列表。
 
 所有面向运维的东西都是经 terminal 工具运行的 `hermes teams-pipeline` 子命令。本管线没有新增模型工具——CLI 就是接口。
 
@@ -52,7 +52,7 @@ MSGRAPH_CLIENT_ID=...
 MSGRAPH_CLIENT_SECRET=...
 ```
 
-若缺少任何一个，把用户引到 Azure 应用注册指南 `/docs/guides/microsoft-graph-app-registration`——在管线能用之前，他们需要一个带管理员同意 Graph 应用权限的 Azure AD 应用注册。
+若缺少任何一个，把用户引到 Azure 应用注册指南 `/docs/guides/microsoft-graph-app-registration`——在管线能用之前。他们需要一个带管理员同意 Graph 应用权限的 Azure AD 应用注册。
 
 ## 命令参考
 

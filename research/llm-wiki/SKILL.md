@@ -92,7 +92,7 @@ read_file "$WIKI/log.md" offset=<last 30 lines>
 
 当用户要创建或启动 wiki 时：
 
-1. 确定 wiki 路径（来自 `$WIKI_PATH` 环境变量，或问用户；默认 `~/wiki`）
+1. 确定 wiki 路径（来自 `$WIKI_PATH` 环境变量，或问用户。默认 `~/wiki`）
 2. 创建上面的目录结构
 3. 问用户 wiki 覆盖什么领域 — 要具体
 4. 写针对该领域定制的 `SCHEMA.md`（见下方模板）
@@ -320,7 +320,7 @@ wiki = "<WIKI_PATH>"
 
 ⑥ **矛盾：** 同一主题但论断冲突的页面。找出共享标签/实体却陈述不同事实的页面。把所有带 `contested: true` 或 `contradictions:` frontmatter 的页面呈现给用户复查。
 
-⑦ **质量信号：** 列出 `confidence: low` 的页面，以及只引用单一来源却没设 confidence 字段的页面 — 它们要么补旁证，要么降级为 `confidence: medium`。
+⑦ **质量信号：** 列出 `confidence: low` 的页面，以及只引用单一来源却没设 confidence 字段的页面 — 它们要么补旁证。要么降级为 `confidence: medium`。
 
 ⑧ **来源漂移：** 对 `raw/` 里每个带 `sha256:` frontmatter 的文件，重算哈希并标出不匹配。不匹配说明原始文件被编辑过（不该发生 — raw/ 不可变），或摄入自一个此后已变化的 URL。不是硬错误，但值得报告。
 
@@ -390,7 +390,7 @@ wiki 目录开箱即可当 Obsidian vault 用：
 ### Obsidian Headless（服务器与无头机器）
 
 在没有显示器的机器上，用 `obsidian-headless` 代替桌面应用。
-它通过 Obsidian Sync 在无 GUI 下同步 vault — 非常适合跑在服务器上的 agent 写入 wiki、而 Obsidian 桌面在另一台设备上读的场景。
+它通过 Obsidian Sync 在无 GUI 下同步 vault — 非常适合跑在服务器上的 agent 写入 wiki。而 Obsidian 桌面在另一台设备上读的场景。
 
 **配置：**
 ```bash
@@ -463,4 +463,4 @@ sudo loginctl enable-linger $USER
 同样受 Karpathy 启发，把来源编译成概念 wiki。它与 Obsidian 兼容，
 所以想要计划/CLI 驱动编译流水线的用户可以让它指向本 skill 维护的同一个 vault。
 取舍：它自己掌管页面生成（取代 agent 对建页的判断）且面向小语料库调优。
-想要 agent 在环策展时用本 skill；想要批量编译一个来源目录时用 llmwiki。
+想要 agent 在环策展时用本 skill。想要批量编译一个来源目录时用 llmwiki。

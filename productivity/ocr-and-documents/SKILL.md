@@ -1,6 +1,6 @@
 ---
 name: ocr-and-documents
-description: "从 PDF 或扫描件提取文字时使用（pymupdf、marker-pdf）。只要涉及扫描件 OCR、复杂版式/公式/表格抽取或批量文档转 markdown，就主动加载，即使用户只是说「把这份扫描件转成文字」。不用于 PDF 合并/拆分/表单（用 pdf）。"
+description: "从 PDF 或扫描件提取文字时使用（pymupdf、marker-pdf）。只要涉及扫描件 OCR、复杂版式/公式/表格抽取或批量文档转 markdown，就主动加载。即使用户只是说「把这份扫描件转成文字」。不用于 PDF 合并/拆分/表单（用 pdf）。"
 version: 2.3.0
 author: Hermes Agent
 license: MIT
@@ -53,7 +53,7 @@ web_extract(urls=["https://example.com/report.pdf"])
 **决策**：除非需要 OCR、公式、表单或复杂版式分析，否则用 pymupdf。
 
 若用户需要 marker 的能力，但系统没有约 5GB 空闲磁盘：
-> 「这份文档需要 OCR/高级抽取（marker-pdf），它需要约 5GB 用于 PyTorch 和模型。你的系统有 [X]GB 空闲。选项：腾出空间；提供一个 URL 让我用 web_extract；或者我试用 pymupdf——它适用于文本型 PDF，但处理不了扫描文档或公式。」
+> 「这份文档需要 OCR/高级抽取（marker-pdf），它需要约 5GB 用于 PyTorch 和模型。你的系统有 [X]GB 空闲。选项：腾出空间；提供一个 URL 让我用 web_extract；或者我试用 pymupdf——它适用于文本型 PDF。但处理不了扫描文档或公式。」
 
 ---
 

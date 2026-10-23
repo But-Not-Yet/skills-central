@@ -19,7 +19,7 @@ metadata:
 
 # Google Workspace
 
-Gmail、Calendar、Drive、Contacts、Sheets 与 Docs——经由 Hermes 托管的 OAuth 和一个轻量 CLI 包装器。安装了 `gws` 时，本 skill 用它作为执行后端以获得更广的 Google Workspace 覆盖；否则回退到内置的 Python 客户端实现。
+Gmail、Calendar、Drive、Contacts、Sheets 与 Docs——经由 Hermes 托管的 OAuth 和一个轻量 CLI 包装器。安装了 `gws` 时，本 skill 用它作为执行后端以获得更广的 Google Workspace 覆盖。否则回退到内置的 Python 客户端实现。
 
 ## 参考
 
@@ -100,7 +100,7 @@ Calendar/Drive/Sheets/Docs？」**
 >    Audience → Test users → Add users
 > 6. 下载 JSON 文件并告诉我文件路径
 >
-> 重要 Hermes CLI 提示：若文件路径以 `/` 开头，不要在 CLI 里把裸路径作为单独一条消息发送，因为它可能被误认为斜杠命令。改在一整句里发，例如：
+> 重要 Hermes CLI 提示：若文件路径以 `/` 开头，不要在 CLI 里把裸路径作为单独一条消息发送。因为它可能被误认为斜杠命令。改在一整句里发，例如：
 > `The JSON file path is: /home/user/Downloads/client_secret_....json`
 
 他们给出路径后：
