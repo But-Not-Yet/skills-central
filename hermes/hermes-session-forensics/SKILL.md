@@ -54,7 +54,7 @@ metadata:
 3. active 副本的 `display_order` 若等于新行 id，而其它重放副本保留原 `display_order`，UI 按 order/id 排就会把它推到队尾。
 4. 查 `lcm_inspect` 的 `ingest_reconciliation` 是否出现 `replayed durable tail`；查 lcm 消息的 timestamp 是否成批落在同一秒。
 5. hidden user 消息（后台进程 heartbeat、`async_delegation_complete`）可能是触发源；它们被写进会话后，宿主可能重放 durable tail。停掉这些来源，不要用它们做回执。
-6. `assembly_probe` 的 index 0 若反复出现旧话题的 `[Recent Summary ...]`，那是另一个 summary carrier 污染，不是同一条消息重复。先用 `prompt_snapshot` 核 wire，再查 `summary_nodes.session_id` 是否属于当前会话；`assembly_probe` 是 post_llm 历史，不是 wire。详见 `references/summary-carrier-wire-forensics.md`。
+6. `assembly_probe` 的 index 0 若反复出现旧话题的 `[Recent Summary ...]`，那是另一个 summary carrier 污染，不是同一条消息重复。先用 `prompt_snapshot` 核 wire，再查绑定日志；**`summary_nodes.session_id` 属于当前会话不算无罪证明**——污染载体常以新会话名义 ingest 入库，归属登记是结果不是原因。`assembly_probe` 是 post_llm 历史，不是 wire。全新会话被污染的绑定链取证见 `references/summary-carrier-wire-forensics.md`。
 
 修复：先备份 `state.db`；按 `message_uid` 保留 active 副本并把 `display_order` 回填原位置，或走宿主修复/新会话；不要手删行。详细 SQL 与修复检查单见 `references/message-replay-diagnosis.md`。
 
