@@ -110,6 +110,11 @@ python3 -I -c "import sys; sys.path.insert(0,'/home/alonzo/.hermes/hermes-agent'
 
 **复核卡（trust card）的检查器契约**：`check_text` 必须传入已知 `base_dir`（hook 调用不是 CLI，不能省）；路径正则要保留完整相对路径（只从 `/` 或 `~` 起匹配会把 `tests/foo.py` 截成 `/foo.py`）；`build_cards` 必须保留 `CheckResult.status` 与 `evidence`，文案区分 UNVERIFIED 与 FAIL；hash 正则排除纯数字日期串和文件名片段。验收必须打到 `post_llm_call`/`transform_llm_output` 端到端，不能只测 `check_text` 单体。实现细节与测试矩阵见 `references/tiered-kernel-map.md` 的复核卡节。
 
+**复核卡的两个致命口子**（消误报时最容易踩）：
+
+- **自噬循环**：注入的提醒文本（如 `【导向提醒】…`）会进模型上下文，模型复述进下一条回复，下一轮扫描又扫到同类字符串，形成「假警告 → 按钮复核 → 新回复又带提醒 → 再假警告」的死循环。`cards.py` 只是渲染器，不负责过滤；扫描输入是 `check_text(assistant_response)`，输入是模型输出。修法：在 `check_text` 之前剥离文本中已有的提醒行，或在注入时打来源标记、扫描时按标记排除。两种做法都要保证真实的、非提醒来源的 hash/path 仍能被检出——不能把过滤做成「一刀切全关」。
+- **消误报不能靠抬高长度下限**：把 hash 正则从 `{7,40}` 收紧成 `{9,40}` 能消掉日期误报，但会丢掉 git 默认短 hash（7–8 位，`core.abbrev` 默认值）的全部覆盖。正确修法是保留 `{7,40}`，只排除「纯数字字符串」和「YYYYMMDD 形态的 8 位日期」。判定矩阵必须实测：7 位真实短 hash 要检出、8 位纯日期和纯数字要排除、8 位含字母片段按判据处理。
+
 ## 记忆引用审计（R7 类需求）
 
 用户要求“模型引用既往记忆时必须带凭证”时，分两层，不要把它做成第二个事实核查器：

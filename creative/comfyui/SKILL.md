@@ -328,7 +328,7 @@ Desktop **不支持** Linux——用 Path D。
 
 **Docs:** https://docs.comfy.org/installation/comfyui_portable_windows
 
-从 https://github.com/comfyanonymous/ComfyUI/releases 下载，解压，运行 `run_nvidia_gpu.bat`。通过 `update/update_comfyui_stable.bat` 更新。
+从 https://github.com/Comfy-Org/ComfyUI/releases 下载，解压，运行 `run_nvidia_gpu.bat`。通过 `update/update_comfyui_stable.bat` 更新。
 
 ---
 
@@ -383,7 +383,7 @@ curl -s http://127.0.0.1:8188/system_stats      # health check
 **Docs:** https://docs.comfy.org/installation/manual_install
 
 ```bash
-git clone https://github.com/comfyanonymous/ComfyUI.git
+git clone https://github.com/Comfy-Org/ComfyUI.git
 cd ComfyUI
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu130
 pip install -r requirements.txt

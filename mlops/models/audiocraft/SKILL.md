@@ -297,7 +297,7 @@ style_audio, sr = torchaudio.load("reference_style.wav")
 
 # Generate with text + style
 descriptions = ["upbeat dance track"]
-wav = model.generate_with_style(descriptions, style_audio, sr)
+wav = model.generate_with_chroma(descriptions, style_audio, sr)  # 官方 MusicGen-Style 页用的是这个入口（melody 位参）
 ```
 
 ### 仅风格生成（无文本）
@@ -310,7 +310,7 @@ model.set_generation_params(
     cfg_coef_beta=None  # Disable double CFG for style-only
 )
 
-wav = model.generate_with_style([None], style_audio, sr)
+wav = model.generate_with_chroma([None], style_audio, sr)
 ```
 
 ## AudioGen 用法

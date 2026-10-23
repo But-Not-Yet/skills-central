@@ -28,6 +28,7 @@ metadata:
 配置任何 unsloth 环境变量前先 `grep -rn 'os.environ' site-packages/unsloth_zoo/fused_losses/*.py`（以及 unsloth/trainer.py、unsloth_zoo/gradient_checkpointing.py）检查真实变量名。网上流传的变量名在新版本里可能根本不存在，设了等于没设。已实测检查过（unsloth 2026.9.x）的真实开关：
 - fused CE compile：`UNSLOTH_FUSED_CE_COMPILE_DISABLE=1`
 - fused CE 分块：`UNSLOTH_CE_LOSS_TARGET_GB` / `UNSLOTH_CE_LOSS_N_CHUNKS`
+  （注：这三个 fused-CE 变量 10-23 网络核验未在 unsloth 官方环境变量文档中检索到，属当时训练环境 grep 所得；换 unsloth 版本后必须先按上一行方法重新 grep 确认，不许照抄。）
 - 梯度双缓冲：`UNSLOTH_DISABLE_DOUBLE_BUFFER=0/1`（WSL 的 GPU paravisor 对 pinned memory 并发 H2D 敏感，报 `CUDA driver error: device not ready` 时优先关掉它）
 - 自动 padding-free：`UNSLOTH_DISABLE_AUTO_PADDING_FREE`
 报 "No or negligible GPU memory available for fused cross entropy" 时的正确方向是调大 `UNSLOTH_CE_LOSS_TARGET_GB` 留余量，而不是找开关关掉 fused CE。
