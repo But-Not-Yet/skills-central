@@ -1518,6 +1518,22 @@
     "use_count": 3,
     "view_count": 3
   },
+  "skill-library-sync": {
+    "archived_at": null,
+    "created_at": "2026-10-23T03:36:29.891684+00:00",
+    "created_by": "learn",
+    "first_seen_at": null,
+    "last_patched_at": null,
+    "last_reused_patch_generation": 0,
+    "last_used_at": null,
+    "last_viewed_at": null,
+    "patch_count": 0,
+    "patch_generation": 0,
+    "pinned": false,
+    "state": "active",
+    "use_count": 0,
+    "view_count": 0
+  },
   "songsee": {
     "archived_at": null,
     "created_at": "2026-10-06T20:35:43.957119+00:00",
