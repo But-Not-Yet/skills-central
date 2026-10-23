@@ -548,15 +548,15 @@
     "created_by": null,
     "first_seen_at": null,
     "last_patched_at": "2026-10-22T17:21:27.743045+00:00",
-    "last_reused_patch_generation": 2,
-    "last_used_at": "2026-10-22T17:21:19.993363+00:00",
-    "last_viewed_at": "2026-10-22T17:21:19.987176+00:00",
+    "last_reused_patch_generation": 4,
+    "last_used_at": "2026-10-23T04:25:00.443008+00:00",
+    "last_viewed_at": "2026-10-23T04:25:00.434196+00:00",
     "patch_count": 4,
     "patch_generation": 4,
     "pinned": false,
     "state": "active",
-    "use_count": 5,
-    "view_count": 5
+    "use_count": 6,
+    "view_count": 6
   },
   "hermes-goal-authoring": {
     "archived_at": null,
