@@ -7,7 +7,7 @@ description: 同步或体检三个 profile 的技能库时加载：git 化单一
 
 ## 拓扑
 - 事实源：`~/.hermes/skills-central.git`（bare）。default 库 `~/.hermes/skills` = main 分支；coder/researcher 各自分支，remote 指同一 central。
-- 角色排除：`~/.hermes/skill_roles.conf`，每行 `profile<TAB>相对路径`。排除项在每个 profile 侧删除并提交（persona/运维小抄不进 worker 库）。加新排除只改这个文件，下轮同步生效。
+- 角色排除：`~/.hermes/skill_roles.conf`，每行 `profile<TAB>相对路径`。排除项用非 cone sparse-checkout 只藏 worker 工作区、不产生提交（索引三库恒等；persona/运维小抄不进 worker 库）。加新排除只改这个文件，下轮同步生效。
 - 脚本：`~/.hermes/scripts/skill_git_sync.sh`，cron 作业 `skill-git-sync`（every 30m，no-agent，failure-deliver local）。日志 `~/.hermes/skills-sync-report.log`。
 
 ## 流向规则（改脚本前必读）

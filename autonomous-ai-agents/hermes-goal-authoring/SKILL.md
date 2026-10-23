@@ -1,6 +1,6 @@
 ---
 name: hermes-goal-authoring
-description: 主人要一段可粘贴的 /goal prompt、设跨轮目标（standing goal）或追加 subgoal 判据时加载：契约五字段写法、核实过的解析坑、实战范例（源码 goals.py 等 2026-10-07 核实）。
+description: 要写可粘贴的 /goal prompt、设跨轮目标或加 subgoal 判据时加载：契约五字段、解析坑、多子目标任务书结构。
 version: 1.0.0
 author: Nekonya (小喵)
 license: MIT
@@ -41,6 +41,7 @@ metadata:
 - **批量清单类 goal：清单交给 worker 开工第一步重生成**。写 goal 时排的序、抓的名单会过时。任务书只定选取规则（如「按 linter 硬违规数降序取前 20」）+ 要求 worker 首步重跑并贴回名单。别把快照名单当死判据。
 - **配套任务书模式**：goal prompt 只写判据（可出示）、红线、停止条件。完整范围/分档/豁免规则写进任务书文件（永久路径），goal 的 boundary 指向它。豁免类达标路径要求逐条登记（文件/行/规则/理由），无登记不算数。
 - **任务书用 Goal + Subgoal 结构，别用平铺清单**：一个 Goal（一句话判据）+ 若干 SG（SG1、SG2…），每个 SG 自带「目标 / 做法 / 证据锚点 / 产出 / 依赖」。平铺的 A1–A5 清单既不能独立分派给子代理，也看不出谁依赖谁。多子目标任务书模板见 `references/multi-subgoal-taskbook.md`。
+- **交付成对**：给主人一份任务书文件时，同时给一条可直接粘贴的 `/goal` 命令（headline 指向任务书绝对路径，contract 字段只写最硬的几条判据）。主人会把它当附件贴进新会话——只给文档不给命令，等于让主人自己拼。
 - **目标状态按会话存**：`GoalState` 落在该 session 的 `state_meta` 行（`load_goal(session_id)`）。换会话跑同一目标要重设，或走 `migrate_goal_to_session`。
 - **两条目标系统别混**：斜杠 `/goal` 是会话内的（每轮 auxiliary judge，默认 20 轮预算，`/subgoal` 加判据，`/goal gate add` 加确定性门）；看板 `goal_mode` 是 worker 级的（`completion_contract` + `goal_max_turns`，block 只允许特定 kind、不能 schedule）。要 worker 跨会话跑、要 PR 交付契约，用看板那套；要当前会话内逐轮推进，用斜杠那套。
 
