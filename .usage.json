@@ -773,14 +773,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T00:33:03.571414+00:00",
     "last_reused_patch_generation": 78,
-    "last_used_at": "2026-10-23T15:44:08.414350+00:00",
-    "last_viewed_at": "2026-10-23T15:44:08.389635+00:00",
+    "last_used_at": "2026-10-23T17:26:01.291198+00:00",
+    "last_viewed_at": "2026-10-23T17:26:01.280538+00:00",
     "patch_count": 78,
     "patch_generation": 78,
     "pinned": false,
     "state": "active",
-    "use_count": 96,
-    "view_count": 96
+    "use_count": 97,
+    "view_count": 97
   },
   "laptop-coder-node": {
     "archived_at": null,
