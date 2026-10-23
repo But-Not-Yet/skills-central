@@ -40,6 +40,9 @@ metadata:
 - **verify 行引用的脚本/工件必须住永久路径**：scratch（`~/.hermes/cache/scratch`）里的条目闲置 24h 即删，goal 往往跨天跑。先把工具拷进 `~/.hermes/scripts/` 再写进 verify，否则 worker 中途找不到判分器。同理，任务书/验收表这类 durable 工件不得引用 scratch 路径。
 - **批量清单类 goal：清单交给 worker 开工第一步重生成**。写 goal 时排的序、抓的名单会过时。任务书只定选取规则（如「按 linter 硬违规数降序取前 20」）+ 要求 worker 首步重跑并贴回名单。别把快照名单当死判据。
 - **配套任务书模式**：goal prompt 只写判据（可出示）、红线、停止条件。完整范围/分档/豁免规则写进任务书文件（永久路径），goal 的 boundary 指向它。豁免类达标路径要求逐条登记（文件/行/规则/理由），无登记不算数。
+- **任务书用 Goal + Subgoal 结构，别用平铺清单**：一个 Goal（一句话判据）+ 若干 SG（SG1、SG2…），每个 SG 自带「目标 / 做法 / 证据锚点 / 产出 / 依赖」。平铺的 A1–A5 清单既不能独立分派给子代理，也看不出谁依赖谁。多子目标任务书模板见 `references/multi-subgoal-taskbook.md`。
+- **目标状态按会话存**：`GoalState` 落在该 session 的 `state_meta` 行（`load_goal(session_id)`）。换会话跑同一目标要重设，或走 `migrate_goal_to_session`。
+- **两条目标系统别混**：斜杠 `/goal` 是会话内的（每轮 auxiliary judge，默认 20 轮预算，`/subgoal` 加判据，`/goal gate add` 加确定性门）；看板 `goal_mode` 是 worker 级的（`completion_contract` + `goal_max_turns`，block 只允许特定 kind、不能 schedule）。要 worker 跨会话跑、要 PR 交付契约，用看板那套；要当前会话内逐轮推进，用斜杠那套。
 
 ## 实战范例
 2026-10-07「重读诊断 + 跨重启 patch」goal v3（红线/坐标/停止条件齐全的完整实例）：`~/Documents/Hermes/goal_重读诊断_20261007.md`。

@@ -26,7 +26,7 @@ The `hf` command is the modern command-line interface for interacting with the H
 ### 通用操作
 *   `hf download REPO_ID`：从 Hub 下载文件。
 *   `hf upload REPO_ID`：上传文件/文件夹（推荐用于单次提交。也支持大目录的断点续传）。
-*   `hf upload-large-folder REPO_ID LOCAL_PATH`：**[已废弃]** — 改用 `hf upload`。
+*   `hf upload-large-folder REPO_ID LOCAL_PATH`：**[已废弃]** — 改用 `hf upload`。（10-23 核当前 v2.x 官方 CLI 参考：顶层命令清单已无此命令，废弃标记成立。）
 *   `hf sync`：在本地目录与 bucket 之间同步文件。
 *   `hf env` / `hf version`：查看环境与版本详情。
 

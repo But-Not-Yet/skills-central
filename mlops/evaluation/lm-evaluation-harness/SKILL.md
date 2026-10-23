@@ -461,7 +461,7 @@ pip install human-eval
 lm_eval --model hf \
   --model_args pretrained=model-name \
   --tasks humaneval \
-  --allow_code_execution  # Required for HumanEval
+  --allow_code_execution  # 旧版写法；当前 main 的 argparse 里对应 --confirm_run_unsafe_code（10-23 核源码 run.py:341），跑前先 lm_eval --help 对一下
 ```
 
 ## 进阶主题

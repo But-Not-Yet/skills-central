@@ -412,7 +412,7 @@ xurl --app staging /2/users/me             # one-off against staging
 | 401 on every request | Token expired or wrong default app | Check `xurl auth status` — verify `▸` points to an app with oauth2 tokens |
 | `client-forbidden` / `client-not-enrolled` | X platform enrollment issue | Dashboard → Apps → Manage → Move to "Pay-per-use" package → Production environment |
 | `CreditsDepleted` | $0 balance on X API | Buy credits (min $5) in Developer Console → Billing |
-| `media processing failed` on image upload | Default category is `amplify_video` | Add `--category tweet_image --media-type image/png` |
+| `media processing failed` on image upload | 自动检测的 category 不匹配 | Add `--category tweet_image --media-type image/png`（上游 README 348 行官方示例即 tweet_image） |
 | Two "Client Secret" values in X dashboard | UI bug — first is actually Client ID | Confirm on the "Keys and tokens" page; ID ends in `MTpjaQ` |
 
 ---

@@ -195,7 +195,7 @@ python3 scripts/run_batch.py \
 | 「安装 X 节点」 | comfy-cli | `comfy node install <name>` |
 | 「下载 X 模型」 | comfy-cli | `comfy model download --url <url> --relative-path models/checkpoints` |
 | 「列出已安装模型」 | comfy-cli | `comfy model list` |
-| 「列出已安装节点」 | comfy-cli | `comfy node show installed` |
+| 「列出已安装节点」 | comfy-cli | `comfy node simple-show installed` |
 | **执行（用脚本）** | | |
 | 「一切就绪了吗？」 | script | `health_check.py`（可选带 `--workflow X --smoke-test`） |
 | 「这个工作流里我能改什么？」 | script | `extract_schema.py W.json` |
@@ -349,20 +349,17 @@ uvx --from comfy-cli comfy --help
 pip install --user comfy-cli
 ```
 
-非交互式禁用分析：
-```bash
-comfy --skip-prompt tracking disable
-```
+分析（tracking）默认策略：交互式终端会询问，非交互式运行（管道、CI、agent）永不自动开启；要显式关掉用 `comfy tracking disable`（README 680 行附近有 enable/disable 对）。老写法 `comfy --skip-prompt ...` 在当前 README 里已不存在。
 
 #### 安装 ComfyUI
 
 ```bash
-comfy --skip-prompt install --nvidia              # NVIDIA (CUDA)
-comfy --skip-prompt install --amd                 # AMD (ROCm, Linux)
-comfy --skip-prompt install --m-series            # Apple Silicon (MPS)
-comfy --skip-prompt install --cpu                 # CPU only (slow)
-comfy --skip-prompt install --nvidia --fast-deps  # uv-based dep resolution
+comfy install                    # 自动检测平台与显卡，选对应 PyTorch wheel
+comfy install --fast-deps        # 用 uv 解析依赖（README 98 行）
+comfy --workspace=<path> install # 装进指定路径（README 97 行）
 ```
+
+装哪个 GPU 轮子由 comfy-cli 自动判定（README 100 行），不再需要 `--nvidia/--amd/--m-series/--cpu` 这类显式标志（当前 README 无这些选项）。
 
 默认位置：`~/comfy/ComfyUI`（Linux）、`~/Documents/comfy/ComfyUI`（macOS/Win）。用 `comfy --workspace /custom/path install` 覆盖。
 

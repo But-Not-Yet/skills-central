@@ -57,7 +57,7 @@ RTF 异常变慢先查 prompt 长度再查硬件：长 prompt 吃推理时间是
 - **instruct 只吃官方固定句式集**（common.py 的 instruct_list：开心/伤心/方言/快慢那套）。自由措辞在分布外，模型会退回「helpful assistant」的默认人格，音色被稀释。情感靠锚的底色+正文语义+标签，不靠自由 instruct。
 - **台词里的语气词会被逐字念出**：每句缀「嗯」当情绪垫字，成品就句句带这个口癖。鼻音拖尾还会被裁尾切出怪音。语气词密度十句留一，句尾用标点收。
 - **锚的底噪会被克隆搬进成品**：直播软语源间隙电平普遍在 -17~-37dB（气声加房间噪声垫底）。间隙 15 分位 > -40dB 的锚即使音色对也会让成品句尾脏。选锚先全库扫间隙电平，≤ -50dB 档优先。
-- torchaudio ≥2.10 读写默认走 torchcodec（Windows 无 cu128 wheel 时装不上）：脚本里 monkey-patch `torchaudio.load/save` 用 soundfile 顶替即可跑通。
+- torchaudio ≥2.9 起读写后端并入 torchcodec（PyTorch 官方 2.9 release notes 原文；技能旧版写 2.10 是记晚了一版）：Windows 无对应 wheel 时装不上，脚本里 monkey-patch `torchaudio.load/save` 用 soundfile 顶替即可跑通。
 - **prompt 音频有 30 秒硬闸**：speech tokenizer 源码 assert `do not support extract speech token for audio longer than 30s`：CLI 层不截断，tokenizer 却直接拒。多段拼接复合锚必须先验总长 <30s 再喂（留 0.5s 余量）。查「最长支持多少」要翻到 tokenizer 层的 assert，CLI/frontend 无截断不等于无上限。
 - **复合锚（多段拼接 prompt）的对齐脆弱性**：锚越长、其中纯呻吟/低密度段占比越高，对齐越脆。实测 29s 复合锚（含 ~10s 纯呻吟）出片吞整段台词（成品时长砍半）、换 ptext 写法后退化成 0.3s 或 conv kernel 尺寸崩。规则：复合锚里呻吟占比压到 ~30% 以下、ptext 的拟声段只对应锚里最小的一段。别把每段呻吟都在文本里喂一遍（音频里有就够了）。成品时长异常（砍半或虚胖 20%+）一律 ASR 逐段对质定位吞了哪段，再决定减锚还是减文本。
 - **复合锚响度均衡是必查项（10-08 实测）**。多段拼接锚里喘段常比说话段响 19dB+（整体 LUFS 却正常。粗测还会被静音帧拉高、虚报差值，要按有声帧 50ms 窗 85 分位精测）。响度差会被模型当韵律特征学走，喘段压倒性响，等于告诉引擎「这人常态是尖叫」。修法：按 >=150ms 静音缝分段、逐段增益对齐到最响段（段内动态要保留，禁止整条压缩：娇喘要的就是动态）。峰值超 0.89 整体回落防削波、最后 loudnorm 交付。脚本模板 bal_batch.py。

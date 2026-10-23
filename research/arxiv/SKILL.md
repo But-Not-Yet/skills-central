@@ -191,7 +191,7 @@ python scripts/search_arxiv.py --id 2402.03300,2401.12345
 
 ## Semantic Scholar（引用、相关论文、作者主页）
 
-arXiv 不提供引用数据或推荐。改用 **Semantic Scholar API** — 免费，基础使用无需 key（1 req/sec），返回 JSON。
+arXiv 不提供引用数据或推荐。改用 **Semantic Scholar API** — 免费，基础使用无需 key，返回 JSON。
 
 ### 获取论文详情 + 引用
 
@@ -256,7 +256,7 @@ curl -s "https://api.semanticscholar.org/graph/v1/author/search?query=Yann+LeCun
 | API | 速率 | 认证 |
 |-----|------|------|
 | arXiv | ~1 req / 3 秒 | 无需 |
-| Semantic Scholar | 1 req / 秒 | 无（带 API key 时 100/秒） |
+| Semantic Scholar | 无 key 时全体用户共享每秒配额、高峰期还会再限（官方 API 页原文） | 可选；带 key 也仅 1 RPS 保证（官方页原文），key 主要买的是稳定性不是速度 |
 
 ### 406 Not Acceptable = IP 突发限流，而非请求写法问题
 

@@ -90,10 +90,10 @@ vllm serve meta-llama/Llama-2-70b-hf \
 vllm serve meta-llama/Llama-3-8B-Instruct \
   --gpu-memory-utilization 0.9 \
   --enable-prefix-caching \
-  --enable-metrics \
-  --metrics-port 9090 \
   --port 8000 \
   --host 0.0.0.0
+# 注：当前 vllm serve CLI 没有 --enable-metrics/--metrics-port（10-23 核官方 CLI 页，
+# 只有 --enable-per-request-metrics 等细粒度开关；/metrics 端点默认可用）。
 ```
 
 **第 2 步：用有限流量测试**

@@ -21,7 +21,7 @@ tags: [gpu, amdgpu, rocm, lact, power-limit]
 5. **pp_features 看特性开关**：`cat .../pp_features`。桌面卡 SMARTSHIFT/GTHR/ACDC 显示 disabled 多半是 VBIOS 本就不含，ppfeaturemask 不解功耗锁——先对完固件档再决定动不动内核参数。
 6. **发行版升级决策先探仓库活性，别信文档快照**：直接探 AMD apt 仓库目录，HTTP 状态码说了算：
    `curl -s -o /dev/null -w '%{http_code}' https://repo.radeon.com/{amdgpu/31.50,graphics/26.14/ubuntu,rocmradeon/apt/26.14}/dists/<代号>/Release`
-   代号用 Ubuntu 代号（noble/resolute）。`rocm/apt/*` 路径已 404，现行是 `rocmradeon/apt/*`。顺带 `tail /usr/share/distro-info/ubuntu.csv` 拿官方 LTS 日期。发行版仓库活性这类断言当日必复测。
+   代号用 Ubuntu 代号（noble/resolute）。两条路都活着，别一概说谁 404：ROCm 大版本仓库 `rocm/apt/<版本>/`（如 7.2.4、6.4.4，Release 文件 200）与驱动版本线 `rocmradeon/apt/<版本>/`（如 26.14，200）并存；裸 `rocm/apt/dists/<代号>/Release` 这种不带版本号的写法才是 404。当日必复测。顺带 `tail /usr/share/distro-info/ubuntu.csv` 拿官方 LTS 日期。发行版仓库活性这类断言当日必复测。
 
 ## LACT 实操要点
 - 装/升级走官方 GitHub releases 的按发行版 deb（`lact-x.y.z-0.amd64.ubuntu-XXXX.deb`），`apt install -y <路径>` 可自动覆盖旧版并补依赖。
