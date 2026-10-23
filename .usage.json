@@ -532,15 +532,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T05:00:16.745309+00:00",
-    "last_reused_patch_generation": 29,
-    "last_used_at": "2026-10-23T04:59:59.565648+00:00",
-    "last_viewed_at": "2026-10-23T04:59:59.547886+00:00",
+    "last_reused_patch_generation": 30,
+    "last_used_at": "2026-10-23T05:35:32.470604+00:00",
+    "last_viewed_at": "2026-10-23T05:35:32.452759+00:00",
     "patch_count": 30,
     "patch_generation": 30,
     "pinned": false,
     "state": "active",
-    "use_count": 44,
-    "view_count": 44
+    "use_count": 45,
+    "view_count": 45
   },
   "hermes-desktop-plugins": {
     "archived_at": null,
@@ -581,14 +581,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-21T02:42:35.811147+00:00",
     "last_reused_patch_generation": 40,
-    "last_used_at": "2026-10-23T03:46:12.479182+00:00",
-    "last_viewed_at": "2026-10-23T03:46:12.471506+00:00",
+    "last_used_at": "2026-10-23T05:35:56.385506+00:00",
+    "last_viewed_at": "2026-10-23T05:35:56.377153+00:00",
     "patch_count": 40,
     "patch_generation": 40,
     "pinned": false,
     "state": "active",
-    "use_count": 60,
-    "view_count": 60
+    "use_count": 61,
+    "view_count": 61
   },
   "hermes-memory-providers": {
     "archived_at": null,
@@ -629,14 +629,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-22T20:31:46.438907+00:00",
     "last_reused_patch_generation": 21,
-    "last_used_at": "2026-10-23T05:00:10.263270+00:00",
-    "last_viewed_at": "2026-10-23T05:00:10.247487+00:00",
+    "last_used_at": "2026-10-23T05:23:45.035123+00:00",
+    "last_viewed_at": "2026-10-23T05:23:45.009839+00:00",
     "patch_count": 21,
     "patch_generation": 21,
     "pinned": false,
     "state": "active",
-    "use_count": 19,
-    "view_count": 19
+    "use_count": 20,
+    "view_count": 20
   },
   "hermes-session-row-restore": {
     "archived_at": null,
@@ -1291,15 +1291,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-19T00:53:41.186113+00:00",
-    "last_reused_patch_generation": 0,
-    "last_used_at": "2026-10-19T00:53:25.296517+00:00",
-    "last_viewed_at": "2026-10-19T00:53:25.282286+00:00",
+    "last_reused_patch_generation": 3,
+    "last_used_at": "2026-10-23T05:35:32.478620+00:00",
+    "last_viewed_at": "2026-10-23T05:35:32.461369+00:00",
     "patch_count": 3,
     "patch_generation": 3,
     "pinned": false,
     "state": "active",
-    "use_count": 1,
-    "view_count": 1
+    "use_count": 2,
+    "view_count": 2
   },
   "powerpoint": {
     "archived_at": null,
@@ -1541,14 +1541,14 @@
     "first_seen_at": null,
     "last_patched_at": null,
     "last_reused_patch_generation": 0,
-    "last_used_at": null,
-    "last_viewed_at": null,
+    "last_used_at": "2026-10-23T05:23:45.018569+00:00",
+    "last_viewed_at": "2026-10-23T05:23:44.991347+00:00",
     "patch_count": 0,
     "patch_generation": 0,
     "pinned": false,
     "state": "active",
-    "use_count": 0,
-    "view_count": 0
+    "use_count": 1,
+    "view_count": 1
   },
   "skill-library-sync": {
     "archived_at": null,
@@ -1556,15 +1556,15 @@
     "created_by": "learn",
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T04:43:35.885892+00:00",
-    "last_reused_patch_generation": 0,
-    "last_used_at": "2026-10-23T04:42:57.431915+00:00",
-    "last_viewed_at": "2026-10-23T04:42:57.425787+00:00",
+    "last_reused_patch_generation": 2,
+    "last_used_at": "2026-10-23T05:23:45.026404+00:00",
+    "last_viewed_at": "2026-10-23T05:23:45.002252+00:00",
     "patch_count": 2,
     "patch_generation": 2,
     "pinned": false,
     "state": "active",
-    "use_count": 1,
-    "view_count": 1
+    "use_count": 2,
+    "view_count": 2
   },
   "songsee": {
     "archived_at": null,
