@@ -1,0 +1,91 @@
+---
+name: lcm-summary-tuning
+category: mlops
+description: "诊断或调优 Hermes-LCM 摘要、装配漂移或修复 lcm.db 时使用。只要摘要质量可疑、载体串会话或库损坏，就主动加载。"
+version: 1.0.0
+author: Nekonya
+license: MIT
+metadata:
+  hermes:
+    tags: [lcm, summarization, llama-server, sampling]
+    related_skills: [llm-monitor-util, llama-cpp]
+---
+
+# LCM 摘要质量调优（用户 llama.cpp/ROCm 栈）
+
+## When to Use
+LCM 摘要出现截断垃圾节点、重复循环、敏感词回避、压缩率异常（过度压缩或膨胀）。语言漂移时的诊断与调优。装配历史出现引用他会话节点的摘要载体（装配漂移）、怀疑重摄取/对账异常。或需要动 LCM 写入/装配路径时。或选型/微调 LCM 摘要模型时。
+
+## 根因分层框架（先分层定位，再下药）
+1. **机制性截断**：thinking 模式 token 吃光输出预算 → LCM `_deterministic_truncate` 兜底 → 产生 ~510 token 截断垃圾节点并被 DAG 逐层继承。对策：请求里显式 `chat_template_kwargs: {"enable_thinking": false}`（Qwen 系）。并预检 messages token + max_tokens 不超过模型 ctx 的 90%。
+2. **分块容量**：leaf chunk 过大（如 20000 token）会让小摘要模型注意力崩溃/复制退化。关键语义（compaction.py 源码）：`LCM_DYNAMIC_LEAF_CHUNK_ENABLED=false` 时 `LCM_LEAF_CHUNK_TOKENS` 退化为**纯触发阈值**——达到阈值后整个 tail 外 backlog 一次压完（单 pass，`to_compact = candidate_raw`）。并不按该值分块。想要「固定分块」必须保持 `dynamic=true` 并令 `LCM_DYNAMIC_LEAF_CHUNK_MAX = LCM_LEAF_CHUNK_TOKENS`（base=max 时倍增循环不执行，每 pass 固定块大小，每轮最多 4 pass ≈ 4×chunk）。推荐组合：`LCM_LEAF_CHUNK_TOKENS=4096` + `LCM_DYNAMIC_LEAF_CHUNK_ENABLED=true` + `LCM_DYNAMIC_LEAF_CHUNK_MAX=4096`。分块本身已内建句边界对齐+单句 overlap，无需额外 overlap 配置。健康压缩率约 10-25%（L1_BUDGET_RATIO=0.20）。多轮压缩对逐字规则类信息是悬崖式衰减（Compaction Cliff, arXiv 2608.22752：1 轮后约保留 53%、5 轮后约 10%）。重要规则/承诺/数值应落盘或保证 FTS 可检索，不要依赖摘要链传递。
+3. **采样参数**：hermes-lcm 的 `escalation.py` `_call_llm_for_summary` 把 `temperature=0.3` 硬编码、无环境变量。且 llama.cpp 中 **API 请求携带的采样参数会覆盖 CLI 启动参数**。覆盖路径三选一。① 新版 llama.cpp 的 `--ignore-api-samplers`（旧 build 报 invalid argument，先确认版本）② FastAPI 代理拦截重写 body 的采样字段再转发（已验证可行）③ 直接改 escalation.py。历史验证有效的摘要采样组合：temperature 0.7 + repeat_penalty 1.1 + repeat_last_n 256。小模型长文可试 mirostat 2 + num_keep。
+4. **模型能力（根因层）**：2B~9B 通用小模型对 2 万 token 中文块的忠实摘要能力本身不足。换模型/调参都只缓解。根治是微调（见下）。
+5. **控制标记截流（同族词表风险）**：压缩器与被研究模型同族时（本栈 auxiliary.compression 为 Qwen 系）。其词表把聊天控制标记视作单 token 兼 eos——被压缩的对话文本里若在讨论该标记。摘要模型思考中概念性处理它就可能在 token 层直接预测出 eos、被服务端截流。节点整条变空（机制性截断的近亲，但成因在词表而非预算）。对策：LCM_CUSTOM_INSTRUCTIONS 加占位符条款（提及该标记一律用 __IM_END__ 占位符），必要时输入侧消毒。排查空节点/退化节点时先排除这一层。跨模型诊断配方见 idea-background-research 的 session-truncation-forensics。
+
+## 生产拓扑（当前验证过的部署形态）
+- 主模型 llama-server（ROCm）端口 8080。socat 8081→8080。LCM lcm-compress 实例在 8181（socat 直通模式下 8081 不跑 FastAPI 代理——两者互斥，部署代理前先 `ss -tlnp` 确认端口占用）。
+- 主对话与摘要的最优采样不同 → 摘要用独立实例/独立采样参数（摘要实例的采样参数直接写在其启动脚本里，如 --temp 1.0 --presence-penalty 2.0），不要与主对话共享一套采样设置。
+- 摘要模型与主对话异步并行，配置改动前先 `lcm backup`，改后 `lcm doctor` / `lcm_status` 验证。
+- 停用专用摘要实例前先检查 config.yaml 的 auxiliary 段：除 compression 外，title_generation / skills_hub / profile_describer 可能仍指向该实例。切换 compression 的 base_url 并不等于该实例闲置。
+- 缩小 leaf chunk 会增加每轮压缩 pass 数，留意 spend guard：默认 24 次调用/600 秒窗口。超限后静默 1800 秒并降级为确定性截断（无 LLM 摘要）。小模型单块秒级完成时 24/600s 通常够用，但高频交互会话需监控是否触发 backoff。
+- LCM 插件损坏会**静默降级**为 built-in 压缩（行为突变但配置未变时的先查项）。查 errors.log 有无 'file is not a database' 签名，别按「模型变差/参数漂移」方向排查。
+
+## 骨架与解析的关系
+LCM 对模型输出**不做任何骨架解析**——摘要文本仅 `lstrip()` 后原样入库（store.py），检索靠 embedding/FTS。四节骨架（`## 当前任务与目标` 等）之所以出现。纯粹是 `LCM_CUSTOM_INSTRUCTIONS`（`~/.hermes/.env`）经 escalation.py 的 `_build_l1_prompt`/`_build_l2_prompt` 以「optional style preference」措辞注入 system_instructions 的效果。含义：① 改骨架格式不需要动 LCM 任何解析代码。② 骨架符合率完全取决于摘要模型对指令的服从度——若训练数据的 assistant 目标不含骨架格式。微调会把基座模型原有的骨架服从性训掉，此时改判据或改训练目标格式，而不是改 LCM。
+
+实测验证（2026-09-28，20 条 seed=42 抽样对照）：把 LCM_CUSTOM_INSTRUCTIONS 改为「强制格式契约」措辞后。LoRA 微调模型的骨架符合率仍为 0%（新旧 prompt 无差异，0/20→0/20），且输出仍带空 ⟨think⟩⟨/think⟩ 前缀对。证实微调后模型的格式完全由训练分布决定，prompt 侧强制措辞对已微调模型无效。基座（未微调）则受 prompt 指令影响（基线曾 61%）。结论：格式必须写进训练标注目标。
+
+## LCM 配置的真实生效来源（改配置前必须先定位在哪层）
+- LCM 参数按优先级来自三处，改错层不生效。① systemd drop-in `/etc/systemd/system/hermes-gateway.service.d/override.conf`（Environment= 行，需 sudo 改，改后 `systemctl daemon-reload && systemctl restart hermes-gateway` 才生效）② `~/.hermes/.env`（注意此文件是 CRLF 行尾，用 sed/patch 时按 CRLF 处理）③ `~/.hermes/config.yaml`（auxiliary.compression 段的 base_url/model/timeout/context_length）。
+- 验证实际生效值不要猜：`lcm_status` 的 `config` 与 `config_sources` 字段会逐项标注每个参数的生效值和来源（env:XXX 或 config_yaml:XXX）。
+- 陷阱：启动脚本里变量与 exec 行可能不一致（如脚本头部 `CTX=65536` 但 exec 行硬编码 `-c 32768`）。改脚本变量前先核对 exec 行实际用了哪个参数。
+- systemd 单元可能有两个 `[Service]` 段（Environment= 分散在两段），patch 时以 `systemctl cat <unit>` 的输出为准，不要只看主文件。
+- Hermes agent 对 auxiliary.compression 的 context_length 有 **64000 硬下限**（低于则 ValueError 拒载）。小窗口模型（如 16K 的板端 LCM 模型）接进来时直接把配置谎报为 64000 绕过——hermes 侧只是不据此提前截断。实际截断发生在推理服务端（如 api_server.py 的 max_context_len），超出窗口的 prompt 由服务端裁掉，压缩质量相应打折。
+- 查压缩请求实际长度：板端 Flask 默认 werkzeug 日志不记 prompt_tokens，需到 gateway journal 里找 `Pre-API compression: ~N tokens` 日志行。
+- reasoning-effort 类参数（LCM_SUMMARY_REASONING_EFFORT / lcm.summary_reasoning_effort）在 engine init 时冻结进 `_config` dataclass——盘上改 env/config.yaml 不重启不生效。重启后必须 `/proc/<pid>/environ` 活体 grep 验收（drop-in 段头 + daemon-reload + `systemctl show -p Environment` 零停机验证，见 hermes-local-ops-troubleshooting）。`none` 在请求侧映射为 `reasoning_config{"enabled": false, "effort": "none"}`。
+- 验收「下一次 compaction」前先核两把尺：hermes 核心 preflight 阈值 = 模型 ctx × 0.6。ctx 随模型元数据更新浮动（1M 窗口模型会把 157K 线抬到 629K，低量会话永不触发）。LCM 自己的触发线独立。主会话 DAG 干净时手动 compress 只做 in-place 清理（删空消息、无 LLM 调用），**不构成摘要路由的验收点**。
+- summary route circuit 是路由级全局共享：任一进程累计 6 连拒即 open 300s。**挡住所有会话**的摘要调用（含已修复的健康进程）——验收前先查 circuit 状态。worker 会话的连拒会把验收窗口整体挡掉。
+
+## 摘要模型选型结论（实测，勿重复踩）
+- MiniCPM5-2B-heretic：重复循环+敏感词回避。Qwen3.5-9B-Defiant：后段复制原文。Gemma-4-E4B：20K 输入无限重复、压缩率 41%（膨胀）。Summarizer-v1-2B：中文差。Mixture-Summarizer：多智能体角色模型，任务不匹配。
+- 微调收敛候选。MiniCPM5-2B-Abliterated（LlamaForCausalLM 标准架构、工具链友好、拒绝率 3/100）> Qwen3.8-2B-Distill-Heretic（推理强但 Gated DeltaNet 混合架构，LoRA target 必须覆盖 `linear_attn.in_proj_qkv`/`in_proj_z`/`out_proj`）。数据集首选 CSDS（中文客服对话-摘要对）。5070Ti 12G QLoRA 2 万样本 2 epoch ≈ 3.6h。
+- 关键原则：**训练 prompt 模板必须复刻 LCM 实际 L1 prompt**（含 "End with: Expand for details about:"、`<source_data>` untrusted 包裹），训练分布=部署分布。
+- uncensored 残余仍会静默过滤敏感词。LCM 侧缓解：L1 prompt 结构化分节（任务状态/决策/文件路径与数值/未决问题）+ 块间 ~10% 重叠，零训练成本。
+- 语义检索在摘要质量不稳时先用 FTS。等摘要稳定再开 embedding backfill（劣质摘要会污染语义索引）。
+
+### OpenRouter 摘要路由：ZDR 与价格（实查快照，政策与价格随时间漂移，引用前重查）
+- ZDR 强制路由：请求 body `provider: {"zdr": true}`（官方参数）。`data_collection: "deny"` 控制不路由到可能存数据的 provider。endpoints API（/api/v1/models/<id>/endpoints）**不返回**数据政策字段——逐 provider 的 retention/训练政策只在 docs 的 privacy-and-logging 表。
+- Zero-retention 且不训练的 provider（快照）：Fireworks、Groq、Together、NovitaAI、Google Vertex、Z.ai、Moonshot、Tencent Cloud、Cerebras、DeepInfra 等。**DeepSeek 官方 = may train + retention unknown**——deepseek 系默认路由不满足 ZDR。**:free 档全部出局**（AI Studio 免费层 retention 55 天）。
+- 付费最便宜档（prompt $/1M tok，ctx≥32K）：granite-4.0-h-micro 0.017、gpt-oss-20b 0.018（131K）、mistral-nemo 0.019、ling-3.0-flash 0.021（262K）。40K 摘要单次 ~$0.0007——成本可忽略，选型看 ZDR 与摘要质量。
+- 板端 LCM compressor（192.168.50.10:8080，MiniCPM5-2B-lcm）**长输入判死**：真实 ~16K 字符 L1 样本只吐 14 字即 stop。且崩坏对输入长度非单调（~2K tok 正常、4K/8K 档随机崩）——短 smoke 通过不代表长输入可用。验收配方见 `references/summary-route-qa.md`。服务启停见 rkllm-deploy。摘要主力走 API：**inclusionai/ling-3.0-flash（Novita）同样本实测定标通过**——中文忠实、逐字值与路径原样保留。Expand 合同行完整、~9s、单次 ~$0.0001。`openai/gpt-oss-20b` 能力够但输出漂英文（中文会话不可用）。deepseek 系裸请求（不带 effort 控制）在同样本上复现 no_content（content 空 + finish=length + 成本 ~35×），换 ZDR 端点不治此病。其带 LCM_SUMMARY_REASONING_EFFORT=none 的端到端表现未验，切换决定不依赖它。max_tokens 必须给足 Expand 收尾余量——budget 内填满而无收尾行会被 integrity contract 整条拒收。
+
+## 「接近极限不自动压缩」的机制树（2026-10-13 实锤）
+触发没坏（宿主 preflight 0.6×ctx 正常打日志），坏在摘要路由的**输出契约拒绝链**：
+1. hermes-lcm-x 上游的 nonce 信封契约（escalation.py `_summary_contract_messages`/`_check_summary_contract`，system 消息要求输出恰好一个 `<lcm-summary nonce=...>` 信封）与 LCM_CUSTOM_INSTRUCTIONS 的「强制格式契约」四节骨架是**同一 system 消息里互相竞争的两套格式契约，零和**：消融实锤（12K 真实块）——现行 custom 指令→骨架全对、信封整个丢（check=envelope）。custom 清空→信封完整回来、骨架消失。只删「不要开场白直接输出正文」一句→仍丢。改成「信封优先、骨架从属于标签之内」→开标签带对 nonce、闭标签仍丢（2/2 复现）。不是输入长度问题，不是能力问题：指令越长越强调骨架，模型越把骨架当唯一输出契约。把尾部那句信封要求挤掉。
+2. 6 次拒绝 → circuit 开 300s → 后续压缩直接跳过路由「0 leaves written, backlog kept」。拒绝自 10-05 起每天 12–95 次，摘要节点写入从 36/天（10-02）崩到 2–5/天。
+3. backlog 唯一救援是 survival fit（**有损**：整行丢弃，如 308686→149404 tokens dropped_rows=111）。最终请求顶到硬墙 HTTP 400（prompt+max_tokens>ctx），宿主 3 次重试后「Context compression failed」。「突然严重」的时间线。10-05 16:16 插件更新带入信封契约（当晚 20:19 首条拒绝）→ 拒绝每天 12–95 次但 survival fit 有损兜底维持表面正常 → 10-07 本地 echo guard（85517f5）把失败模式从「写坏节点」改成「不写、backlog 保留」→ backlog 持续堆积，10-12/13 顶穿硬墙。
+4. 独立复现配方（不等真实 compaction）：importlib 按包加载 escalation（`from . import tokens` 需要 submodule_search_locations 指包目录），真实会话消息拼 6K/16K 两档。urllib 直打 OpenRouter 同模型，跑 `_check_summary_contract` 判 envelope——秒级出结论。短输入对照必须跑：服从与否对输入长度非单调。
+5. 修法（消融定出的优先级，10-13 已落地 commit 92a8fcd）：`_check_summary_contract` 改「内容判据为主、信封为辅」。缺闭标签（tolerated=missing_closer）与整信封缺失（missing_envelope，剥 `<summary body` 行与孤立尾标签后按内容判据核）改判接受。开标签存在时 nonce 精确+计数 1 硬闸保留。**残余失效模式（重启后实测 2/4 拒 closing_hint）**：模型在信封内回显 `<summary body>…正文…</summary>` 包裹。开标签路径只切外层 `</lcm-summary>`，body 尾残留 `</summary>` 行 → Expand 不再是末行 → closing_hint 拒。#612 summary_wrapper 宽容只认逐字 `<summary>` 不认占位行回显，缺信封路径剥了回显但开标签路径没剥（补刀卡 t_b5826fd4）。另：删骨架条款后 ling 会交完整信封且 nonce 4/4 抄对（零和冲突实锤的反向验证）。OpenRouter 该路由偶发 429 限流，采样间隔 ≥5s。
+6. 顺带实锤：tiered 包装器 `_PROXIED_ATTRS` 缺 `_coerce_threshold_tokens_cap`/`threshold_tokens_cap` → 桌面端每次配置签名变化 live 应用压缩配置必抛 AttributeError（「Could not apply live compression config: _coerce_threshold_tokens_cap」）。配置改了不即时生效。宿主在选中引擎上写的私有属性必须逐个显式代理（下划线不自动转发）。
+7. **信封契约的文献判决（评估任何「靠模型输出格式防注入」的机制时先对照）**：nonce/canary 信封没有论文直接背书——文献里 canary 是**测量仪器**不是输出闸门（Kill-Chain Canaries arXiv:2603.28013：canary 埋在注入载荷里追踪污染走到哪一阶段。arXiv:2606.04141：结论明说别只靠文本级输出过滤器）。主人的两个质疑各有论文正面支持：「服从格式≠防住注入」。共享嵌入架构下完美防注入数学上不可能（arXiv:2606.27567），输出归一化类表面防御被未见编码 ROT13 打穿 100%。鲁棒性来自约束数据流向而非让模型自认攻击（arXiv:2608.27092）。「真危害（正文被改写）信封看不见」——同一机制论证。文献公认路线是引擎侧控制/数据流分离（CaMeL arXiv:2503.18813）或训练侧指令优先级（Instruction Hierarchy arXiv:2404.13208，但可被后门作废 arXiv:2510.03705）。含义：修法④（引擎自包信封、只核内容判据）有学术路线背书，不比上游的模型侧契约弱。查这类文献别用通用 web_search（论文标题查询返回全是噪音），用 arXiv 官方 API。`http://export.arxiv.org/api/query?search_query=all:%22短语%22&sortBy=relevance` 搜、`id_list=` 逐号验真，只引 API 返回过的编号。
+
+6. 文献坐标（2026-10-13 实查，引用前重查政策）。信封契约无直接背书论文（检索词四组：canary-guided 0 命中、canary token+PI 仅 2603.28013、nonce+PI 仅 2605.30534、output format+PI+defense 仅 2610.04985）。最近邻 arXiv:2605.30534（动态 nonce 分隔符 PPA，输入侧防泄漏半径，非输出格式门控背书）。格式闸门被打脸证据：2608.27092（output-normalizing guard 被 ROT13 100% 打穿。结论=鲁棒性来自约束目的地非模型自认）、2606.27567（共享嵌入下完美防注入数学不可能）、2603.28013（canary=量具非闸门，埋进注入载荷测渗透阶段）。公认路线：2503.18813 CaMeL（代码层控制/数据分离）、2404.13208 Instruction Hierarchy（训练层优先级）。2510.03705 证 IH 也可被后门作废。引用档位纪律：每篇标「API/摘要页实读」vs「仅搜索结果列表」，全称「没有论文」必须披露检索词表。
+
+## 每轮生效规则的存放层（压缩生存性）
+
+- 汇报口径（10-13 主人点名「不要讲黑话」）：给主人讲这套系统时，内部词先换白话再讲。信封/标签→「摘要外面的防伪标记」，tolerated→「放行了但记一笔」，circuit→「保险丝」，代理白名单→「参数转发名单」。closing_hint→「没按要求的行收尾」。规则文字里可以用术语，对话面不行。
+- 验收「修好了」必须验到调用链末端：tiered 卡（9c6a1d0）把名字转发对了、测试全绿，但内层引擎没实现该方法。重启后警告依旧——转发到位≠功能到位，集成路径（宿主→包装器→真实内层）至少跑一遍才算闭环。
+
+- 10-13 根治闭环终态（23:38 重启后全部验收绿）。92a8fcd（内容判据为主）+ 8caae4b（剥信封内回显）+ 38c08e6（lcm-x 补宿主三方法，宿主 venv 下 parity 测 14 全过、真实 tiered→真实内层集成测绿）+ 9c6a1d0（tiered 转发名单）+ .env 删骨架条款（备份 .env.bak-20261013-lcm-contract）。生产核验：重启后「Could not apply live compression config」零出现（该同步每 prompt 回合跑一次，prompt_turn.py:688，首回合即验证路径已执行）。摘要拒绝/熔断/400 全零。哨兵 cron=f5e80d473d26（monitor=lcm_kanban_watch.sh，done 自停已验证）。已知局限两条：宿主 _aux_context_ceiling 层未叠（lcm-x 无此概念）。宿主 ABC 未声明这些私有方法，升级宿主可能再出新名字需同样镜像。
+- lcm-x 仓验收 harness：卡片旧 harness（python3 -I exec）不适用本仓（模块名 hermes_lcm 靠 tests/conftest.py 映射 + 测试依赖 pytest）。本机实测 `/usr/bin/python3 -m pytest tests/xxx.py -q` 可用。既有环境性失败（test_issue_646 收集错 LCMEngine 导入、34 条 real-hermes 系）用 `git worktree add /tmp/x HEAD~1` 对照基线。别拿改动后结果当回归。
+- 网关重启需 root：`systemctl restart hermes-gateway` 交互认证，sudo 无密码免登不行，要主人手动跑。重启后验证三件套=journalctl 零 traceback + 插件加载行（tiered wrapping lcm-x）+ 摘要链路实测。cron deliver='all' 在纯桌面环境解析不到频道（delivery_failed），桌面场景用 deliver='local'。
+Hermes system prompt 是三层组装、每次 API 请求全量随行（API 无状态，缓存只省钱）。stable 层（SOUL.md 身份槽、guidance、coding brief）→ context 层（caller system_message、项目上下文文件）→ volatile 层（skills 索引、MEMORY/USER 记忆文件、时间戳）。组装只在压缩后重建。推论：
+- 需要**每一轮都约束行为**的规则必须住在组装层（SOUL.md、部署级注入块、LCM_CUSTOM_INSTRUCTIONS）——这些每轮随行。
+- 任务卡、文档、按需加载的 skill 正文都敌不过压缩（压缩后即丢失），只能当查询层/归档。不能当执行纪律的存放处。
+- session_search 查本会话被压缩掉的细节时，能召回落盘文件与 DB 里的原文。口头约定没落盘就只剩摘要级别。
+
+摘要路由独立 QA（不等真实 compaction）：lcm.db 真实消息拼块复刻 L1 prompt、判据预冻结、多尺寸探悬崖、现役对照。配方见 `references/summary-route-qa.md`。
+
+详见 `references/lcm-test-harness.md`（测试脚本模式与 JSON 对话解析。插件仓库内 pytest 环境）。
+装配漂移（跨会话载体）、摘要写入守卫、重摄取对账实验、存量死载体清点与清理：见 `references/write-assembly-reconcile.md`。
