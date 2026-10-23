@@ -1,6 +1,6 @@
 ---
 name: email-inbox-triage
-description: "整理收件箱时使用。只要要过邮箱、给往来分优先级或安全起草回复，就主动加载。"
+description: "整理收件箱时使用：给往来分优先级、安全起草回复。"
 version: 0.2.0
 author: Ben Barclay (benbarclay), Hermes Agent
 license: MIT

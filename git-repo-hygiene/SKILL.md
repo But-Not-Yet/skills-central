@@ -1,6 +1,6 @@
 ---
 name: git-repo-hygiene
-description: 新建或管理任何本地 git 仓库时加载：首建流程、提交、打 tag、身份信息泄漏后的重建（泄漏要重建不是 amend）、公开 fork 前的检查。红线是提交身份：无邮箱、零个人信息、署独立研究者。
+description: "建/管本地 git 仓库时使用：提交身份红线（无邮箱、零个人信息）、泄漏重建、提交与回滚实测。"
 version: 1.0.0
 author: Nekonya (小喵)
 license: MIT
@@ -14,100 +14,37 @@ metadata:
 
 ## When to Use
 
-为主人初始化或管理任何本地 git 仓库时：新库首建、提交、打 tag、身份信息泄漏后的重建。收尾做回滚实测。
+为主人初始化或管理任何本地 git 仓库时：新库首建、提交、打 tag、身份信息泄漏后的重建、收尾做回滚实测。
 
 ## 身份红线（最高优先级）
 
-- **私有/本机仓库**提交身份一律 `Independent Researcher`、**不带邮箱**。仓库全历史零个人信息（邮箱、本机用户名、学校、真名、可关联句柄）。信息安全是主人红线：宁重建，勿将就。
-- **此惯例不自动延伸到公开场合**：仓库第一次以公开身份落地时，署名必须停下来重新问主人。「落地」指挂到公开账号或 fork 下。公开仓的提交作者，通常应等于 fork owner 的句柄，与私有占位身份是两套。详见「公开化」节。
-- 落地写法（repo-local。全局配置不擅动，别的仓库共用）：
+- 提交身份一律 `Independent Researcher`、**不带邮箱**；仓库全历史零个人信息（邮箱、本机用户名、学校、真名、可关联句柄）。信息安全是主人红线——宁重建，勿将就。
+- 落地写法（repo-local；全局配置不擅动，别的仓库共用）：
   ```bash
   git config user.name "Independent Researcher"
   git config user.email ""     # 空字符串 → ident 为 `Independent Researcher <>`
   git var GIT_AUTHOR_IDENT     # 验证；应回 `Independent Researcher <> <ts> <tz>`
   ```
-- **一次性/借道提交**（不想动目标仓库的持久 config，如在共享 clone、外部仓库里提交）：`git -c user.name='Independent Researcher' -c user.email='' commit …`。同样得到 `<>` 形态，提交后核 `git log -1 --format='%an <%ae>'`。
-- **陷阱（实测）**：email 只是「未设」时，git 会回落全局配置（可能带着私人邮箱）或自动探测 `user@host`。必须把空字符串**显式设进 repo-local** 才切断这条链。`user.useConfigOnly=true` 挡不住全局配置回落，别拿它当保险。
-- **核验要顺查全局层**：审计提交署名时，除 `git log --format='%an <%ae>'` 外，还要查 `git config user.name/user.email` **与** `git config --global user.name/user.email` 两层。仓库本地提交可能全对，全局层仍挂着真实邮箱。凡没有 repo-local override 的仓库（含将来新建的）都会随提交泄漏。发现全局层泄漏：**报告主人、等指令再动**（全局配置是环境资产，不擅自改。处置=清空或换占位身份，一条命令的事）。
-- **生态一致性**。既有姊妹仓库已统一采用的占位域（如 `<independent.researcher@local>`，不携带任何个人信息）在新建仓库中沿线复用。同一生态避免「空邮箱」与「占位域」两制并存。建新约定前先 `git log --format='%an <%ae>' | sort -u` 看生态现状。同一仓库内惯例可能演化（老提交占位域、新提交空邮箱）。提交时以**时间序最新的几笔**为准（`sort -u` 只去重不排时间，别照字母序挑）。两种写法都满足零个人信息红线，一致性优先。
-- **annotated tag 也带身份**：`git tag -a` 的 tagger 字段同样署名。建完 `git cat-file tag <tag>` 核验 `tagger` 行为 `Independent Researcher <>`。
+- **陷阱（实测）**：email 只是「未设」时，git 会回落全局配置（可能带着私人邮箱）或自动探测 `user@host`；必须把空字符串**显式设进 repo-local** 才切断这条链。`user.useConfigOnly=true` 挡不住全局配置回落——别拿它当保险。
+- **annotated tag 也带身份**：`git tag -a` 的 tagger 字段同样署名；建完 `git cat-file tag <tag>` 核验 `tagger` 行为 `Independent Researcher <>`。
 
 ## 建库标准流程
 
-1. 提交前扫描：密钥模式（`sk-|ghp_|AKIA|PRIVATE KEY|password=|api_key=`）+ 个人标识串（邮箱前缀、本机用户名、句柄）。要严格匹配，扫到的逐个交人工定性。宽松模式会把文档/模板/代码里的**引用**也算成扫到：「提到过」不等于「泄漏过」。假警报要在结论里写明。
+1. 提交前扫描：密钥模式（`sk-|ghp_|AKIA|PRIVATE KEY|password=|api_key=`）+ 个人标识串（邮箱前缀、本机用户名、句柄）；严格匹配、命中逐条人工定性——宽松模式会把文档/模板/代码里的**引用**算成命中（「提到过」≠「泄漏过」），假命中要在结论里写明。
 2. `git init -b main` → 设身份 → 写 `.gitignore`（`__pycache__/`、`*.py[cod]` 等）→ `git add -A` → 审 `git status --short` 符合预期 → 提交。
-3. 首提交后核验身份三处：`git log --format='%an <%ae>'`。`git cat-file commit HEAD | head`（author + committer 两行）。tag 的 tagger 行。
-4. 全历史唯一性：`git log --all --format='%an|%ae|%cn|%ce' | sort -u`，只应出现目标身份。
-5. 扫描结论分清「跟踪面」（`git grep` 必须 0 匹配）与「未跟踪产物」（pyc 带本机路径串、被 .gitignore 排除即不入库）。
-6. 仓库内容也过红线：真实账号/仓库 URL 未确定就不写，先 RFC 2606 占位（`https://example.com/...`）+ 注释「发布前替换」。
-
-## 从无版本控制的副本起步（基线还原法）
-
-第三方/社区代码的本地副本没有 .git、但已经改过（或有 .bak 备份）时。「改动前的基线」与「改动本身」要拆成两次提交，才能既有基线又可回退。
-
-1. 把现存的「改后态」暂存到仓库外（如 `/tmp/`，含新增文件）。
-2. 用改动前备份还原出「基线态」（拷回旧文件、移走新文件），先制造「干净起点」。
-3. `git init` + 身份 + `.gitignore`（**把 `*.bak`、`*.bak-*` 也排掉**：备份是操作产物，不入库）→ 基线提交（消息写明这是上游/基线态、修复另笔）。
-4. 从暂存处重新应用改动 → **独立提交**（这就是「可回退」的那一笔）。
-5. 核验：`git log --oneline` 应见「基线 → 修复」两笔。`git status --short` 干净。回退路径 = `git checkout <基线提交>` 或 `git revert <修复提交>`。
-
-本地副本场景全程不配 remote、不推送：本地历史只为回退与追溯服务。
+3. 首提交后核验身份三处：`git log --format='%an <%ae>'`；`git cat-file commit HEAD | head`（author + committer 两行）；tag 的 tagger 行。
+4. 全历史唯一性：`git log --all --format='%an|%ae|%cn|%ce' | sort -u`——只应出现目标身份。
+5. 扫描结论分清「跟踪面」（`git grep` 必须 0 命中）与「未跟踪产物」（pyc 带本机路径串、被 .gitignore 排除即不入库）。
+6. 仓库内容也过红线：真实账号/仓库 URL 未确定就不写——用 RFC 2606 占位（`https://example.com/...`）+ 注释「发布前替换」。
 
 ## 已泄漏 = 重建，不是 amend
 
-- 本地未推送仓库里出现个人信息。`rm -rf .git` → 重走建库流程 → 重打 tag（本地单提交仓库直接重建最干净，旧历史整体作废）。
-- 重建后验证：旧哈希不可达（`git cat-file -t <旧哈希>` 应报错）+ 全目录重扫 0 匹配 + reflog 只有新记录。
-- 汇报时讲清「从未推送、不存在对外泄漏」，但行为按「已泄漏」处理：对工具链留痕零容忍。
-
-## 批量历史泄漏审计与清除（filter-repo 实战）
-
-**审计口径**：泄漏不止在作者字段，要**author+committer 双查**（rebase/cherry-pick 只把操作者写进 committer）。载体三处：refs（`log --all`）、reflog（`reflog --all`）、stash（`stash list`）。只看 `%ae` 会漏掉整批（实测：3 个仓库仅 committer 层就扫到 16/32/32 处）。
-
-```bash
-# 单仓扫描骨架（比对目标邮箱计数）
-git -C <repo> log --all --format='%ae|%ce' | tr '|' '\n' | grep -c '<email>'
-git -C <repo> reflog --all --format='%ae|%ce' | tr '|' '\n' | grep -c '<email>'
-git -C <repo> stash list | wc -l   # log --all 含 refs/stash，但逐条 stash 也要看
-```
-
-**清除（仅本机、未推送仓库）**：
-- 工具：`python3 -m pip install --user git-filter-repo`（装到 ~/.local/bin/git-filter-repo）：
-  ```bash
-  python3 ~/.local/bin/git-filter-repo \
-    --email-callback 'return b"placeholder@local" if email == b"<real>" else email' \
-    --name-callback  'return b"Independent Researcher" if name == b"<name>" else name' --force
-  ```
-- **跑前** `git bundle create <backup>.bundle --all`。注意 **bundle --all 不含 refs/stash**，stash 内容要另行导出（`git stash show -p`）。
-- **跑后** remote 会被删（防误推），需要时 `git remote add origin <url>` 恢复。补 `git reflog expire --expire=now --all && git gc --prune=now`。
-- **partial clone（blob:none）不能 filter-repo**（它要求 full clone）。改走 `git stash clear`（先导出内容）加 reflog expire 加 gc。
-- **filter-repo 后 stash 的 reflog 形态会变**：`stash list` 可能显示 0，内容仍在 `refs/stash`（`git log -1 refs/stash` 可见，`git stash show -p refs/stash` 可导出），别误判为丢失。
-
-**验证**：三载体计数全零 + 深挖死对象（gc 后仍可能留存 unreachable）：
-```bash
-git fsck --unreachable --no-reflogs | awk '$2=="commit"{print $3}' > /tmp/shas
-git cat-file --batch < /tmp/shas | grep -c '<email>'   # 0 = 干净
-```
-
-**坑**：`git stash show -p` 对「仅未跟踪文件」的 stash 合法输出为空（0 字节）：导出为空**不等于**内容为空。先检查性质，再执行清除/丢弃。
-
-## 公开化：fork / public 发布前检查
-
-- **MIT 上游 derivative 的全部义务 = 副本保留 LICENSE**（版权行留在原位即可）。public fork、自建 Releases 都没有额外动作，署名红线只管咱自己的提交层。
-- **发布面扫描对象 = 咱超出上游的那些提交**：`git diff <merge-base>..HEAD` 与 `git log --format='%B'` 两处都 grep 本机指纹串（`/home/<用户名>`、`/home/`、盘符 `D:/`、数据目录名）。扫到的逐个交人工定性：函数名、issue 引用是假警报，要在结论里写明定性依据。`.bak-*` 之类未跟踪产物「不入库」这道防线要查实是机制还是纪律：`git check-ignore -v` 能指到 `.gitignore` 规则才算机制；指不到就说明只靠 add 纪律，补一行 `*.bak*`（或结论里明写防线是纪律、「不会上车」仅对本次 push 的跟踪面成立，不许外推成永不入库）。
-- **push 前补查 repo-local 身份**（全局层查法见上）。将来新提交都从这两层取身份，缺一层都可能把真邮箱带上 GitHub。
-- **GitHub fork 机制账**（选路时用）：fork 页头会挂 forked-from 谱系。MIT 衍生社区惯例是 **fork 名保持原名**，这样 PR 时上游一眼认出下游线。fork 改名在 Settings 里做：谱系不断，旧 URL 自动重定向，改名零锁定，可以先原名后立牌。从 fork 独立成仓，GitHub UI 做不到，要联系 support。所以路线常是 fork → PR，不收再 mirror 迁独立仓，star/issue/Release 记录带得走。fork 那一下主人在 Web UI 点即可，凭据不落本机，也不必为其装 gh。
-- **账号层提醒要主动说**：仓库挂到个人账号下，owner 位置的账号名本身就是一层身份。提交署名干净保住的是历史层，账号可关联性归主人选号管。
-
-### 公开 fork 的署名与推送流程
-
-- **两层身份分开核、分开报**：push 认证到的账号，看 `ssh -T git@github.com` 的回执 `Hi <handle>!`。commit 作者字段另看 `%an <%ae>`。两者是两回事：认证对不代表署名对，汇报时两层都要实锤。
-- 署名拍板后**立刻写进该仓 repo-local**（全局层不动）：`user.name = <handle>`、`user.email = <数字ID>+<handle>@users.noreply.github.com`。数字 ID 从公开 API `api.github.com/users/<handle>` 的 `"id"` 字段取：这样 commit 会挂头像、链到主页，且零个人信息。以后新提交从源头就对，不用返工。
-- **改写已推送分支的署名**：git filter-repo + mailmap（一行一笔：`新名 <新邮箱> 旧名 <旧邮箱>`）在临时 clone 里跑，生产仓本体不动。**只重写咱自己的提交，上游作者保留**，这是 MIT fork 的社区礼貌。推前必验：新旧 tip 的 **tree 哈希相等**（`git rev-parse <旧tip>^{tree}` 与 `git rev-parse HEAD^{tree}`）。这是「改写只动信封、内容零变化」的直接证明。然后 `push -f`，仅限无人基于开发的分支——临时 clone 是从本地路径克隆的，没有配远端，`set-url <不存在的名字>` 会直接报错，直接对 URL 推（`git push -f git@github.com:<owner>/<repo>.git HEAD:refs/heads/<branch>`）。本地仓 fetch 后 reset --hard 对齐新历史。
-- **多把 SSH key 的机器**：裸跑 `ssh -T git@github.com` 时，可能先发默认或别的 key，结果被拒（`Permission denied (publickey)`）。先用 `ssh -i <key> -o IdentitiesOnly=yes -T` 确证 key 本身通，再在 `~/.ssh/config` 加专条： `Host github.com` + `IdentityFile <key>` + `IdentitiesOnly yes`，此后各种 git 操作免钉参数也不会错发他钥。
-- **fork README 差异节**（主人裁定）：放正文最前，插在上游标语/头图之后即可。`<details open>` 展开态不吞屏。中英双语都要，英文会话语境下中文在前。条目写机制与开关名，数字写本机实测过的真实请求（标注测量硬件）。收尾一句「上游提交与作者保持原样、MIT 不变」。差异节的提交不在引擎源码指纹面里的，要顺手核一句（`git diff <前tip>..<新tip> -- <源码面>` 空输出）再继续引用旧指纹。
+- 本地未推送仓库里出现个人信息：`rm -rf .git` → 重走建库流程 → 重打 tag（本地单提交仓库直接重建最干净，旧历史整体作废）。
+- 重建后验证：旧哈希不可达（`git cat-file -t <旧哈希>` 应报错）+ 全目录重扫 0 命中 + reflog 只有新记录。
+- 汇报时讲清「从未推送、不存在对外泄漏」，但行为按「已泄漏」处理——工具链留痕零容忍。
 
 ## 提交与回滚纪律
 
-- 主人偏好：本地仓库修复直提交 `main`、不搞分支仪式。git 的用途 = 留历史。
-- 分批提交按逻辑单元（功能一笔、文档/meta 一笔）。提交信息头部一行 + 正文条目。
-- **回滚必须实测**：`git revert --no-commit HEAD`（或提交范围）干跑 → 看 `git diff --cached --stat` 合理 → `git reset --hard -q` 还原 → 核验工作树干净。内容完好。没干跑过的回滚不算存在。
+- 主人偏好：本地仓库修复直提交 `main`、不搞分支仪式；git 的用途 = 留历史。
+- 分批提交按逻辑单元（功能一笔、文档/meta 一笔）；提交信息头部一行 + 正文条目。
+- **回滚必须实测**：`git revert --no-commit HEAD`（或提交范围）干跑 → 看 `git diff --cached --stat` 合理 → `git reset --hard -q` 还原 → 核验工作树干净、内容完好。没干跑过的回滚不算存在。

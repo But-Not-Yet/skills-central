@@ -1,6 +1,6 @@
 ---
 name: himalaya
-description: "用 Himalaya CLI 在终端收发邮件时使用（IMAP/SMTP）。只要要在命令行读信、发信或管邮箱，就主动加载，即使用户只说「看看我的邮件」。不用于 Gmail API（用 google-workspace）。"
+description: "Himalaya CLI: IMAP/SMTP email from terminal."
 version: 1.1.0
 author: community
 license: MIT
@@ -15,22 +15,25 @@ prerequisites:
 
 # Himalaya Email CLI
 
-Himalaya 是一个 CLI 邮件客户端，让你从终端经 IMAP、SMTP、Notmuch 或 Sendmail 后端管理邮件。
+Himalaya is a CLI email client that lets you manage emails from the terminal using IMAP, SMTP, Notmuch, or Sendmail backends.
 
-本技能与 Hermes 的邮件网关适配器是两回事。网关适配器让别人给 agent 发邮件，用的是 Hermes 内置的 IMAP/SMTP 适配器。本技能让 agent 用终端工具操作邮箱，依赖外部的 `himalaya` CLI。
+This skill is separate from the Hermes Email gateway adapter. The gateway
+adapter lets people email the agent and uses Hermes' built-in IMAP/SMTP
+adapter; this skill lets the agent operate a mailbox from terminal tools and
+requires the external `himalaya` CLI.
 
-## 参考件
+## References
 
-- `references/configuration.md`（配置文件设置 + IMAP/SMTP 认证）
-- `references/message-composition.md`（撰写邮件的 MML 语法）
+- `references/configuration.md` (config file setup + IMAP/SMTP authentication)
+- `references/message-composition.md` (MML syntax for composing emails)
 
-## 前置条件
+## Prerequisites
 
-1. 已安装 Himalaya CLI（用 `himalaya --version` 验证）
-2. 配置文件位于 `~/.config/himalaya/config.toml`
-3. 已配置 IMAP/SMTP 凭据（密码须安全存放）
+1. Himalaya CLI installed (`himalaya --version` to verify)
+2. A configuration file at `~/.config/himalaya/config.toml`
+3. IMAP/SMTP credentials configured (password stored securely)
 
-### 安装
+### Installation
 
 ```bash
 # Pre-built binary (Linux/macOS — recommended)
@@ -43,15 +46,15 @@ brew install himalaya
 cargo install himalaya --locked
 ```
 
-## 配置
+## Configuration Setup
 
-跑交互式向导来建账号：
+Run the interactive wizard to set up an account:
 
 ```bash
 himalaya account configure
 ```
 
-或手动创建 `~/.config/himalaya/config.toml`：
+Or create `~/.config/himalaya/config.toml` manually:
 
 ```toml
 [accounts.personal]
@@ -85,80 +88,82 @@ folder.aliases.drafts = "Drafts"
 folder.aliases.trash = "Trash"
 ```
 
-> **别名语法的坑。** v1.2.0 之前的文档用的是
-> `[accounts.NAME.folder.alias]` 子段（单数 `alias`）。
-> v1.2.0 会静默忽略这种写法——TOML 能解析通过，但别名解析器从不读它，
-> 于是每次查找都落到标准名上。在 Gmail 上这意味着 SMTP 投递成功**之后**
-> 存入「已发送」失败，`himalaya message send` 以非零码退出。
-> 任何按该退出码重试的调用方（agent、脚本、用户）都会把整封邮件**连 SMTP
-> 一起重发**，给收件人造成重复邮件。务必用 `folder.aliases.X`（复数、
-> 点号键、直接放在 `[accounts.NAME]` 下）。
+> **Heads up on the alias syntax.** Pre-v1.2.0 docs used a
+> `[accounts.NAME.folder.alias]` sub-section (singular `alias`).
+> v1.2.0 silently ignores that form — TOML parses fine, but the
+> alias resolver never reads it, so every lookup falls through to
+> the canonical name. On Gmail this means save-to-Sent fails *after*
+> SMTP delivery succeeds, and `himalaya message send` exits non-zero.
+> Any caller (agent, script, user) that retries on that exit code
+> will re-run the entire send — including SMTP — producing duplicate
+> emails to recipients. Always use `folder.aliases.X` (plural, dotted
+> keys, directly under `[accounts.NAME]`).
 
-## 与 Hermes 集成的注意事项
+## Hermes Integration Notes
 
-- **读、列、搜、移动、删除**都能直接通过 terminal 工具完成
-- **撰写/回复/转发**——推荐用管道输入（`cat << EOF | himalaya template send`），可靠性最好。交互式 `$EDITOR` 模式可用 `pty=true` + 后台 + process 工具，但需要预先知道编辑器及其命令
-- 用 `--output json` 拿结构化输出，程序化解析更容易
-- `himalaya account configure` 向导需要交互输入——用 PTY 模式：`terminal(command="himalaya account configure", pty=true)`
+- **Reading, listing, searching, moving, deleting** all work directly through the terminal tool
+- **Composing/replying/forwarding** — piped input (`cat << EOF | himalaya template send`) is recommended for reliability. Interactive `$EDITOR` mode works with `pty=true` + background + process tool, but requires knowing the editor and its commands
+- Use `--output json` for structured output that's easier to parse programmatically
+- The `himalaya account configure` wizard requires interactive input — use PTY mode: `terminal(command="himalaya account configure", pty=true)`
 
-## 常用操作
+## Common Operations
 
-### 列出文件夹
+### List Folders
 
 ```bash
 himalaya folder list
 ```
 
-### 列出邮件
+### List Emails
 
-列出 INBOX（默认）里的邮件：
+List emails in INBOX (default):
 
 ```bash
 himalaya envelope list
 ```
 
-列出指定文件夹里的邮件：
+List emails in a specific folder:
 
 ```bash
 himalaya envelope list --folder "Sent"
 ```
 
-带分页列出：
+List with pagination:
 
 ```bash
 himalaya envelope list --page 1 --page-size 20
 ```
 
-### 搜索邮件
+### Search Emails
 
 ```bash
 himalaya envelope list from john@example.com subject meeting
 ```
 
-### 读邮件
+### Read an Email
 
-按 ID 读邮件（显示纯文本）：
+Read email by ID (shows plain text):
 
 ```bash
 himalaya message read 42
 ```
 
-导出原始 MIME：
+Export raw MIME:
 
 ```bash
 himalaya message export 42 --full
 ```
 
-### 回复邮件
+### Reply to an Email
 
-要从 Hermes 里非交互地回复，先读原信、拟好回复、再管道送入：
+To reply non-interactively from Hermes, read the original message, compose a reply, and pipe it:
 
 ```bash
 # Get the reply template, edit it, and send
 himalaya template reply 42 | sed 's/^$/\nYour reply text here\n/' | himalaya template send
 ```
 
-或手工构造回复：
+Or build the reply manually:
 
 ```bash
 cat << 'EOF' | himalaya template send
@@ -171,22 +176,22 @@ Your reply here.
 EOF
 ```
 
-回复全部（交互式——需要 `$EDITOR`，改用上面的模板法）：
+Reply-all (interactive — needs $EDITOR, use template approach above instead):
 
 ```bash
 himalaya message reply 42 --all
 ```
 
-### 转发邮件
+### Forward an Email
 
 ```bash
 # Get forward template and pipe with modifications
 himalaya template forward 42 | sed 's/^To:.*/To: newrecipient@example.com/' | himalaya template send
 ```
 
-### 写新邮件
+### Write a New Email
 
-**非交互式（从 Hermes 里用这个）**——把邮件经 stdin 管道送入：
+**Non-interactive (use this from Hermes)** — pipe the message via stdin:
 
 ```bash
 cat << 'EOF' | himalaya template send
@@ -198,102 +203,102 @@ Hello from Himalaya!
 EOF
 ```
 
-或用 headers 参数：
+Or with headers flag:
 
 ```bash
 himalaya message write -H "To:recipient@example.com" -H "Subject:Test" "Message body here"
 ```
 
-注意：`himalaya message write` 不带管道输入时会打开 `$EDITOR`。这在 `pty=true` + 后台模式下可行，但管道更简单也更可靠。
+Note: `himalaya message write` without piped input opens `$EDITOR`. This works with `pty=true` + background mode, but piping is simpler and more reliable.
 
-### 移动 / 复制邮件
+### Move/Copy Emails
 
-移到文件夹（目标文件夹在前，邮件 ID 在后）：
+Move to folder (target folder comes first, then the message ID):
 
 ```bash
 himalaya message move "Archive" 42
 ```
 
-复制到文件夹（目标文件夹在前，邮件 ID 在后）：
+Copy to folder (target folder comes first, then the message ID):
 
 ```bash
 himalaya message copy "Important" 42
 ```
 
-### 删除邮件
+### Delete an Email
 
 ```bash
 himalaya message delete 42
 ```
 
-### 管理标记
+### Manage Flags
 
-加标记：
+Add flag:
 
 ```bash
 himalaya flag add 42 --flag seen
 ```
 
-去标记：
+Remove flag:
 
 ```bash
 himalaya flag remove 42 --flag seen
 ```
 
-## 多账号
+## Multiple Accounts
 
-列出账号：
+List accounts:
 
 ```bash
 himalaya account list
 ```
 
-用指定账号：
+Use a specific account:
 
 ```bash
 himalaya --account work envelope list
 ```
 
-## 附件
+## Attachments
 
-从邮件里保存附件：
+Save attachments from a message:
 
 ```bash
 himalaya attachment download 42
 ```
 
-存到指定目录：
+Save to specific directory:
 
 ```bash
 himalaya attachment download 42 --downloads-dir ~/Downloads
 ```
 
-## 输出格式
+## Output Formats
 
-多数命令支持 `--output` 拿结构化输出：
+Most commands support `--output` for structured output:
 
 ```bash
 himalaya envelope list --output json
 himalaya envelope list --output plain
 ```
 
-## 调试
+## Debugging
 
-打开调试日志：
+Enable debug logging:
 
 ```bash
 RUST_LOG=debug himalaya envelope list
 ```
 
-带 backtrace 的完整追踪：
+Full trace with backtrace:
 
 ```bash
 RUST_LOG=trace RUST_BACKTRACE=1 himalaya envelope list
 ```
 
-## 提示
+## Tips
 
-- 用 `himalaya --help` 或 `himalaya <command> --help` 查详细用法。
-- 邮件 ID 相对于当前文件夹。切换文件夹后要重新列一次。
-- 要写带附件的富文本邮件，用 MML 语法（见 `references/message-composition.md`）。
-- 密码用 `pass`、系统 keyring，或任何能输出密码的命令安全存放。
+- Use `himalaya --help` or `himalaya <command> --help` for detailed usage.
+- Message IDs are relative to the current folder; re-list after folder changes.
+- For composing rich emails with attachments, use MML syntax (see `references/message-composition.md`).
+- Store passwords securely using `pass`, system keyring, or a command that outputs the password.

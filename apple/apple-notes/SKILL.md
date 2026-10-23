@@ -1,6 +1,6 @@
 ---
 name: apple-notes
-description: "用 memo CLI 管理 Apple Notes 时使用。只要要在 macOS 上动备忘录、创建、搜索或编辑笔记，就主动加载，即使用户只说「记到备忘录里」。不用于 Obsidian 或跨平台笔记。"
+description: "Manage Apple Notes via memo CLI: create, search, edit."
 version: 1.0.1
 author: Hermes Agent
 license: MIT

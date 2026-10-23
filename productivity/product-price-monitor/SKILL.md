@@ -1,6 +1,6 @@
 ---
 name: product-price-monitor
-description: "盯商品、机票、挂牌价格并在达标时提醒时使用。只要涉及价格监控、到价提醒、库存/可退性条件或定时轮询某个可购商品，就主动加载。即使用户只是说「降到某价就告诉我」。不用于一次性的「现在多少钱」查询。"
+description: "盯商品、机票、挂牌价格并在达标时提醒时使用。"
 version: 0.1.0
 author: Ben Barclay (benbarclay), Hermes Agent
 license: MIT
@@ -11,33 +11,33 @@ metadata:
     related_skills: [maps]
 ---
 
-# 商品价格监控
+# Product Price Monitor
 
-监控一个具体的可购商品，并在归一化的全包价格或可购状态满足条件时告警。要显式处理变体、税费、货币、库存、取消条款与重复告警。设置在前台只跑一次。周期性检查以 `cronjob` tick 运行（`price-watch` 自动化蓝图会脚手架化它）。
+Monitor a concrete purchasable item and alert on a normalized all-in price or availability condition. Handle variants, taxes, fees, currencies, stock, cancellation terms, and duplicate alerts explicitly. Setup runs once in the foreground; the recurring check runs as a `cronjob` tick (the `price-watch` automation blueprint scaffolds this).
 
-## 何时使用
+## When to Use
 
-- 「这台笔记本降到 $1,000 以下就提醒我。」
-- 「盯着这些航班，票价低于 $500 时告诉我。」
-- 「这家酒店有可退房型时告诉我。」
-- 「跟踪票/挂牌的可售状态。」
-- 已有的价格监控触发 cron tick 时（步骤 4-6）。
+- "Alert me when this laptop drops below $1,000."
+- "Watch these flights for a fare under $500."
+- "Tell me when this hotel has a refundable room."
+- "Track ticket/listing availability."
+- A cron tick fires for an existing price watch (steps 4-6).
 
-不用于：一次性的「现在多少钱」查询（直接用 `web_search`/`web_extract`）。
+Don't use for: one-off "what does this cost right now" lookups (use `web_search`/`web_extract` directly).
 
-## 流程 — 设置（前台，一次）
+## Procedure — Setup (foreground, once)
 
-### 1. 定义精确商品
+### 1. Define the exact item
 
-记录来源 URL/提供方、可得的商品/挂牌 ID、变体、数量、位置、日期、旅客/住客数、会员/登录假设、成色。卖家以及可接受的替代品。当两个变体不会被混淆时即完成。
+Record source URL/provider, product/listing ID where available, variant, quantity, location, dates, travelers/guests, membership/login assumptions, condition, seller, and acceptable substitutes. Done when two variants cannot be confused.
 
-### 2. 定义告警条件
+### 2. Define the alert condition
 
-指定货币、全包价 vs 税前价、最高价、可购/库存规则、运费、可退性、舱位/房型/票档、冷却时间与通知目标。当构造的样例都能得出确定的告警判定时即完成。
+Specify currency, all-in vs pre-tax price, maximum price, availability/stock rule, shipping, refundability, cabin/room/ticket class, cooldown, and notification destination. Done when synthetic examples have deterministic alert decisions.
 
-### 3. 建立实时基线，再调度
+### 3. Establish a live baseline, then schedule
 
-用 `web_extract` 或 `browser_navigate` 抓取一个有界的实时结果，记录抓取时间、来源价格、费用/税费、可购状态与条款。在一次前台抓取成功之前不要调度。把监控契约（商品、条件、基线观测）写入 `~/.hermes/price-watches/<watch-slug>.json` 状态文件，然后创建任务：
+Fetch a bounded live result with `web_extract` or `browser_navigate` and record retrieval time, source price, fees/taxes, availability, and terms. Do not schedule until one foreground fetch works. Write the watch contract (item, condition, baseline observation) to a state file under `~/.hermes/price-watches/<watch-slug>.json`, then create the job:
 
 ```
 cronjob(action="create",
@@ -46,34 +46,34 @@ cronjob(action="create",
         deliver=<user's destination>)
 ```
 
-选择既尊重速率限制又符合站点条款的节奏。当基线与精确商品契约吻合且任务已存在时即完成。
+Pick a cadence that respects rate limits and site terms. Done when the baseline matches the exact item contract and the job exists.
 
-## 流程 — Tick（每次调度运行）
+## Procedure — Tick (each scheduled run)
 
-### 4. 抓取与归一化
+### 4. Fetch and normalize
 
-重新抓取来源。仅在有时戳的汇率下换算货币，并保留来源货币。分开记录基础价、强制费用、运费/税费、总计与可购状态。排除易变的页面元数据。抓取失败意味着状态未知：报告或跳过，但绝不能用错误页覆盖上一次良好观测。当观测可与基线比较或被明确标为失败时即完成。
+Re-fetch the source. Convert currency only with a timestamped rate and retain the source currency. Separate base price, mandatory fees, shipping/taxes, total, and availability. Exclude volatile page metadata. A failed fetch means unknown state: report or skip, but never overwrite the last good observation with an error page. Done when the observation is comparable to the baseline or explicitly marked failed.
 
-### 5. 比较并抑制重复
+### 5. Compare and suppress duplicates
 
-按请求在跨过阈值、出现合格可购状态、显著降价或恢复时告警。把上一次良好观测与上一次告警指纹存入状态文件。同一报价重放不得发第二次告警。遵守冷却时间。当告警判定相对已存状态是确定的时即完成。
+Alert on threshold entry, qualifying availability, material lower price, or recovery as requested. Store the last good observation and last alert fingerprint in the state file. Replaying the same offer must send no second alert; respect the cooldown. Done when the alert decision is deterministic against stored state.
 
-### 6. 投递或保持沉默
+### 6. Deliver or stay silent
 
-条件满足时，告警包含：精确商品/变体、观测到的全包价与来源货币、可购状态/条款、阈值、抓取时间戳。来源链接，以及重要的不确定性。绝不声称库存已保留。没有达标时保持沉默——除非请求了周期性「一切正常」，否则不发「仍在监控」的噪音。当状态文件反映本次运行时即完成。
+When a condition is met, the alert includes: exact item/variant, observed all-in price and source currency, availability/terms, threshold, retrieval timestamp, source link, and important uncertainty. Never claim inventory is reserved. When nothing qualifies, stay silent — no "still watching" noise unless a periodic all-clear was requested. Done when the state file reflects this run.
 
-## 常见坑
+## Pitfalls
 
-- 拿基础票价与全包价阈值比较。
-- 因尺寸、卖家、舱位、日期或房型条款不符而误告警。
-- 用错误页覆盖上一次已知良好的值。
-- 轮询过于频繁而触发封禁或违反站点条款。
-- 在一次前台抓取成功之前就调度。
+- Comparing a base fare with an all-in threshold.
+- Alerting on the wrong size, seller, cabin, dates, or room terms.
+- Overwriting a last-known-good value with an error page.
+- Polling aggressively enough to trigger blocking or violate site terms.
+- Scheduling before a single foreground fetch has succeeded.
 
-## 验证
+## Verification
 
-- [ ] 监控契约锁定商品，两个变体不会被混淆。
-- [ ] 创建任何任务之前，一次前台抓取已成功。
-- [ ] 告警判定可从状态文件确定地重放。重复被抑制。
-- [ ] 抓取失败从未替换已知良好状态。
-- [ ] 告警带有全包价、来源货币、时间戳与来源链接。
+- [ ] The watch contract pins the item so two variants cannot be confused.
+- [ ] One foreground fetch succeeded before any job was created.
+- [ ] Alert decisions replay deterministically from the state file; duplicates suppressed.
+- [ ] Failed fetches never replaced last-known-good state.
+- [ ] Alerts carry all-in price, source currency, timestamp, and source link.

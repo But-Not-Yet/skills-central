@@ -1,6 +1,6 @@
 ---
 name: ocr-and-documents
-description: "从 PDF 或扫描件提取文字时使用（pymupdf、marker-pdf）。只要涉及扫描件 OCR、复杂版式/公式/表格抽取或批量文档转 markdown，就主动加载。即使用户只是说「把这份扫描件转成文字」。不用于 PDF 合并/拆分/表单（用 pdf）。"
+description: "从 PDF 或扫描件提取文字时使用（pymupdf、marker-pdf）。"
 version: 2.3.0
 author: Hermes Agent
 license: MIT
@@ -11,59 +11,59 @@ metadata:
     related_skills: [pdf, docx, powerpoint]
 ---
 
-# PDF 与文档抽取
+# PDF & Document Extraction
 
-DOCX：见 `docx` skill（创建/编辑），或用 `python-docx` 做结构化读取。
-PPTX：见 `powerpoint` skill（完整的创建/读取/编辑支持）。
-PDF 操作（合并、拆分、表单、水印、创建）：见 `pdf` skill。
-本 skill 覆盖 **从 PDF 与扫描文档中提取文字**。
+For DOCX: see the `docx` skill (create/edit) or use `python-docx` for structured reads.
+For PPTX: see the `powerpoint` skill (full create/read/edit support).
+For PDF manipulation (merge, split, forms, watermarks, creation): see the `pdf` skill.
+This skill covers **text extraction from PDFs and scanned documents**.
 
-## 第 1 步：有远程 URL 吗？
+## Step 1: Remote URL Available?
 
-若文档有 URL，**总是先试 `web_extract`**：
+If the document has a URL, **always try `web_extract` first**:
 
 ```
 web_extract(urls=["https://arxiv.org/pdf/2402.03300"])
 web_extract(urls=["https://example.com/report.pdf"])
 ```
 
-它通过 Firecrawl 完成 PDF 转 markdown，无本地依赖。
+This handles PDF-to-markdown conversion via Firecrawl with no local dependencies.
 
-仅在以下情况用本地抽取：文件在本地、web_extract 失败，或需要批量处理。
+Only use local extraction when: the file is local, web_extract fails, or you need batch processing.
 
-## 第 2 步：选择本地抽取器
+## Step 2: Choose Local Extractor
 
-| 特性 | pymupdf (~25MB) | marker-pdf (~3-5GB) |
+| Feature | pymupdf (~25MB) | marker-pdf (~3-5GB) |
 |---------|-----------------|---------------------|
-| **文本型 PDF** | ✅ | ✅ |
-| **扫描型 PDF (OCR)** | ❌ | ✅（90+ 语言） |
-| **表格** | ✅（基础） | ✅（高精度） |
+| **Text-based PDF** | ✅ | ✅ |
+| **Scanned PDF (OCR)** | ❌ | ✅ (90+ languages) |
+| **Tables** | ✅ (basic) | ✅ (high accuracy) |
 | **Equations / LaTeX** | ❌ | ✅ |
-| **代码块** | ❌ | ✅ |
-| **表单** | ❌ | ✅ |
-| **页眉/页脚移除** | ❌ | ✅ |
-| **阅读顺序检测** | ❌ | ✅ |
-| **图片抽取** | ✅（内嵌） | ✅（带上下文） |
+| **Code blocks** | ❌ | ✅ |
+| **Forms** | ❌ | ✅ |
+| **Headers/footers removal** | ❌ | ✅ |
+| **Reading order detection** | ❌ | ✅ |
+| **Images extraction** | ✅ (embedded) | ✅ (with context) |
 | **Images → text (OCR)** | ❌ | ✅ |
 | **EPUB** | ✅ | ✅ |
-| **Markdown 输出** | ✅（经 pymupdf4llm） | ✅（原生，质量更高） |
-| **安装体积** | ~25MB | ~3-5GB（PyTorch + 模型） |
-| **速度** | 即时 | ~1-14s/page (CPU), ~0.2s/page (GPU) |
+| **Markdown output** | ✅ (via pymupdf4llm) | ✅ (native, higher quality) |
+| **Install size** | ~25MB | ~3-5GB (PyTorch + models) |
+| **Speed** | Instant | ~1-14s/page (CPU), ~0.2s/page (GPU) |
 
-**决策**：除非需要 OCR、公式、表单或复杂版式分析，否则用 pymupdf。
+**Decision**: Use pymupdf unless you need OCR, equations, forms, or complex layout analysis.
 
-若用户需要 marker 的能力，但系统没有约 5GB 空闲磁盘：
-> 「这份文档需要 OCR/高级抽取（marker-pdf），它需要约 5GB 用于 PyTorch 和模型。你的系统有 [X]GB 空闲。选项：腾出空间；提供一个 URL 让我用 web_extract；或者我试用 pymupdf——它适用于文本型 PDF。但处理不了扫描文档或公式。」
+If the user needs marker capabilities but the system lacks ~5GB free disk:
+> "This document needs OCR/advanced extraction (marker-pdf), which requires ~5GB for PyTorch and models. Your system has [X]GB free. Options: free up space, provide a URL so I can use web_extract, or I can try pymupdf which works for text-based PDFs but not scanned documents or equations."
 
 ---
 
-## pymupdf（轻量）
+## pymupdf (lightweight)
 
 ```bash
 pip install pymupdf pymupdf4llm
 ```
 
-**通过辅助脚本**：
+**Via helper script**:
 ```bash
 python scripts/extract_pymupdf.py document.pdf              # Plain text
 python scripts/extract_pymupdf.py document.pdf --markdown    # Markdown
@@ -73,7 +73,7 @@ python scripts/extract_pymupdf.py document.pdf --metadata    # Title, author, pa
 python scripts/extract_pymupdf.py document.pdf --pages 0-4   # Specific pages
 ```
 
-**内联**：
+**Inline**:
 ```bash
 python3 -c "
 import pymupdf
@@ -85,7 +85,7 @@ for page in doc:
 
 ---
 
-## marker-pdf（高质量 OCR）
+## marker-pdf (high-quality OCR)
 
 ```bash
 # Check disk space first
@@ -94,7 +94,7 @@ python scripts/extract_marker.py --check
 pip install marker-pdf
 ```
 
-**通过辅助脚本**：
+**Via helper script**:
 ```bash
 python scripts/extract_marker.py document.pdf                # Markdown
 python scripts/extract_marker.py document.pdf --json         # JSON with metadata
@@ -103,7 +103,7 @@ python scripts/extract_marker.py scanned.pdf                 # Scanned PDF (OCR)
 python scripts/extract_marker.py document.pdf --use_llm      # LLM-boosted accuracy
 ```
 
-**CLI**（随 marker-pdf 安装）：
+**CLI** (installed with marker-pdf):
 ```bash
 marker_single document.pdf --output_dir ./output
 marker /path/to/folder --workers 4    # Batch
@@ -111,7 +111,7 @@ marker /path/to/folder --workers 4    # Batch
 
 ---
 
-## arXiv 论文
+## Arxiv Papers
 
 ```
 # Abstract only (fast)
@@ -124,9 +124,9 @@ web_extract(urls=["https://arxiv.org/pdf/2402.03300"])
 web_search(query="arxiv GRPO reinforcement learning 2026")
 ```
 
-## 拆分、合并与搜索
+## Split, Merge & Search
 
-pymupdf 原生支持这些——用 `execute_code` 或内联 Python：
+pymupdf handles these natively — use `execute_code` or inline Python:
 
 ```python
 # Split: extract pages 1-5 to a new PDF
@@ -158,16 +158,16 @@ for i, page in enumerate(doc):
         print(page.get_text("text"))
 ```
 
-无需额外依赖——pymupdf 一个包就覆盖拆分、合并、搜索与文字抽取。
+No extra dependencies needed — pymupdf covers split, merge, search, and text extraction in one package.
 
 ---
 
-## 注意
+## Notes
 
-- 对 URL，`web_extract` 永远是首选
-- pymupdf 是稳妥的默认项——即时、无需模型、到处能用
-- marker-pdf 用于 OCR、扫描件、公式、复杂版式——仅在需要时安装
-- 两个辅助脚本都接受 `--help` 查看完整用法
-- marker-pdf 首次使用时下载约 2.5GB 模型到 `~/.cache/huggingface/`
-- 对 Word 文档：`pip install python-docx`（胜过 OCR——解析真实结构）
-- 对 PowerPoint：见 `powerpoint` skill（使用 python-pptx）
+- `web_extract` is always first choice for URLs
+- pymupdf is the safe default — instant, no models, works everywhere
+- marker-pdf is for OCR, scanned docs, equations, complex layouts — install only when needed
+- Both helper scripts accept `--help` for full usage
+- marker-pdf downloads ~2.5GB of models to `~/.cache/huggingface/` on first use
+- For Word docs: `pip install python-docx` (better than OCR — parses actual structure)
+- For PowerPoint: see the `powerpoint` skill (uses python-pptx)

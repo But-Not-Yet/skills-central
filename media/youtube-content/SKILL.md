@@ -1,6 +1,6 @@
 ---
 name: youtube-content
-description: "把 YouTube 字幕整理成摘要、推文串、博客时使用。只要给出 YouTube 链接、或要提炼视频内容，就主动加载。"
+description: "把 YouTube 字幕整理成摘要、推文串、博客时使用。"
 platforms: [linux, macos, windows]
 ---
 

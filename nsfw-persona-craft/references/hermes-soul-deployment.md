@@ -26,26 +26,6 @@ How a persona file actually lands in Hermes, and where the non-persona pieces go
 2. Keep a DEPLOY.md in the draft folder: cp commands for skills, the exact `hermes config set` line, and a post-deploy checklist (`/reset`, then `/context` to verify SOUL loaded with no ⚠, auto_load skill listed, persona behavior tested per mode).
 3. Before replacing `~/.hermes/SOUL.md`, archive the current version (existing convention in this home: `SOUL_Archived_<date>.md`).
 
-## Parallel writer profile (separate persona for one job)
-
-When a dedicated fiction/NSFW writer voice is wanted alongside (not instead of) the companion persona, create a separate profile rather than editing the main SOUL:
-
-1. `hermes profile create <name> --clone` — copies config.yaml, .env, SOUL.md, and skills from the active profile. `--no-skills` is mutually exclusive with `--clone`, so skill pruning (if wanted) happens afterwards.
-2. Archive the cloned SOUL before overwriting: `cp ~/.hermes/profiles/<name>/SOUL.md ~/.hermes/profiles/<name>/backups/SOUL.clone-<date>.md`.
-3. Deploy the writer SOUL onto the profile's SOUL.md; keep the draft copy in the project folder for diffing.
-4. Test one-shot: `hermes -p <name> -z "<prompt>" > out.txt 2>err.txt`. The prompt must sit immediately after `-z` — flags wedged between them (`-z --ignore-rules -q "..."`) fail with `expected one argument`; drop `--ignore-rules` unless you specifically need to skip SOUL injection. For long multi-line prompts (rewrite instructions + quoted source text), prefer `--query-file <path>` with `--oneshot` — no shell quoting hazard. The reply comes back wrapped: reasoning box, then answer body inside the `╭─ ☤ Hermes ╮` frame, then a session-resume footer. Extract the answer by splitting on the frame characters, not by taking the whole stdout.
-5. Verify the reply's self-claims by reading: the model reports word counts and "saved to <path>" — re-read the file and recount the Chinese chars before reporting success. A local model can fabricate the save.
-
-## Clean-room profile (style-neutral rewriter for persona files)
-
-Rewriting a persona/rules file that the main agent reads every turn cannot be done by the main agent itself — its own prose is contaminated by the file it is fixing (echo). Delegate the rewrite to a separate profile fed ONLY clean community-sourced text:
-
-1. Create the profile (`--clone`), then strip everything cloned that carries the old style: move `memories/MEMORY.md`, `memories/USER.md`, the whole `skills/` dir, and `.skills_prompt_snapshot.json` into `backups/` (the snapshot feeds the skill list into the system prompt, so it must go too). Move, don't delete — rollback is a `mv` back.
-2. The profile's SOUL.md becomes byte-exact concatenation of the owner-supplied source cards (`cat a b > SOUL.md`, then `cmp` against a re-concatenation to prove zero drift). No self-written rules may enter — a self-written rule re-imports the very voice being cured.
-3. Keep the model identical to the main profile (same base at the same endpoint) so the rewritten prose can migrate back without changing voice provenance.
-4. Rewrite prompt carries protected-facts constraints: meanings one-for-one, quoted spans / bracketed IDs / numbers / English tokens verbatim, no emoji, output only the rewritten section with no preamble. Verify the output with `scripts/style_fingerprint.py` (source vs rewrite) AND a manual fact-census that every protected token survived — density dropping to zero while facts leak is a failed rewrite.
-5. Work section-by-section; long sections with tables need an extra constraint line ("表格结构与数字逐格保留"). Small-section success does not generalize to table-heavy sections.
-
 ## Verification tests after deploy
 
 - Ask a domain question covered by a pinned rule skill: the agent must retrieve/cite, not answer from memory.

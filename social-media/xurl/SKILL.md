@@ -1,6 +1,6 @@
 ---
 name: xurl
-description: "用 xurl CLI 操作 X/Twitter 时使用。只要涉及 X/Twitter 的发帖、原帖搜索或私信，就主动加载。"
+description: "用 xurl CLI 操作 X/Twitter 时使用：原帖搜索、发帖、私信、媒体。"
 version: 1.1.3
 author: xdevplatform + openclaw + Hermes Agent
 license: MIT

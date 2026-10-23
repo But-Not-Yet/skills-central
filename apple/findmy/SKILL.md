@@ -1,6 +1,6 @@
 ---
 name: findmy
-description: "用 FindMy.app 追踪 Apple 设备与 AirTag 时使用。只要要定位设备、AirTag 或问「我的东西在哪」，就主动加载。仅限 macOS。"
+description: "Track Apple devices/AirTags via FindMy.app on macOS."
 version: 1.0.0
 author: Hermes Agent
 license: MIT

@@ -1,6 +1,6 @@
 ---
 name: songsee
-description: "生成音频频谱图与特征（mel、chroma、MFCC，CLI）时使用。只要要看音频特征，就主动加载。"
+description: "Audio spectrograms/features (mel, chroma, MFCC) via CLI."
 version: 1.0.0
 author: community
 license: MIT

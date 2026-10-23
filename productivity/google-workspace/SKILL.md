@@ -1,15 +1,15 @@
 ---
 name: google-workspace
-description: "用 gws CLI 或 Python 操作 Gmail、Calendar、Drive、Docs、Sheets 时使用。只要涉及收发邮件、日程、云盘文件、通讯录或 Google 表格/文档，就主动加载，即使用户只是说「看下我邮箱」。"
+description: "用 gws CLI 或 Python 操作 Gmail、Calendar、Drive、Docs、Sheets 时使用。"
 version: 1.1.0
 author: Nous Research
 license: MIT
 platforms: [linux, macos, windows]
 required_credential_files:
   - path: google_token.json
-    description: Google OAuth2 token（由设置脚本创建）
+    description: Google OAuth2 token (created by setup script)
   - path: google_client_secret.json
-    description: Google OAuth2 client 凭据（从 Google Cloud Console 下载）
+    description: Google OAuth2 client credentials (downloaded from Google Cloud Console)
 metadata:
   hermes:
     tags: [Google, Gmail, Calendar, Drive, Sheets, Docs, Contacts, Email, OAuth]
@@ -19,104 +19,104 @@ metadata:
 
 # Google Workspace
 
-Gmail、Calendar、Drive、Contacts、Sheets 与 Docs——经由 Hermes 托管的 OAuth 和一个轻量 CLI 包装器。安装了 `gws` 时，本 skill 用它作为执行后端以获得更广的 Google Workspace 覆盖。否则回退到内置的 Python 客户端实现。
+Gmail, Calendar, Drive, Contacts, Sheets, and Docs — through Hermes-managed OAuth and a thin CLI wrapper. When `gws` is installed, the skill uses it as the execution backend for broader Google Workspace coverage; otherwise it falls back to the bundled Python client implementation.
 
-## 参考
+## References
 
-- `references/gmail-search-syntax.md`——Gmail 搜索运算符（is:unread、from:、newer_than: 等）
+- `references/gmail-search-syntax.md` — Gmail search operators (is:unread, from:, newer_than:, etc.)
 
-## 脚本
+## Scripts
 
-- `scripts/setup.py`——OAuth2 设置（运行一次以授权）
-- `scripts/google_api.py`——兼容性包装 CLI。可用时优先用 `gws` 执行操作，同时保留 Hermes 既有的 JSON 输出契约。
+- `scripts/setup.py` — OAuth2 setup (run once to authorize)
+- `scripts/google_api.py` — compatibility wrapper CLI. It prefers `gws` for operations when available, while preserving Hermes' existing JSON output contract.
 
-## 首次设置
+## First-Time Setup
 
-设置完全非交互——你一步步驱动它，因此在
-CLI、Telegram、Discord 或任何平台上都能用。
+The setup is fully non-interactive — you drive it step by step so it works
+on CLI, Telegram, Discord, or any platform.
 
-先定义一个简写：
+Define a shorthand first:
 
 ```bash
 GSETUP="python ${HERMES_HOME:-$HOME/.hermes}/skills/productivity/google-workspace/scripts/setup.py"
 ```
 
-### 第 0 步：检查是否已设置好
+### Step 0: Check if already set up
 
 ```bash
 $GSETUP --check
 ```
 
-若打印 `AUTHENTICATED`，跳到「用法」——设置已完成。
+If it prints `AUTHENTICATED`, skip to Usage — setup is already done.
 
-### 第 1 步：分诊——问用户需要什么
+### Step 1: Triage — ask the user what they need
 
-开始 OAuth 设置前，问用户*两个*问题：
+Before starting OAuth setup, ask the user TWO questions:
 
-**问题 1：「你需要哪些 Google 服务？只要邮箱，还是也要
-Calendar/Drive/Sheets/Docs？」**
+**Question 1: "What Google services do you need? Just email, or also
+Calendar/Drive/Sheets/Docs?"**
 
-- **只要邮箱** → 他们完全不需要本 skill。改用 `himalaya` skill
-  ——它用一个 Gmail App Password（设置 → 安全性 → 应用
-  密码）即可工作，2 分钟就能设好。不需要 Google Cloud 项目。
-  加载 himalaya skill 并按其设置说明操作。
+- **Email only** → They don't need this skill at all. Use the `himalaya` skill
+  instead — it works with a Gmail App Password (Settings → Security → App
+  Passwords) and takes 2 minutes to set up. No Google Cloud project needed.
+  Load the himalaya skill and follow its setup instructions.
 
-- **邮箱 + Calendar** → 继续用本 skill，但鉴权时用
-  `--services email,calendar`，让同意屏幕只请求
-  他们真正需要的 scope。
+- **Email + Calendar** → Continue with this skill, but use
+  `--services email,calendar` during auth so the consent screen only asks for
+  the scopes they actually need.
 
-- **只要 Calendar/Drive/Sheets/Docs** → 继续用本 skill，并使用
-  更窄的 `--services` 集，如 `calendar,drive,sheets,docs`。
+- **Calendar/Drive/Sheets/Docs only** → Continue with this skill and use a
+  narrower `--services` set like `calendar,drive,sheets,docs`.
 
-- **完整 Workspace 访问** → 继续用本 skill，并使用默认的
-  `all` 服务集。
+- **Full Workspace access** → Continue with this skill and use the default
+  `all` service set.
 
-**问题 2：「你的 Google 账号是否启用了 Advanced Protection（登录需要硬件
-安全密钥）？如果不确定，多半没有
-——这是一项需要你主动登记的功能。」**
+**Question 2: "Does your Google account use Advanced Protection (hardware
+security keys required to sign in)? If you're not sure, you probably don't
+— it's something you would have explicitly enrolled in."**
 
-- **否 / 不确定** → 正常设置。继续往下。
-- **是** → 他们的 Workspace 管理员必须把该 OAuth client ID 加入组织的
-  允许应用列表，第 4 步才能工作。事先告知他们。
+- **No / Not sure** → Normal setup. Continue below.
+- **Yes** → Their Workspace admin must add the OAuth client ID to the org's
+  allowed apps list before Step 4 will work. Let them know upfront.
 
-### 第 2 步：创建 OAuth 凭据（一次性，约 5 分钟）
+### Step 2: Create OAuth credentials (one-time, ~5 minutes)
 
-告诉用户：
+Tell the user:
 
-> 你需要一个 Google Cloud OAuth client。这是一次性设置：
+> You need a Google Cloud OAuth client. This is a one-time setup:
 >
-> 1. 创建或选择一个项目：
+> 1. Create or select a project:
 >    https://console.cloud.google.com/projectselector2/home/dashboard
-> 2. 从 API Library 启用所需的 API：
+> 2. Enable the required APIs from the API Library:
 >    https://console.cloud.google.com/apis/library
->    启用：Gmail API, Google Calendar API, Google Drive API,
+>    Enable: Gmail API, Google Calendar API, Google Drive API,
 >    Google Sheets API, Google Docs API, People API
-> 3. 在这里创建 OAuth client：
+> 3. Create the OAuth client here:
 >    https://console.cloud.google.com/apis/credentials
 >    Credentials → Create Credentials → OAuth 2.0 Client ID
 > 4. Application type: "Desktop app" → Create
-> 5. 若应用仍在 Testing，在此把用户的 Google 账号加为测试用户：
+> 5. If the app is still in Testing, add the user's Google account as a test user here:
 >    https://console.cloud.google.com/auth/audience
 >    Audience → Test users → Add users
-> 6. 下载 JSON 文件并告诉我文件路径
+> 6. Download the JSON file and tell me the file path
 >
-> 重要 Hermes CLI 提示：若文件路径以 `/` 开头，不要在 CLI 里把裸路径作为单独一条消息发送。因为它可能被误认为斜杠命令。改在一整句里发，例如：
+> Important Hermes CLI note: if the file path starts with `/`, do NOT send only the bare path as its own message in the CLI, because it can be mistaken for a slash command. Send it in a sentence instead, like:
 > `The JSON file path is: /home/user/Downloads/client_secret_....json`
 
-他们给出路径后：
+Once they provide the path:
 
 ```bash
 $GSETUP --client-secret /path/to/client_secret.json
 ```
 
-若他们粘贴的是原始的 client ID / client secret 值而非文件路径，
-你自己替他们写一个合法的 Desktop OAuth JSON 文件，存到某个
-明确的位置（例如 `~/Downloads/hermes-google-client-secret.json`），再对该文件运行
-`--client-secret`。
+If they paste the raw client ID / client secret values instead of a file path,
+write a valid Desktop OAuth JSON file for them yourself, save it somewhere
+explicit (for example `~/Downloads/hermes-google-client-secret.json`), then run
+`--client-secret` against that file.
 
-### 第 3 步：获取授权 URL
+### Step 3: Get authorization URL
 
-用第 1 步选定的服务集。示例：
+Use the service set chosen in Step 1. Examples:
 
 ```bash
 $GSETUP --auth-url --services email,calendar --format json
@@ -124,49 +124,49 @@ $GSETUP --auth-url --services calendar,drive,sheets,docs --format json
 $GSETUP --auth-url --services all --format json
 ```
 
-这会返回带 `auth_url` 字段的 JSON，并把确切 URL 存到
-`~/.hermes/google_oauth_last_url.txt`。
+This returns JSON with an `auth_url` field and also saves the exact URL to
+`~/.hermes/google_oauth_last_url.txt`.
 
-本步的代理规则：
-- 提取 `auth_url` 字段，把那个确切 URL 作为单独一行发给用户。
-- 告诉用户浏览器在批准后很可能在 `http://localhost:1` 失败，这是预期内的。
-- 让他们从浏览器地址栏复制*整段*重定向后的 URL。
-- 若用户遇到 `Error 403: access_denied`，直接把他们引到 `https://console.cloud.google.com/auth/audience` 把自己加为测试用户。
+Agent rules for this step:
+- Extract the `auth_url` field and send that exact URL to the user as a single line.
+- Tell the user that the browser will likely fail on `http://localhost:1` after approval, and that this is expected.
+- Tell them to copy the ENTIRE redirected URL from the browser address bar.
+- If the user gets `Error 403: access_denied`, send them directly to `https://console.cloud.google.com/auth/audience` to add themselves as a test user.
 
-### 第 4 步：交换 code
+### Step 4: Exchange the code
 
-用户会回贴一个形如 `http://localhost:1/?code=4/0A...&scope=...` 的 URL，
-或只是 code 字符串。两者都行。`--auth-url` 步骤会在本地存一个临时的
-待处理 OAuth 会话，让 `--auth-code` 之后能完成 PKCE 交换，
-即使在无头系统上：
+The user will paste back either a URL like `http://localhost:1/?code=4/0A...&scope=...`
+or just the code string. Either works. The `--auth-url` step stores a temporary
+pending OAuth session locally so `--auth-code` can complete the PKCE exchange
+later, even on headless systems:
 
 ```bash
 $GSETUP --auth-code "THE_URL_OR_CODE_THE_USER_PASTED" --format json
 ```
 
-若 `--auth-code` 因 code 过期、已被使用，或来自
-较早的浏览器标签页而失败，它现在会返回一个新的 `fresh_auth_url`。这种情况下，
-立即把新 URL 发给用户，让他们只用最新的
-浏览器重定向重试。
+If `--auth-code` fails because the code expired, was already used, or came from
+an older browser tab, it now returns a fresh `fresh_auth_url`. In that case,
+immediately send the new URL to the user and have them retry with the newest
+browser redirect only.
 
-### 第 5 步：核验
+### Step 5: Verify
 
 ```bash
 $GSETUP --check
 ```
 
-应打印 `AUTHENTICATED`。设置完成——从今往后 token 自动刷新。
+Should print `AUTHENTICATED`. Setup is complete — token refreshes automatically from now on.
 
-### 注意
+### Notes
 
-- token 存在 `~/.hermes/google_token.json` 并自动刷新。
-- 待处理的 OAuth 会话状态/verifier 临时存在 `~/.hermes/google_oauth_pending.json`，直到交换完成。
-- 若安装了 `gws`，`google_api.py` 会让它指向同一个 `~/.hermes/google_token.json` 凭据文件。用户无需另跑一套 `gws auth login` 流程。
-- 撤销：`$GSETUP --revoke`
+- Token is stored at `~/.hermes/google_token.json` and auto-refreshes.
+- Pending OAuth session state/verifier are stored temporarily at `~/.hermes/google_oauth_pending.json` until exchange completes.
+- If `gws` is installed, `google_api.py` points it at the same `~/.hermes/google_token.json` credentials file. Users do not need to run a separate `gws auth login` flow.
+- To revoke: `$GSETUP --revoke`
 
-## 用法
+## Usage
 
-所有命令都走那个 API 脚本。设 `GAPI` 作简写：
+All commands go through the API script. Set `GAPI` as a shorthand:
 
 ```bash
 GAPI="python ${HERMES_HOME:-$HOME/.hermes}/skills/productivity/google-workspace/scripts/google_api.py"
@@ -286,9 +286,9 @@ $GAPI docs create --title "Draft" --body "First paragraph..."
 $GAPI docs append DOC_ID --text "Additional content to append"
 ```
 
-## 输出格式
+## Output Format
 
-所有命令返回 JSON。用 `jq` 解析或直接读。关键字段：
+All commands return JSON. Parse with `jq` or read directly. Key fields:
 
 - **Gmail search**: `[{id, threadId, from, to, subject, date, snippet, labels}]`
 - **Gmail get**: `{id, threadId, from, to, subject, date, labels, body}`
@@ -308,27 +308,27 @@ $GAPI docs append DOC_ID --text "Additional content to append"
 - **Docs create**: `{status: "created", documentId, title, url}`
 - **Docs append**: `{status: "appended", documentId, inserted_at, characters}`
 
-## 规则
+## Rules
 
-1. **未经用户确认，绝不发送邮件、创建/删除日历事件、删除 Drive 文件、共享文件，或修改 Docs/Sheets。** 展示将要做的事（收件人、文件 ID、内容、共享角色）并请求批准。对 `drive delete`，优先用默认的回收站（可逆）而非 `--permanent`。
-2. **首次使用前检查认证**——运行 `setup.py --check`。若失败，引导用户完成设置。
-3. **复杂查询用 Gmail 搜索语法参考**——用 `skill_view("google-workspace", file_path="references/gmail-search-syntax.md")` 加载它。
-4. **日程时间必须带时区**——始终用带偏移的 ISO 8601（如 `2026-03-01T10:00:00-06:00`）或 UTC（`Z`）。
-5. **尊重速率限制**——避免连珠炮式的顺序 API 调用。能批量读就批量读。
+1. **Never send email, create/delete calendar events, delete Drive files, share files, or modify Docs/Sheets without confirming with the user first.** Show what will be done (recipients, file IDs, content, share role) and ask for approval. For `drive delete`, prefer the default trash (reversible) over `--permanent`.
+2. **Check auth before first use** — run `setup.py --check`. If it fails, guide the user through setup.
+3. **Use the Gmail search syntax reference** for complex queries — load it with `skill_view("google-workspace", file_path="references/gmail-search-syntax.md")`.
+4. **Calendar times must include timezone** — always use ISO 8601 with offset (e.g., `2026-03-01T10:00:00-06:00`) or UTC (`Z`).
+5. **Respect rate limits** — avoid rapid-fire sequential API calls. Batch reads when possible.
 
-## 排查
+## Troubleshooting
 
-| 问题 | 修复 |
+| Problem | Fix |
 |---------|-----|
-| `NOT_AUTHENTICATED` | 运行上面的第 2-5 步设置 |
-| `REFRESH_FAILED` | token 被撤销或过期——重做第 3-5 步 |
-| `HttpError 403: Insufficient Permission` | 缺 API scope——`$GSETUP --revoke` 后重做第 3-5 步 |
-| `AUTHENTICATED (partial)` 或 "Token missing scopes" | 新的写入能力（Drive 写/删、Docs 创建/编辑）需要重新授权。`$GSETUP --revoke` 后重做第 3-5 步以授予升级后的 scope。 |
-| `HttpError 403: Access Not Configured` | API 未启用——用户需在 Google Cloud Console 启用它 |
+| `NOT_AUTHENTICATED` | Run setup Steps 2-5 above |
+| `REFRESH_FAILED` | Token revoked or expired — redo Steps 3-5 |
+| `HttpError 403: Insufficient Permission` | Missing API scope — `$GSETUP --revoke` then redo Steps 3-5 |
+| `AUTHENTICATED (partial)` or "Token missing scopes" | New write capabilities (Drive write/delete, Docs create/edit) require re-authorization. `$GSETUP --revoke` then redo Steps 3-5 to grant the upgraded scopes. |
+| `HttpError 403: Access Not Configured` | API not enabled — user needs to enable it in Google Cloud Console |
 | `ModuleNotFoundError` | Run `$GSETUP --install-deps` |
-| Advanced Protection 阻止鉴权 | Workspace 管理员必须把该 OAuth client ID 加入允许列表 |
+| Advanced Protection blocks auth | Workspace admin must allowlist the OAuth client ID |
 
-## 撤销访问
+## Revoking Access
 
 ```bash
 $GSETUP --revoke

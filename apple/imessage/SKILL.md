@@ -1,6 +1,6 @@
 ---
 name: imessage
-description: "用 imsg CLI 收发 iMessage / SMS 时使用。只要要在 macOS 上发短信或读消息，就主动加载，即使用户只说「给他发条消息」。"
+description: Send and receive iMessages/SMS via the imsg CLI on macOS.
 version: 1.0.0
 author: Hermes Agent
 license: MIT

@@ -1,6 +1,6 @@
 ---
 name: github-issues
-description: "管理 GitHub issue 时使用：创建、分诊、打标签、指派（gh 或 REST）。只要要跟 issue 打交道或做分诊，就主动加载，即使用户只说「跟进一下这个 bug」。"
+description: "管理 GitHub issue 时使用：创建、分诊、打标签、指派（gh 或 REST）。"
 version: 1.1.0
 author: Hermes Agent
 license: MIT
@@ -11,16 +11,16 @@ metadata:
     related_skills: [github-auth, github-pr-workflow]
 ---
 
-# GitHub issue 管理
+# GitHub Issues Management
 
-创建、搜索、分诊与管理 GitHub issue。每节先给 `gh` 写法，再给 `curl` 兜底。
+Create, search, triage, and manage GitHub issues. Each section shows `gh` first, then the `curl` fallback.
 
-## 前置条件
+## Prerequisites
 
-- 已通过 GitHub 认证（见 `github-auth` skill）
-- 位于带 GitHub remote 的 git 仓库内，或显式指定仓库
+- Authenticated with GitHub (see `github-auth` skill)
+- Inside a git repo with a GitHub remote, or specify the repo explicitly
 
-### 初始化
+### Setup
 
 ```bash
 if command -v gh &>/dev/null && gh auth status &>/dev/null; then
@@ -44,9 +44,9 @@ REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
 
 ---
 
-## 1. 查看 issue
+## 1. Viewing Issues
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue list
@@ -56,7 +56,7 @@ gh issue list --search "authentication error" --state all
 gh issue view 42
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 # List open issues
@@ -104,9 +104,9 @@ for i in json.load(sys.stdin)['items']:
     print(f\"#{i['number']}  {i['state']:6}  {i['title']}\")"
 ```
 
-## 2. 创建 issue
+## 2. Creating Issues
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue create \
@@ -126,7 +126,7 @@ Respect the ?next= query parameter." \
   --assignee "username"
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 curl -s -X POST \
@@ -140,7 +140,7 @@ curl -s -X POST \
   }'
 ```
 
-### Bug 报告模板
+### Bug Report Template
 
 ```
 ## Bug Description
@@ -161,7 +161,7 @@ curl -s -X POST \
 - Version: <version>
 ```
 
-### 功能请求模板
+### Feature Request Template
 
 ```
 ## Feature Description
@@ -177,18 +177,18 @@ curl -s -X POST \
 <Other approaches>
 ```
 
-## 3. 管理 issue
+## 3. Managing Issues
 
-### 增删标签
+### Add/Remove Labels
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue edit 42 --add-label "priority:high,bug"
 gh issue edit 42 --remove-label "needs-triage"
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 # Add labels
@@ -212,16 +212,16 @@ for l in json.load(sys.stdin):
     print(f\"  {l['name']:30}  {l.get('description', '')}\")"
 ```
 
-### 指派
+### Assignment
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue edit 42 --add-assignee username
 gh issue edit 42 --add-assignee @me
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 curl -s -X POST \
@@ -230,15 +230,15 @@ curl -s -X POST \
   -d '{"assignees": ["username"]}'
 ```
 
-### 评论
+### Commenting
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue comment 42 --body "Investigated — root cause is in auth middleware. Working on a fix."
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 curl -s -X POST \
@@ -247,9 +247,9 @@ curl -s -X POST \
   -d '{"body": "Investigated — root cause is in auth middleware. Working on a fix."}'
 ```
 
-### 关闭与重开
+### Closing and Reopening
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue close 42
@@ -257,7 +257,7 @@ gh issue close 42 --reason "not planned"
 gh issue reopen 42
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 # Close
@@ -273,9 +273,9 @@ curl -s -X PATCH \
   -d '{"state": "open"}'
 ```
 
-### 把 issue 关联到 PR
+### Linking Issues to PRs
 
-当 PR 带着正确的关键词合并时，issue 会自动关闭：
+Issues are automatically closed when a PR merges with the right keywords in the body:
 
 ```
 Closes #42
@@ -283,26 +283,26 @@ Fixes #42
 Resolves #42
 ```
 
-从 issue 创建分支：
+To create a branch from an issue:
 
-**用 gh：**
+**With gh:**
 
 ```bash
 gh issue develop 42 --checkout
 ```
 
-**用 git（手动等价）：**
+**With git (manual equivalent):**
 
 ```bash
 git checkout main && git pull origin main
 git checkout -b fix/issue-42-login-redirect
 ```
 
-## 4. issue 分诊工作流
+## 4. Issue Triage Workflow
 
-被要求给 issue 分诊时：
+When asked to triage issues:
 
-1. **列出未分诊的 issue：**
+1. **List untriaged issues:**
 
 ```bash
 # With gh
@@ -319,19 +319,19 @@ for i in json.load(sys.stdin):
         print(f\"#{i['number']}  {i['title']}\")"
 ```
 
-2. **读取并归类**每个 issue（看详情，弄清是 bug 还是功能）
+2. **Read and categorize** each issue (view details, understand the bug/feature)
 
-3. **打标签与优先级**（见上面的管理 issue）
+3. **Apply labels and priority** (see Managing Issues above)
 
-4. 归属明确时**指派**
+4. **Assign** if the owner is clear
 
-5. 需要时**留分诊备注**
+5. **Comment with triage notes** if needed
 
-## 5. 批量操作
+## 5. Bulk Operations
 
-做批量操作时，把 API 调用和 shell 脚本结合起来：
+For batch operations, combine API calls with shell scripting:
 
-**用 gh：**
+**With gh:**
 
 ```bash
 # Close all issues with a specific label
@@ -339,7 +339,7 @@ gh issue list --label "wontfix" --json number --jq '.[].number' | \
   xargs -I {} gh issue close {} --reason "not planned"
 ```
 
-**用 curl：**
+**With curl:**
 
 ```bash
 # List issue numbers with a label, then close each
@@ -356,15 +356,15 @@ curl -s \
   done
 ```
 
-## 速查表
+## Quick Reference Table
 
-| 操作 | gh | curl endpoint |
+| Action | gh | curl endpoint |
 |--------|-----|--------------|
-| 列出 issue | `gh issue list` | `GET /repos/{o}/{r}/issues` |
-| 查看 issue | `gh issue view N` | `GET /repos/{o}/{r}/issues/N` |
-| 创建 issue | `gh issue create ...` | `POST /repos/{o}/{r}/issues` |
-| 添加标签 | `gh issue edit N --add-label ...` | `POST /repos/{o}/{r}/issues/N/labels` |
-| 指派 | `gh issue edit N --add-assignee ...` | `POST /repos/{o}/{r}/issues/N/assignees` |
-| 评论 | `gh issue comment N --body ...` | `POST /repos/{o}/{r}/issues/N/comments` |
-| 关闭 | `gh issue close N` | `PATCH /repos/{o}/{r}/issues/N` |
-| 搜索 | `gh issue list --search "..."` | `GET /search/issues?q=...` |
+| List issues | `gh issue list` | `GET /repos/{o}/{r}/issues` |
+| View issue | `gh issue view N` | `GET /repos/{o}/{r}/issues/N` |
+| Create issue | `gh issue create ...` | `POST /repos/{o}/{r}/issues` |
+| Add labels | `gh issue edit N --add-label ...` | `POST /repos/{o}/{r}/issues/N/labels` |
+| Assign | `gh issue edit N --add-assignee ...` | `POST /repos/{o}/{r}/issues/N/assignees` |
+| Comment | `gh issue comment N --body ...` | `POST /repos/{o}/{r}/issues/N/comments` |
+| Close | `gh issue close N` | `PATCH /repos/{o}/{r}/issues/N` |
+| Search | `gh issue list --search "..."` | `GET /search/issues?q=...` |

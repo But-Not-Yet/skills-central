@@ -1,6 +1,6 @@
 ---
 name: inspecting-hermes-desktop-dom
-description: "通过 CDP 读 Hermes 桌面端实时 DOM/CSS 时使用。只要要验证桌面端 UI 改动是否真生效、查哪条 CSS 规则胜出或读渲染进程报错，就主动加载。即使用户没明说 CDP。不用于性能剖析。"
+description: "通过 CDP 读 Hermes 桌面端实时 DOM/CSS 时使用。"
 version: 1.0.0
 author: Hermes Agent
 license: MIT
@@ -11,55 +11,70 @@ metadata:
     related_skills: [node-inspect-debugger, systematic-debugging, dogfood]
 ---
 
-# 检查 Hermes 桌面端的实时 DOM
+# Inspecting the live Hermes desktop DOM
 
-## Overview（概览）
+## Overview
 
-当你在开发 `apps/desktop`、而用户正运行同一个 app 时（`hgui` / `npm run dev`），你可以读他们眼前那个窗口的**实时渲染 DOM**。计算样式、几何、究竟哪条 CSS 规则胜出、控制台输出——而不是从 `.tsx` 去猜、然后猜错。
+When you are developing `apps/desktop` and the user is running that same app
+(`hgui` / `npm run dev`), you can read the **live rendered DOM** of the window
+they are looking at — computed styles, geometry, which CSS rule actually won,
+console output — instead of inferring it from `.tsx` and being wrong.
 
-dev-server 运行时会在 `127.0.0.1:9222` 上自动开一个 Chrome DevTools Protocol 端口。渲染进程就是一个 Chromium 页面，所以 DevTools 能读的东西，脚本也能读。
+Dev-server runs open a Chrome DevTools Protocol port on `127.0.0.1:9222`
+automatically. The renderer is a Chromium page, so everything DevTools can read,
+a script can read.
 
-**这不能取代用眼睛看。** CDP 回答的是*事实性*问题（"计算出的 padding 是多少"、"这个元素渲染了吗"、"哪个选择器命中"）。它没法告诉你结果好不好看。色彩平衡、间距手感、以及"这丑不丑"，仍要靠用户的眼睛或一张截图。事实交给 CDP。审美交给用户。
+**This does not replace looking at it.** CDP answers *factual* questions ("what
+is the computed padding", "did this element render", "which selector matches").
+It cannot tell you whether the result looks good. Colour balance, spacing feel,
+and "is this ugly" still need the user's eyes or a screenshot. Answer facts with
+CDP; hand aesthetics to the user.
 
-## When to Use（何时用）
+## When to Use
 
-- 验证一次 UI 改动在运行中的 app 里真的生效了
-- "这个元素怎么还是 X？"——改任何东西之前先找出胜出的规则
-- 为即将改动的组件找一个稳定的选择器
-- 在真实节点上查一个 design token 的计算值
-- 读用户提到、但复制不出来的渲染进程控制台报错
+- Verifying a UI change actually took effect in the running app
+- "Why is this element still X?" — find the winning rule before editing anything
+- Locating a stable selector for a component you're about to change
+- Checking a design token's computed value on a real node
+- Reading renderer console errors the user mentions but can't copy out
 
-**不用于：** 性能剖析或堆分析（`node-inspect-debugger`、`debugging-hermes-desktop`），或任何「真正的疑问是『这样看起来对不对』」的场合。
+**Don't use for:** perf profiling or heap work (`node-inspect-debugger`,
+`debugging-hermes-desktop`), or anything where the real question is "does this
+look right".
 
-## The port（端口）
+## The port
 
-任何 dev-server 运行都在 `127.0.0.1:9222` 上开放。恰好两种情况关闭（`apps/desktop/electron/dev-cdp.ts`）：
+Open on `127.0.0.1:9222` for any dev-server run. Closed in exactly two cases
+(`apps/desktop/electron/dev-cdp.ts`):
 
-- **打包构建** — 永远关闭，且没有任何环境值能覆盖它。
-- **没有 `HERMES_DESKTOP_DEV_SERVER`** — 未打包的 `electron .` 对着 `dist/` 跑，是打包版冒烟测试的方式，所以它表现得像打包版。
+- **packaged builds** — always, and no environment value overrides it;
+- **no `HERMES_DESKTOP_DEV_SERVER`** — an unpackaged `electron .` against
+  `dist/` is how the packaged app gets smoke tested, so it behaves like one.
 
-`HERMES_DESKTOP_CDP_PORT` 可挪动端口（`=9333`）或禁用它（`=off`）。
+`HERMES_DESKTOP_CDP_PORT` moves the port (`=9333`) or disables it (`=off`).
 
-动手前先查：
+Check before doing anything else:
 
 ```bash
 curl -s --max-time 3 http://127.0.0.1:${HERMES_DESKTOP_CDP_PORT:-9222}/json/version
 ```
 
-空 → 没有端口。别悄悄去猜别的端口。
+Empty → no port. Do not guess another port silently.
 
-**绝不要为了拿端口去重启用户的 app。** 那会毁掉他们的会话与状态。改为启动你自己的隔离实例（见下）。
+**Never relaunch the user's app to get a port.** That destroys their session and
+their state. Launch your own isolated instance instead (below).
 
-## Reading the DOM（读 DOM）
+## Reading the DOM
 
-`apps/desktop/scripts/eval.mjs` 就是那个单行工具：
+`apps/desktop/scripts/eval.mjs` is the one-liner:
 
 ```bash
 cd apps/desktop
 node scripts/eval.mjs "document.querySelectorAll('[data-slot]').length"
 ```
 
-多步作业用共享客户端——它带 target 发现与 promise 感知的 eval：
+For multi-step work use the shared client — it has target discovery and
+promise-aware eval:
 
 ```js
 import { CDP, SELECTORS } from './scripts/perf/lib/cdp.mjs'
@@ -72,11 +87,15 @@ const out = await cdp.eval(`JSON.stringify({
 cdp.close()
 ```
 
-`scripts/perf/lib/cdp.mjs` 里的 `SELECTORS` 保存着稳定的 `data-slot` 钩子（composer、thread viewport、assistant message、turn pair、profile rail）。优先用它们，别自创 `querySelector`——组件挪窝时它们是作为一个整体更新的。
+`SELECTORS` in `scripts/perf/lib/cdp.mjs` holds the stable `data-slot` hooks
+(composer, thread viewport, assistant message, turn pair, profile rail). Prefer
+them over inventing a `querySelector` — they are updated as a unit when
+components move.
 
-## 它最擅长的问题：哪条规则胜出？
+## The question this is best at: which rule won?
 
-因为一个样式「没生效」就去改每一处调用点，是典型的浪费。先读真实节点：
+Editing every call site because a style "isn't applying" is the classic waste.
+Read the real node first:
 
 ```js
 const el = document.querySelector('[data-slot="aui_assistant-message-root"] a')
@@ -92,11 +111,14 @@ JSON.stringify({
 })
 ```
 
-若该节点自身不带类，那这个值是**继承**来的——横扫调用点修不好它，你需要祖先规则。插件样式表（例如 `@tailwindcss/typography` 的 `prose a { font-weight: 500 }`）经常压过工具类。在共享类上覆盖，而不是逐处覆盖。
+If the node carries no class of its own, the value is **inherited** — sweeping
+call sites will not fix it, and you need the ancestor rule. A plugin stylesheet
+(e.g. `@tailwindcss/typography`'s `prose a { font-weight: 500 }`) routinely beats
+a utility class; override on the shared class, not at each usage.
 
-## Your own isolated instance（你自己的隔离实例）
+## Your own isolated instance
 
-当没有端口、或你不能打扰用户的窗口时：
+When there is no port, or you must not disturb the user's window:
 
 ```bash
 cd apps/desktop
@@ -106,16 +128,32 @@ HERMES_DESKTOP_CDP_PORT=9333 \
   npx electron . --user-data-dir=$HOME/.hermes/cache/scratch/cdp-probe-userdata
 ```
 
-单独的 `--user-data-dir` 绕开 Electron 的单实例锁，所以它不会和一个正在跑的 `hgui` 撞车。单独的 `HERMES_HOME` 让它远离真实会话。出于同样的理由，挑一个 9222 以外的端口。后台运行，用完杀掉。
+The separate `--user-data-dir` dodges Electron's single-instance lock, so it
+cannot collide with a running `hgui`; the separate `HERMES_HOME` keeps it away
+from real sessions. Pick a port other than 9222 for the same reason. Run it in
+the background and kill it when done.
 
-若要连性能测试台一起，`npm run perf:serve` 做同样的事，并烤入一个临时 `HERMES_HOME`。
+`npm run perf:serve` does the same with a temp `HERMES_HOME` baked in, if you
+also want the perf harness.
 
-## Pitfalls（坑）
+## Pitfalls
 
-- **绝不要为「腾出」什么而杀掉用户的 dev server 或 app。** 服务中途被杀会毁掉 Chromium 的 socket 池，随之而来的 `ERR_NETWORK_CHANGED` 会栽赃到你刚改动的东西上。
-- **一次性 `HERMES_HOME` 没有后端。** app 会为 `hermes:api` 记 `ECONNREFUSED`，并可能自行退出。渲染进程仍会挂载、DOM 仍可读——赶紧读，别把自行退出的探针误当成端口坏了。Chromium 绑定时会记 `DevTools listening on ws://127.0.0.1:<port>/…`。那一行就是端口已开的证据。
-- **轮询，别只探一次。** 刚启动的 app 需要一两秒端口才应答。
-- **绝不要 dump 整个 DOM。** 桌面端渲染几百个节点，`outerHTML` 会淹没你的上下文。在被求值的表达式里投射出一个小的 JSON 对象。
-- **给 `CDP.connect` 传 `match`。** 不传的话你可能挂到宠物浮层、快速输入窗口或某个 devtools target，而不是主窗口。
-- **`cdp.eval` 直接返回该值。裸的 `Runtime.evaluate` 会双重嵌套它**（`.result.result.value`）。用包装器。
-- **本仓库里 `import.meta.env.DEV` 在 `vite dev` 下是 `true`。** `apps/desktop/scripts/profile-typing-lag.md` 里声称相反的注记已过时。
+- **Never kill the user's dev server or app to "free" anything.** A mid-serve
+  kill nukes Chromium's socket pool, and the resulting `ERR_NETWORK_CHANGED`
+  gets blamed on whatever you just changed.
+- **A throwaway `HERMES_HOME` has no backend.** The app logs `ECONNREFUSED` for
+  `hermes:api` and may exit on its own. The renderer still mounts and the DOM is
+  readable — read promptly, and don't mistake a self-exited probe for a broken
+  port. Chromium logs `DevTools listening on ws://127.0.0.1:<port>/…` when it
+  binds; that line is the proof the port opened.
+- **Poll, don't probe once.** A just-launched app needs a second or two before
+  the port answers.
+- **Never dump the whole DOM.** The desktop renders hundreds of nodes and
+  `outerHTML` will bury your context. Project down to a small JSON object inside
+  the evaluated expression.
+- **Pass `match` to `CDP.connect`.** Without it you may attach to the pet
+  overlay, quick-entry window, or a devtools target instead of the main window.
+- **`cdp.eval` returns the value; raw `Runtime.evaluate` double-nests it**
+  (`.result.result.value`). Use the wrapper.
+- **`import.meta.env.DEV` is `true` under `vite dev`** in this repo. The note in
+  `apps/desktop/scripts/profile-typing-lag.md` claiming otherwise is stale.

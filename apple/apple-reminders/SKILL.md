@@ -1,6 +1,6 @@
 ---
 name: apple-reminders
-description: "用 remindctl 管理 Apple 提醒事项时使用。只要要在 macOS 上记待办、列出或打勾，就主动加载，即使用户只说「提醒我一下」。"
+description: "Apple Reminders via remindctl: add, list, complete."
 version: 1.0.0
 author: Hermes Agent
 license: MIT

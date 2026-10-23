@@ -1,6 +1,6 @@
 ---
 name: hermes-agent
-description: "使用、配置、换主题、扩展与编排 Hermes Agent 时使用。只要任务涉及 Hermes 自身的功能、工具或设置，就主动加载，即使用户只是问「你能不能…」。"
+description: "使用、配置、换主题、扩展与编排 Hermes Agent 时使用。"
 version: 3.1.0
 author: Hermes Agent + Teknium
 license: MIT
@@ -121,15 +121,6 @@ Run additional Hermes processes as fully independent subprocesses — separate s
 | Interactive | No | Yes (PTY mode) |
 | Use case | Quick parallel subtasks | Long autonomous missions |
 
-**成本铁律（2026-10-06 主人裁定）——先算账再决定，不默认派子代理：**
-
-- **花钱动作须逐次获批**：`delegate_task`、外部计费 API、云算力，都要先说清「几个 / 干什么 / 预估调用量 / 为什么非并行不可」，拿到主人明确同意再动。**批准的是目标，不是手段。**
-- **子代理不加速**：同厂商同模型吞吐恒定——并行 N 个子代理**不会**提升总吞吐，只是把同一份配额切成 N 份。
-- **它只买到上下文隔离，而隔离有代价**：子代理各自重建上下文会打断 prompt cache；对按 token 计费的云端 API，这**更贵**，不是更便宜。
-- **本地优先**：本机有多卡 / 本地推理 / 可并行的批处理时，先跑本地。
-- **按难度配模型**：依任务难度与目标挑模型，不图省事一律上最强。
-- **判断线**：需要隔离上下文（防污染、防超长）或任务真的跨小时跨天 → 才考虑；只是「想快一点」→ 不成立，自己做。
-
 ### One-Shot Mode
 
 ```
@@ -211,4 +202,3 @@ terminal(command="tmux new-session -d -s resumed 'hermes --resume 20260225_14305
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
 - **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
 - **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway.
-- **execute_code's interpreter is Hermes's bundled tool Python (`~/.hermes/tools/python-*`), not the system Python** — packages imported there (torch build flavor, CUDA vs ROCm, installed libs) describe only the tool environment. Before asserting machine capability, query the system interpreter (`/usr/bin/python3 -c "import torch; print(torch.version.hip)"`) or the package manager (`dpkg -l`); reporting hardware/library state from tool-environment imports misinforms the user.

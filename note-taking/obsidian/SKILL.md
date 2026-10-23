@@ -1,6 +1,6 @@
 ---
 name: obsidian
-description: "读写、搜索、创建 Obsidian 笔记库内容时使用。只要涉及 Obsidian vault 的笔记，就主动加载，即使用户只说「记到笔记里」。"
+description: Read, search, create, and edit notes in the Obsidian vault.
 version: 1.0.0
 author: Teknium (teknium1), Hermes Agent
 license: MIT
@@ -13,56 +13,56 @@ metadata:
 
 # Obsidian Vault
 
-处理「文件系统优先」的 Obsidian 笔记库时使用：读笔记、列笔记、搜笔记文件、建笔记、追加内容、加 wikilink。
+Use this skill for filesystem-first Obsidian vault work: reading notes, listing notes, searching note files, creating notes, appending content, and adding wikilinks.
 
-## 库路径
+## Vault path
 
-调用文件工具前，先拿到已知或已解析的库路径。
+Use a known or resolved vault path before calling file tools.
 
-惯例是用 `OBSIDIAN_VAULT_PATH` 环境变量记录库路径，例如放在 `${HERMES_HOME:-~/.hermes}/.env` 里。若未设置，退回 `~/Documents/Obsidian Vault`。
+The documented vault-path convention is the `OBSIDIAN_VAULT_PATH` environment variable, for example from `${HERMES_HOME:-~/.hermes}/.env`. If it is unset, use `~/Documents/Obsidian Vault`.
 
-文件工具**不展开 shell 变量**。不要把含 `$OBSIDIAN_VAULT_PATH` 的路径传给 `read_file`、`write_file`、`patch` 或 `search_files`。先把库路径解析出来，再传具体绝对路径。库路径可能含空格——这也是优先用文件工具而非 shell 命令的另一个理由。
+File tools do not expand shell variables. Do not pass paths containing `$OBSIDIAN_VAULT_PATH` to `read_file`, `write_file`, `patch`, or `search_files`; resolve the vault path first and pass a concrete absolute path. Vault paths may contain spaces, which is another reason to prefer file tools over shell commands.
 
-若库路径未知，可以用 `terminal` 去解析 `OBSIDIAN_VAULT_PATH` 或检查回退路径是否存在。**路径一旦确定，就切回文件工具。**
+If the vault path is unknown, `terminal` is acceptable for resolving `OBSIDIAN_VAULT_PATH` or checking whether the fallback path exists. Once the path is known, switch back to file tools.
 
-## 读笔记
+## Read a note
 
-用 `read_file` 传已解析的绝对路径。优先于 `cat`——它带行号与分页。
+Use `read_file` with the resolved absolute path to the note. Prefer this over `cat` because it provides line numbers and pagination.
 
-## 列笔记
+## List notes
 
-用 `search_files` 配 `target: "files"` 与已解析的库路径。优先于 `find` 或 `ls`。
+Use `search_files` with `target: "files"` and the resolved vault path. Prefer this over `find` or `ls`.
 
-- 列全部 markdown 笔记：在库路径下用 `pattern: "*.md"`。
-- 列某个子目录：在该子目录的绝对路径下搜索。
+- To list all markdown notes, use `pattern: "*.md"` under the vault path.
+- To list a subfolder, search under that subfolder's absolute path.
 
-## 搜索
+## Search
 
-文件名与内容搜索都用 `search_files`。优先于 `grep`、`find`、`ls`。
+Use `search_files` for both filename and content searches. Prefer this over `grep`, `find`, or `ls`.
 
-- 找文件名：`search_files` + `target: "files"` + 文件名 `pattern`。
-- 找笔记内容：`search_files` + `target: "content"` + 内容正则作 `pattern`，想只匹配 markdown 时加 `file_glob: "*.md"`。
+- For filenames, use `search_files` with `target: "files"` and a filename `pattern`.
+- For note contents, use `search_files` with `target: "content"`, the content regex as `pattern`, and `file_glob: "*.md"` when you want to restrict matches to markdown notes.
 
-## 建笔记
+## Create a note
 
-用 `write_file` 传已解析的绝对路径与完整 markdown 内容。优先于 shell heredoc 或 `echo`——它避开 shell 引号问题，并返回结构化结果。
+Use `write_file` with the resolved absolute path and the full markdown content. Prefer this over shell heredocs or `echo` because it avoids shell quoting issues and returns structured results.
 
-## 追加到笔记
+## Append to a note
 
-不别扭时，优先走原生文件工具流程：
+Prefer a native file-tool workflow when it is not awkward:
 
-- 先用 `read_file` 读目标笔记。
-- 有稳定上下文时（如在某标题后加一节、或在已知结尾块前追加），用 `patch` 做锚定追加。
-- 当整篇重写比构造脆弱的 patch 更清楚时，用 `write_file`。
+- Read the target note with `read_file`.
+- Use `patch` for an anchored append when there is stable context, such as adding a section after an existing heading or appending before a known trailing block.
+- Use `write_file` when rewriting the whole note is clearer than constructing a fragile patch.
 
-用 `patch` 做锚定追加时，把锚点替换成「锚点 + 新内容」。
+For an anchored append with `patch`, replace the anchor with the anchor plus the new content.
 
-没有稳定上下文的简单追加，若 `terminal` 是最清楚的稳妥选项，可以用。
+For a simple append with no stable context, `terminal` is acceptable if it is the clearest safe option.
 
-## 定点修改
+## Targeted edits
 
-当前内容能给出稳定上下文时，用 `patch` 做聚焦修改。优先于 shell 文本重写。
+Use `patch` for focused note changes when the current content gives you stable context. Prefer this over shell text rewriting.
 
-## Wikilink
+## Wikilinks
 
-Obsidian 用 `[[Note Name]]` 语法互联笔记。建笔记时用它链接相关内容。
+Obsidian links notes with `[[Note Name]]` syntax. When creating notes, use these to link related content.

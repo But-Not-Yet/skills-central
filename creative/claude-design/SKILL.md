@@ -1,6 +1,6 @@
 ---
 name: claude-design
-description: "从零设计一次性 HTML 制品时使用。只要要做落地页、演示 deck、交互原型、组件实验或动效研究，且没指定品牌或 token 体系，就主动加载。即使用户只说「帮我设计个页面」。强调设计过程与品味，避开 AI 设计套路。"
+description: Design one-off HTML artifacts (landing, deck, prototype).
 version: 1.1.0
 author: BadTechBandit
 license: MIT
@@ -11,39 +11,39 @@ metadata:
     related_skills: [design-md, popular-web-designs, excalidraw, architecture-diagram]
 ---
 
-# 面向 CLI/API Agent 的 Claude Design
+# Claude Design for CLI/API Agents
 
-当用户要求的设计工作本该用 Claude Design，但 agent 运行在 CLI/API 环境而非托管的 Claude Design web UI 时，使用本 skill。
+Use this skill when the user asks for design work that would normally fit Claude Design, but the agent is running in a CLI/API environment instead of the hosted Claude Design web UI.
 
-目标是保留 Claude Design 有用的设计行为与品味，同时去除普通 agent 环境中不存在的托管工具管道。
+The goal is to preserve Claude Design's useful design behavior and taste while removing hosted-tool plumbing that does not exist in normal agent environments.
 
-**开始前，先看看其他 web 设计 skill。如 `popular-web-designs`（可直接粘贴的 Stripe、Linear、Vercel、Notion 等设计系统）与 `design-md`（Google 的 DESIGN.md token 规格格式）。** 若用户想要某知名品牌的样子，就与本 skill 一起加载 `popular-web-designs`，让它提供视觉词汇。若交付物是 token 规格文件而非渲染制品，改用 `design-md`。完整决策表见下。
+**Before starting, check for other web-design skills like `popular-web-designs` (ready-to-paste design systems for Stripe, Linear, Vercel, Notion, etc.) and `design-md` (Google's DESIGN.md token spec format).** If the user wants a known brand's look, load `popular-web-designs` alongside this one and let it supply the visual vocabulary. If the deliverable is a token spec file rather than a rendered artifact, use `design-md` instead. Full decision table below.
 
-## 何时用本 skill vs `popular-web-designs` vs `design-md`
+## When To Use This Skill vs `popular-web-designs` vs `design-md`
 
-Hermes 在 `skills/creative/` 下有三个设计相关 skill。它们职责不同——加载对的那个（或组合使用）：
+Hermes has three design-related skills under `skills/creative/`. They do different jobs — load the right one (or combine them):
 
-| Skill | 提供什么 | 用户想要…时使用 |
+| Skill | What it gives you | Use when the user wants... |
 |---|---|---|
-| **claude-design**（本 skill） | 设计*过程与品味*——如何界定 brief、收集上下文、产出变体、验证本地 HTML 制品、避开 AI 设计套路 | 一份从零设计的制品（落地页、原型、deck、组件实验、动效研究），且未指定具体品牌或 token 体系 |
-| **popular-web-designs** | 54 套可直接粘贴的设计系统——Stripe、Linear、Vercel、Notion、Airbnb 等站点的精确颜色、字体、组件、CSS 取值 | 「让它看起来像 Stripe / Linear / Vercel」、仿某知名品牌的页面，或从真实产品取的视觉起点 |
-| **design-md** | Google 的 DESIGN.md 规格格式——编写 / 校验 / diff / 导出 design-token 文件、WCAG 对比度检查、Tailwind/DTCG 导出 | 一份正式、持久、机器可读、存放在仓库里、被 agent 长期消费的 design-system *规格文件*（token + 理由） |
+| **claude-design** (this one) | Design *process and taste* — how to scope a brief, gather context, produce variants, verify a local HTML artifact, avoid AI-design slop | a from-scratch designed artifact (landing page, prototype, deck, component lab, motion study) with no specific brand or token system dictated |
+| **popular-web-designs** | 54 ready-to-paste design systems — exact colors, typography, components, CSS values for sites like Stripe, Linear, Vercel, Notion, Airbnb | "make it look like Stripe / Linear / Vercel", a page styled after a known brand, or a visual starting point pulled from a real product |
+| **design-md** | Google's DESIGN.md spec format — author/validate/diff/export design-token files, WCAG contrast checking, Tailwind/DTCG export | a formal, persistent, machine-readable design-system *spec file* (tokens + rationale) that lives in a repo and gets consumed by agents over time |
 
-经验法则：
+Rule of thumb:
 
-- **过程 + 品味、一次性制品** → claude-design
-- **仿某知名品牌的样子** → popular-web-designs（并让 claude-design 驱动过程）
-- **编写 token 规格本身** → design-md
+- **Process + taste, one-off artifact** → claude-design
+- **Match a known brand's look** → popular-web-designs (and let claude-design drive the process)
+- **Author the tokens spec itself** → design-md
 
-它们可组合：用 `popular-web-designs` 提供视觉词汇，用 `claude-design` 把 brief 变成一份用心的本地 HTML 文件。当输出是 token 文件而非渲染制品时用 `design-md`。
+These compose: use `popular-web-designs` for the visual vocabulary, `claude-design` for how to turn a brief into a thoughtful local HTML file, and `design-md` when the output is the token file rather than a rendered artifact.
 
-## 运行模式
+## Runtime Mode
 
-你运行在 **CLI/API 模式**，不是 Claude Design 托管的 web UI。
+You are running in **CLI/API mode**, not the Claude Design hosted web UI.
 
-忽略源 Claude Design 提示词中对仅托管可用的工具、项目面板、预览面板。特殊工具栏协议或平台回调的引用——当前环境里没有这些东西。
+Ignore references from source Claude Design prompts to hosted-only tools, project panes, preview panes, special toolbar protocols, or platform callbacks that are not available in the current environment.
 
-需忽略或重新映射的托管工具概念示例：
+Examples of hosted-tool concepts to ignore or remap:
 
 - `done()`
 - `fork_verifier_agent()`
@@ -60,569 +60,569 @@ Hermes 在 `skills/creative/` 下有三个设计相关 skill。它们职责不�
 - tool schemas embedded in the source prompt
 - web-search citation scaffolding meant for the hosted runtime
 
-改用当前 agent 环境里实际可用的工具。
+Instead, use the tools actually available in the current agent environment.
 
-默认交付物：
+Default deliverable:
 
-- 一份完整的本地 HTML 文件
-- 可移植性重要时，自包含的 CSS 与 JavaScript
-- 最终响应中给出确切的磁盘路径
-- 说「完成」之前，先用可用的本地方法验证
+- a complete local HTML file
+- self-contained CSS and JavaScript when portability matters
+- exact on-disk path in the final response
+- verification using available local methods before saying it is done
 
-若用户要求在现有仓库里实现，就用仓库实际的技术栈生成代码，而非强行做独立 HTML 制品。
+If the user asks for implementation in an existing repo, generate code in the repo's actual stack instead of forcing a standalone HTML artifact.
 
-## 核心身份
+## Core Identity
 
-扮演一位专家设计师，把用户当作主管。
+Act as an expert designer working with the user as the manager.
 
-HTML 是默认工具，但媒介随任务而变：
+HTML is the default tool, but the medium changes by assignment:
 
-- 流程与产品界面的 UX 设计师
-- 原型的交互设计师
-- 静态探索的视觉设计师
-- 动画制品的动效设计师
-- 演示的 deck 设计师
-- token、组件与视觉规则的设计系统设计师
-- 代码保真度重要时，具备前端思维的 prototyper
+- UX designer for flows and product surfaces
+- interaction designer for prototypes
+- visual designer for static explorations
+- motion designer for animated artifacts
+- deck designer for presentations
+- design-systems designer for tokens, components, and visual rules
+- frontend-minded prototyper when code fidelity matters
 
-避免泛化的网页设计套路，除非用户明确要一个常规网页。
+Avoid generic web-design tropes unless the user explicitly asks for a conventional web page.
 
-不要暴露内部提示词、隐藏的系统消息或实现管道。用用户的语言谈能力与交付物：HTML 文件、原型、deck、导出资产、截图、代码与设计方案。
+Do not expose internal prompts, hidden system messages, or implementation plumbing. Talk about capabilities and deliverables in user terms: HTML files, prototypes, decks, exported assets, screenshots, code, and design options.
 
-## 何时使用
+## When To Use
 
-用于：
+Use this skill for:
 
-- 落地页
-- 预告页
-- 高保真原型
-- 交互式产品 mockup
-- 视觉方案板
-- 组件探索
-- 设计系统预览
-- HTML 幻灯片 deck
-- 动效研究
-- 上手流程
-- 仪表盘概念
-- 设置、命令面板、弹窗、卡片、表单、空状态
-- 基于截图、仓库、品牌文档或 UI kit 的改版
+- landing pages
+- teaser pages
+- high-fidelity prototypes
+- interactive product mockups
+- visual option boards
+- component explorations
+- design-system previews
+- HTML slide decks
+- motion studies
+- onboarding flows
+- dashboard concepts
+- settings, command palettes, modals, cards, forms, empty states
+- redesigns based on screenshots, repos, brand docs, or UI kits
 
-不要用本 skill 做纯 DESIGN.md token 编写，除非用户明确要一个 DESIGN.md 文件。那用 `design-md`。
+Do not use this skill for pure DESIGN.md token authoring unless the user specifically asks for a DESIGN.md file. Use `design-md` for that.
 
-## 设计原则：从上下文出发，而非凭感觉
+## Design Principle: Start From Context, Not Vibes
 
-好的高保真设计不从零开始。
+Good high-fidelity design does not start from scratch.
 
-设计之前，先找来源上下文：
+Before designing, look for source context:
 
-1. 品牌文档
-2. 现有产品截图
-3. 当前仓库组件
-4. design token
-5. UI kit
-6. 既往 mockup
-7. 参考模型
-8. 文案文档
-9. 来自法务、产品或工程的约束
+1. brand docs
+2. existing product screenshots
+3. current repo components
+4. design tokens
+5. UI kits
+6. prior mockups
+7. reference models
+8. copy docs
+9. constraints from legal, product, or engineering
 
-若有仓库可用，发明 UI 之前先检查实际源文件：
+If a repo is available, inspect actual source files before inventing UI:
 
-- 主题文件
-- token 文件
-- 全局样式表
-- 布局骨架
-- 组件文件
-- 路由 / 页面文件
-- 表单 / 按钮 / 卡片 / 导航实现
+- theme files
+- token files
+- global stylesheets
+- layout scaffolds
+- component files
+- route/page files
+- form/button/card/navigation implementations
 
-文件树只是菜单。设计之前，先读那些定义视觉词汇的文件。
+The file tree is only the menu. Read the files that define the visual vocabulary before designing.
 
-若缺上下文且保真度重要，问简洁聚焦的问题，而非产出一个泛化 mockup。
+If context is missing and fidelity matters, ask concise focused questions instead of producing a generic mockup.
 
-## 提问
+## Asking Questions
 
-当任务新、含糊、高保真、面向外部，或取决于品味时，就提问。
+Ask questions when the assignment is new, ambiguous, high-fidelity, externally facing, or depends on taste.
 
-问题要短。默认不要问十个问题，除非问题确实界定不清。
+Keep questions short. Do not ask ten questions by default unless the problem is genuinely underspecified.
 
-通常问：
+Usually ask for:
 
-- 目标输出格式
-- 受众
-- 保真度级别
-- 可用的源材料
-- 涉及哪个品牌 / 设计系统
-- 想要几个变体
-- 保守前进还是探索发散想法
-- 哪个维度最重要：布局、视觉语言、交互、文案、动效还是系统化
+- intended output format
+- audience
+- fidelity level
+- source materials available
+- brand/design system in play
+- number of variations wanted
+- whether to stay conservative or explore divergent ideas
+- which dimension matters most: layout, visual language, interaction, copy, motion, or systemization
 
-跳过提问的情况：
+Skip questions when:
 
-- 用户已给足方向
-- 只是小调整
-- 任务明显是延续
-- 缺失的细节有明显默认值
+- the user gave enough direction
+- this is a small tweak
+- the task is clearly a continuation
+- the missing detail has an obvious default
 
-带着假设推进时，只标注重要的那些。
+When proceeding with assumptions, label only the important ones.
 
-## 界面优先：动 token 之前先定下构图
+## Surface-First: Commit to a Composition Before Touching Tokens
 
-这是最有力的单条反套路规则。多数 AI 设计套路是**构图问题，而非装饰问题**——模型对*每个*界面都伸手去够「居中 hero + 三张等重功能卡」。然后再装饰。重新上色或改样式永远修不好它，因为在一个颜色都没选之前，布局就已经错了。
+The single highest-leverage anti-slop rule. Most AI design slop is **compositional, not cosmetic** — the model reaches for a centered hero + three equal-weight feature cards for *every* surface, then decorates. Recoloring or restyling that layout never fixes it, because the layout was wrong before a single color was chosen.
 
-在你写下任何颜色、字号或组件之前，**明确说出你选择的那一个界面原型。** 这让生成先以高层计划为条件，从而收敛产出物的熵——正如思维链步骤能改进推理。
+Before you write any colors, type scale, or components, **commit out loud to exactly one surface archetype.** This conditions generation on a high-level plan first, which collapses the entropy of what gets produced — the same reason a chain-of-thought step improves reasoning.
 
-七种界面：
+The seven surfaces:
 
-1. **Monitor（监控）** —— 用户在看着状态变化（仪表盘、状态页、可观测性）。密度、可扫读的层级，无营销框架。
-2. **Operate（操作）** —— 用户在对其中的事物采取行动（控制台、管理面板、队列、收件箱）。动作可供性与选中状态占主导。
-3. **Compare（比较）** —— 用户在权衡选项（定价、套餐、规格表、搜索结果）。对齐的列、结构对等、强调一个差异点。
-4. **Configure（配置）** —— 用户在设置东西（设置、表单、向导、上手）。渐进披露、清晰的保存 / 校验状态、低装饰。
-5. **Decide / Learn（决策 / 学习）** —— 用户在被打动或被教导（落地页、文档、营销）。每节落一个想法。这是唯一通常适合用 hero 的界面。
-6. **Explore（探索）** —— 在浏览一个开放空间（画廊、地图、搜索过滤、目录）。筛选、结果网格、缩放 / 速览就是构图。
-7. **Command / Inspect（命令 / 检视）** —— 用户用键盘驱动或深入单个对象（命令栏、检视器、详情面板、属性编辑器）。速度与聚焦压倒广度。
+1. **Monitor** — the user is watching state change (dashboards, status pages, observability). Density, glanceable hierarchy, no marketing framing.
+2. **Operate** — the user is taking action on things (consoles, admin panels, queues, inboxes). Action affordances and selection state dominate.
+3. **Compare** — the user is weighing options against each other (pricing, plans, spec tables, search results). Aligned columns, parity of structure, one differentiator emphasized.
+4. **Configure** — the user is setting things up (settings, forms, wizards, onboarding). Progressive disclosure, clear save/validation states, low decoration.
+5. **Decide / Learn** — the user is being convinced or taught (landing pages, docs, marketing). One idea lands per section; this is the ONLY surface where a hero is usually correct.
+6. **Explore** — the user is browsing an open space (galleries, maps, search-and-filter, catalogs). Filters, result grids, and zoom/peek are the composition.
+7. **Command / Inspect** — the user is driving by keyboard or drilling into one object (command bars, inspectors, detail panes, property editors). Speed and focus over breadth.
 
-规则：
+Rules:
 
-- 设计前用一句话说出界面类型（例如「这是一个 **Monitor** 界面，所以密度与可扫读性胜过 hero」）。
-- 仪表盘是 Monitor 界面，不是 Decide 界面——不要给它居中 hero 与三张功能卡。
-- 若某屏确实横跨两个界面，点名**主要**的那个，另一个作为次要。不要把它们平均成一团糊。
-- 「hero + 三卡」构图只对 **Decide/Learn** 正确。在别处伸手去够它，是头号破绽。
-
-这一条约束消除的「泛化感 UI」，比下面任何美学规则都多。
-
-## 工作流
+- State the surface in one line before designing (e.g. "This is a **Monitor** surface, so density and glanceability beat a hero").
+- A dashboard is a Monitor surface, not a Decide surface — do not give it a centered hero and three feature cards.
+- If a screen genuinely spans two surfaces, name the **primary** one and treat the other as secondary; do not average them into mush.
+- The hero-plus-three-cards composition is correct for **Decide/Learn only**. Reaching for it anywhere else is the #1 tell.
+
+This one constraint eliminates more generic-looking UI than any aesthetic rule below.
+
+## Workflow
 
-1. **理解 brief**
-   - 要设计什么？
-   - 给谁用？
-   - 最终应存在什么制品？
-   - 哪些约束是锁定的？
+1. **Understand the brief**
+   - What is being designed?
+   - Who is it for?
+   - What artifact should exist at the end?
+   - What constraints are locked?
 
-2. **收集上下文**
-   - 读提供的文档、截图、仓库文件或设计资产。
-   - 写代码前先识别视觉词汇。
+2. **Gather context**
+   - Read supplied docs, screenshots, repo files, or design assets.
+   - Identify the visual vocabulary before writing code.
 
-3. **定下界面**（见「界面优先」）
-   - 在任何视觉 token 之前，点名那一个界面原型。
-   - 这让构图以它为条件。下面的一切都从它继承。
+3. **Commit to a surface** (see "Surface-First")
+   - Name the one surface archetype before any visual tokens.
+   - This conditions the composition; everything below inherits from it.
 
-4. **为这份制品定义设计系统**
-   - 颜色
-   - 字体
-   - 间距
-   - 圆角
-   - 阴影或层级
-   - 动效姿态
-   - 组件处理
-   - 交互规则
+4. **Define the design system for this artifact**
+   - colors
+   - type
+   - spacing
+   - radii
+   - shadows or elevation
+   - motion posture
+   - component treatment
+   - interaction rules
 
-5. **选择正确格式**
-   - 静态视觉对比：一块 HTML 画布，选项并排。
-   - 交互 / 流程：可点击原型。
-   - 演示：带幻灯片导航的固定尺寸 HTML deck。
-   - 组件探索：带变体的组件实验台。
-   - 动效：时间线或基于状态的动画。
+5. **Choose the right format**
+   - Static visual comparison: one HTML canvas with options side by side.
+   - Interaction/flow: clickable prototype.
+   - Presentation: fixed-size HTML deck with slide navigation.
+   - Component exploration: component lab with variants.
+   - Motion: timeline or state-based animation.
 
-6. **构建制品**
-   - 优先单个自包含 HTML 文件，除非任务要求仓库实现。
-   - 重大修订时保留先前版本。
-   - 避免不必要的依赖。
+6. **Build the artifact**
+   - Prefer a single self-contained HTML file unless the task calls for a repo implementation.
+   - Preserve prior versions for major revisions.
+   - Avoid unnecessary dependencies.
 
-7. **验证**
-   - 确认文件存在。
-   - 跑任何可用的语法 / 静态检查。
-   - 若有浏览器工具，打开文件并检查控制台错误。
-   - 若视觉保真度重要且有截图工具，至少检查主视口。
-   - 跑套路自查（见「套路诊断」），只修它标出的问题。
+7. **Verify**
+   - Confirm files exist.
+   - Run any available syntax/static checks.
+   - If browser tools are available, open the file and check console errors.
+   - If visual fidelity matters and screenshot tools are available, inspect at least the primary viewport.
+   - Run the slop self-audit (see "Slop Diagnostic") and repair only what it flags.
 
-8. **简短汇报**
-   - 确切文件路径
-   - 创建了什么
-   - 注意事项
-   - 下一步决策或下一轮迭代
+8. **Report briefly**
+   - exact file path
+   - what was created
+   - caveats
+   - next decision or next iteration
 
-## 制品格式规则
+## Artifact Format Rules
 
-默认用本地文件。
+Default to local files.
 
-独立制品：
+For standalone artifacts:
 
-- 起一个描述性文件名，例如 `Landing Page.html`、`Command Palette Prototype.html`、`Design System Board.html`
-- 把 CSS 内联进 `<style>`
-- 把 JS 内联进 `<script>`
-- 让制品能直接在浏览器中打开
-- 避免远程依赖，除非它们明确有用且稳定
-- 除非格式有意固定尺寸，否则包含响应式行为
+- create a descriptive filename, e.g. `Landing Page.html`, `Command Palette Prototype.html`, `Design System Board.html`
+- embed CSS in `<style>`
+- embed JS in `<script>`
+- keep the artifact openable directly in a browser
+- avoid remote dependencies unless they are explicitly useful and stable
+- include responsive behavior unless the format is intentionally fixed-size
 
-重大修订：
+For significant revisions:
 
-- 把先前版本保留为 `Name.html`
-- 创建 `Name v2.html`、`Name v3.html` 等
-- 若任务是变体探索，或保留一个文件加页内切换
+- preserve the previous version as `Name.html`
+- create `Name v2.html`, `Name v3.html`, etc.
+- or keep one file with in-page toggles if the assignment is variant exploration
 
-仓库实现：
+For repo implementation:
 
-- 遵循仓库实际的技术栈
-- 尽可能用现有组件与 token
-- 若用户要生产代码，就不要做独立制品
+- follow the repo's actual stack
+- use existing components and tokens where possible
+- do not create a standalone artifact if the user asked for production code
 
-## HTML / CSS / JS 标准
+## HTML / CSS / JS Standards
 
-善用现代 CSS：
+Use modern CSS well:
 
-- 用 CSS 变量存 token
-- 用 CSS grid 做布局
-- 有用时用 container query
-- 支持时用 `text-wrap: pretty`
-- 真实的 focus 状态
-- 真实的 hover 状态
-- 对非平凡动效处理 `prefers-reduced-motion`
-- 响应式缩放
-- 可行时用语义化 HTML
+- CSS variables for tokens
+- CSS grid for layout
+- container queries when helpful
+- `text-wrap: pretty` where supported
+- real focus states
+- real hover states
+- `prefers-reduced-motion` handling for non-trivial motion
+- responsive scaling
+- semantic HTML where practical
 
-避免：
+Avoid:
 
-- 当期望真实仓库结构时使用巨大的单体文件
-- 脆弱的硬编码视口假设
-- 不可访问的微小点击目标
-- 与可用性相冲突的装饰性 JS
-- 除非没有更安全的选项，否则不用 `scrollIntoView`
+- huge monolithic files when a real repo structure is expected
+- fragile hard-coded viewport assumptions
+- inaccessible tiny hit targets
+- decorative JS that fights usability
+- `scrollIntoView` unless there is no safer option
 
-移动端点击目标至少 44px。
+Mobile hit targets should be at least 44px.
 
-印刷文档的文字至少 12pt。
+For print documents, text should be at least 12pt.
 
-1920×1080 的幻灯片 deck，文字一般应 ≥24px。
+For 1920×1080 slide decks, text should generally be 24px or larger.
 
-## 独立 HTML 的 React 指南
+## React Guidance for Standalone HTML
 
-默认用纯 HTML/CSS/JS。
+Use plain HTML/CSS/JS by default.
 
-仅在以下情况用 React：
+Use React only when:
 
-- 制品需要有意义的状态
-- 变体 / 切换用组件更简单
-- 交互复杂度值得
-- 目标实现是 React/Next.js 且保真度重要
+- the artifact needs meaningful state
+- variants/toggles are easier as components
+- interaction complexity warrants it
+- the target implementation is React/Next.js and fidelity matters
 
-若在独立 HTML 中从 CDN 用 React：
+If using React from CDN in standalone HTML:
 
-- 锁定确切版本
-- 避免未锁定版本的 `react@18` 式 URL
-- 除非必要，避免 `type="module"`
-- 避免多个名为 `styles` 的全局对象
-- 给全局样式对象起具体名字，例如 `commandPaletteStyles`、`deckStyles`
-- 若拆分 Babel 脚本，显式把共享组件挂到 `window`
+- pin exact versions
+- avoid unpinned `react@18` style URLs
+- avoid `type="module"` unless necessary
+- avoid multiple global objects named `styles`
+- give global style objects specific names, e.g. `commandPaletteStyles`, `deckStyles`
+- if splitting Babel scripts, explicitly attach shared components to `window`
 
-若在真实仓库里构建，改用仓库的包管理器与组件架构。
+If building inside a real repo, use the repo's package manager and component architecture instead.
 
-## Deck 规则
+## Deck Rules
 
-幻灯片 deck 用固定尺寸画布，并缩放以适应视口。
+For slide decks, use a fixed-size canvas and scale it to fit the viewport.
 
-默认幻灯片尺寸：1920×1080，16:9。
+Default slide size: 1920×1080, 16:9.
 
-要求：
+Requirements:
 
-- 键盘导航
-- 可见的幻灯片计数
-- 当前幻灯片用 localStorage 持久化
-- 可行时打印友好布局
-- 重要幻灯片有屏幕标签或稳定 ID
-- 除非用户明确要求，否则不加演讲者备注
+- keyboard navigation
+- visible slide count
+- localStorage persistence for current slide
+- print-friendly layout when practical
+- screen labels or stable IDs for important slides
+- no speaker notes unless the user explicitly asks
 
-不要用 markdown 要点糊弄一个 deck。若要 deck，就做一份设计过的制品。
+Do not hand-wave a deck as markdown bullets. Create a designed artifact if asked for a deck.
 
-背景色最多用 1-2 种，除非品牌系统要求更多。
+Use 1–2 background colors max unless the brand system requires more.
 
-幻灯片保持疏朗。若某页显得空，用布局、节奏、尺度或图像占位来解决，而非填充文字。
+Keep slides sparse. If a slide feels empty, solve it with layout, rhythm, scale, or imagery placeholders, not filler text.
 
-## 原型规则
+## Prototype Rules
 
-交互式原型：
+For interactive prototypes:
 
-- 让主路径可点击
-- 包含关键状态：默认、hover/focus、加载、空、错误、成功（相关时）
-- 有用时用页内控件暴露变体
-- 除非有意作为原型的一部分，控件不要留在最终构图里
-- 刷新连续性重要时，用 localStorage 持久化重要状态
+- make the primary path clickable
+- include key states: default, hover/focus, loading, empty, error, success where relevant
+- expose variations with in-page controls when useful
+- keep controls out of the final composition unless they are intentionally part of the prototype
+- persist important state in localStorage when refresh continuity matters
 
-若原型意在建模一个产品流程，就设计整个流程，而非只是首屏。
+If the prototype is meant to model a product flow, design the flow, not just the first screen.
 
-## 变体规则
+## Variation Rules
 
-探索时默认至少给三个方案：
+When exploring, default to at least three options:
 
-1. **保守** —— 最贴近现有模式 / 风险最低
-2. **强契合** —— 对 brief 的最佳诠释
-3. **发散** —— 更新颖，有助于发现品味边界
+1. **Conservative** — closest to existing patterns / lowest risk
+2. **Strong-fit** — best interpretation of the brief
+3. **Divergent** — more novel, useful for discovering taste boundaries
 
-变体可以探索：
+Variations can explore:
 
-- 布局
-- 层级
-- 字号
-- 密度
-- 配色姿态
-- 表面处理
-- 动效
-- 交互模型
-- 文案结构
-- 组件形状
+- layout
+- hierarchy
+- type scale
+- density
+- color posture
+- surface treatment
+- motion
+- interaction model
+- copy structure
+- component shape
 
-不要做只是换颜色的变体，除非颜色正是问题所在。
+Do not create variations that are merely color swaps unless color is the actual question.
 
-用户选定方向后就收敛。不要让项目永远是一堆选项。
+When the user picks a direction, consolidate. Do not leave the project as a pile of options forever.
 
-## CLI/API 模式下的可调设计
+## Tweakable Designs in CLI/API Mode
 
-托管的 Claude Design 编辑模式工具栏在这里不存在。
+The hosted Claude Design edit-mode toolbar does not exist here.
 
-仍保留这个理念：有用时，添加名为 `Tweaks` 的页内控件。
+Still preserve the idea: when useful, add in-page controls called `Tweaks`.
 
-一个好的 `Tweaks` 面板可控制：
+A good `Tweaks` panel can control:
 
-- 主题模式
-- 布局变体
-- 密度
-- 强调色
-- 字号
-- 动效开 / 关
-- 文案变体
-- 组件变体
+- theme mode
+- layout variant
+- density
+- accent color
+- type scale
+- motion on/off
+- copy variant
+- component variant
 
-保持小巧、不打扰。隐藏 tweaks 时，设计应看起来是定稿。
+Keep it small and unobtrusive. The design should look final when tweaks are hidden.
 
-有用时用 localStorage 持久化 tweak 取值。
+Persist tweak values with localStorage when helpful.
 
-## 内容纪律
+## Content Discipline
 
-不要添加填充内容。
+Do not add filler content.
 
-每个元素都必须挣得自己的位置。
+Every element must earn its place.
 
-避免：
+Avoid:
 
-- 假指标
-- 装饰性统计
-- 泛化功能网格
-- 不必要的图标
-- 占位证言
-- AI 生成的注水章节
-- 改变策略或主张的杜撰内容
+- fake metrics
+- decorative stats
+- generic feature grids
+- unnecessary icons
+- placeholder testimonials
+- AI-generated fluff sections
+- invented content that changes strategy or claims
 
-若额外的章节、页面、文案或主张能改进制品，添加前先问。
+If additional sections, pages, copy, or claims would improve the artifact, ask before adding them.
 
-当文案必要但尚未定稿时，标为草稿或占位。
+When copy is necessary but not final, mark it as draft or placeholder.
 
-## 反套路规则
+## Anti-Slop Rules
 
-避免常见的 AI 设计污泥：
+Avoid common AI design sludge:
 
-- 咄咄逼人的渐变背景
-- 默认玻璃拟态
-- 除非品牌使用，否则用 emoji
-- 到处是图标的泛化 SaaS 卡片
-- 左边框强调的提示卡
-- 塞满任意数字的假仪表盘
-- 图库照片 hero 区
-- 用超大圆角矩形代替层级
-- 彩虹调色板
-- 没有内容的含糊标签，如「Insights」「Growth」「Scale」「Optimize」
-- 假装是产品图的装饰性 SVG 插画
+- aggressive gradient backgrounds
+- glassmorphism by default
+- emoji unless the brand uses them
+- generic SaaS cards with icons everywhere
+- left-border accent callout cards
+- fake dashboards filled with arbitrary numbers
+- stock-photo hero sections
+- oversized rounded rectangles as a substitute for hierarchy
+- rainbow palettes
+- vague labels like “Insights,” “Growth,” “Scale,” “Optimize” without content
+- decorative SVG illustrations pretending to be product imagery
 
-极简不自动等于好。密集不自动等于杂乱。有意地选择。
+Minimal is not automatically good. Dense is not automatically cluttered. Choose intentionally.
 
-## 套路诊断：先打分再修
+## Slop Diagnostic: Score Before You Fix
 
-AI 设计套路有一个很小、可预测的失败分布——让设计师去标注 AI UI 时。「这是 AI」的信号收敛到大约十个破绽。打磨或修复制品之前，把它当作一次显式的自查来跑，并写一份简短报告。**先诊断，后治疗**——一口气审计加修复会失败，因为模型的先验压过指令。它会重犯同样的错（该重排版时去换色，在构图问题上打磨字体）。
+AI design slop has a tiny, predictable failure distribution — designers asked to label AI UIs collapse the "this is AI" signal down to about ten tells. Before polishing or repairing an artifact, run this as an explicit self-audit and write a short report. **Diagnose first, treat second** — auditing and fixing in one breath fails, because the model's prior outweighs the instruction and it repeats the mistake (recolors when it needed re-layout, polishes type on a composition problem).
 
-十个破绽（每出现一个 = 一点套路分。越低越好）：
+The ten tells (presence of each = one point of slop; lower is better):
 
-1. **科技渐变** —— 什么都套蓝 / 紫 / 靛的光泽渐变。
-2. **通用科技色相** —— 默认强调色是靛 / 紫（不是为品牌选的，只是模型的偏爱）。
-3. **功能瓷砖网格** —— 图标 + 标题 + 一句话 × 3，全是等重，没有优先。
-4. **强调竖条** —— 卡片左侧一条彩色竖条：假装是组织的装饰。
-5. **无来由的模糊** —— 背后没有真正深度 / 层级系统的玻璃拟态。
-6. **纪念碑数字** —— 超大数字填满本该承载产品故事的空间。
-7. **图标顶饰** —— 每个标题上方居中的一个圆角方形图标（Tailwind 模板填充物）。
-8. **居中堆叠** —— 一切都居中，因为没真正定下构图。
-9. **默认字体** —— 默认用 Inter（或 system-ui），而非经过选择。
-10. **错误的界面** —— 构图与界面不匹配（例如在 Monitor 界面上放 hero）。这是其余多数问题的根因。
+1. **Tech gradient** — blue/violet/indigo glossy gradient on everything.
+2. **Generic tech hue** — the default accent is indigo/violet (not chosen for the brand, just the model's favorite).
+3. **Feature-tile grid** — icon + heading + sentence × 3, all equal weight, nothing prioritized.
+4. **Accent rail** — a colored left strip on cards: decoration pretending to be organization.
+5. **Unearned blur** — glassmorphism with no real depth/elevation system behind it.
+6. **Monument stat** — oversized numbers filling space that should carry product story.
+7. **Icon topper** — a rounded-square icon centered above every heading (Tailwind-template filler).
+8. **Center stack** — everything centered because no real composition was committed to.
+9. **Default type** — Inter (or system-ui) used by default rather than chosen.
+10. **Wrong surface** — the composition doesn't match the surface (e.g. a hero on a Monitor surface). This is the root cause behind most of the others.
 
-怎么跑：
+How to run it:
 
-- 给制品打 10 分制（10 = 套路拉满）。用一份简短报告说出分数，并列出触发了哪些破绽。
-- 把报告当作**上下文，而非待办清单**——它告诉你*该在哪里*花修复精力，并不规定具体编辑。
-- 然后按诊断对症修复：
-  - 破绽 3、8、10 → **重排版 / 重构图**（回到界面选择——不要换色）。
-  - 破绽 1、2、9 → **换色 / 换字体**（调色板与字体在这里确实是问题）。
-  - 破绽 4、5、6、7 → **去掉装饰**。用真正的层级（尺度、字重、间距）替换它。
-- 修复后重新打分。构图类破绽（3、8、10）仍在触发时，不要宣布完成——它们是病因，其余通常只是症状。
+- Score the artifact out of 10 (10 = maximum slop). State the score and list which tells fired, in one short report.
+- Treat the report as **context, not a to-do list** — it tells you *where* to spend repair effort, it does not dictate edits.
+- Then repair, matched to the diagnosis:
+  - tells 3, 8, 10 → **re-layout / re-compose** (revisit the surface choice — do not recolor).
+  - tells 1, 2, 9 → **recolor / re-typeset** (palette and type are genuinely the problem here).
+  - tells 4, 5, 6, 7 → **remove the decoration**; replace it with real hierarchy (scale, weight, spacing).
+- Re-score after repairing. Do not declare done while compositional tells (3, 8, 10) are still firing — those are causes, the rest are usually symptoms.
 
-把诊断与治疗分开的意义：让审计先抱怨，然后只修它抱怨的东西，并按该抱怨所要求的类别来修。
+The point of separating diagnosis from treatment: let the audit complain first, then fix only what it complained about, in the register the complaint calls for.
 
-## 排版
+## Typography
 
-若已有字体系统，就用它。
+Use the existing type system if one exists.
 
-否则，依据制品有意选择字体：
+If not, choose type deliberately based on the artifact:
 
-- 编辑风：衬线或人文主义标题配克制的无衬线正文
-- 软件 / 生产力：精确的无衬线配有力的数字处理
-- 奢华 / 极简：更少字重，更多间距纪律
-- 技术风：只用等宽做强调，不要到处等宽
-- deck：大、清晰、高对比
+- editorial: serif or humanist headline with restrained sans body
+- software/productivity: precise sans with strong numeric treatment
+- luxury/minimal: fewer weights, more spacing discipline
+- technical: mono accents only, not mono everywhere
+- deck: large, clear, high contrast
 
-当有更强的选择时，避免过度使用的默认值。
+Avoid overused defaults when a stronger choice is appropriate.
 
-若用 web 字体，字体族与字重数量保持少。
+If using web fonts, keep the number of families and weights low.
 
-先靠字体做层级，再考虑加框、图标或颜色。
+Use type as hierarchy before adding boxes, icons, or color.
 
-## 颜色
+## Color
 
-优先用品牌 / 设计系统的颜色。
+Use brand/design-system colors first.
 
-若没有调色板：
+If no palette exists:
 
-- 定义一个小系统
-- 包含中性色、表面、墨色、弱化文字、边框、强调色，需要时含 danger/success
-- 用一个主强调色，除非任务要求更广的调色板
-- 浏览器支持可接受时，发明的调色板优先用 oklch 以获得和谐
-- 对重要文字与控件检查对比度
+- define a small system
+- include neutrals, surface, ink, muted text, border, accent, danger/success if needed
+- use one primary accent unless the assignment calls for a broader palette
+- prefer oklch for harmonious invented palettes when browser support is acceptable
+- check contrast for important text and controls
 
-不要从零发明一大堆颜色。
+Do not invent lots of colors from scratch.
 
-## 布局与构图
+## Layout and Composition
 
-用节奏来设计：
+Design with rhythm:
 
-- 尺度
-- 留白
-- 密度
-- 对齐
-- 重复
-- 对比
-- 打断
+- scale
+- whitespace
+- density
+- alignment
+- repetition
+- contrast
+- interruption
 
-避免让每一节都是同样的卡片网格。
+Avoid making every section the same card grid.
 
-产品 UI 优先理解速度，胜过装饰。
+For product UIs, prioritize speed of comprehension over decoration.
 
-营销界面每节落一个想法。
+For marketing surfaces, make one idea land per section.
 
-仪表盘避免「数据套路」。只显示帮助用户决策或行动的数据。
+For dashboards, avoid “data slop.” Only show data that helps the user decide or act.
 
-## 动效
+## Motion
 
-把动效当作纪律，而非表演。
+Use motion as discipline, not theater.
 
-好动效：
+Good motion:
 
-- 讲清状态变化
-- 减轻加载时的焦虑
-- 展示界面之间的连续性
-- 给控件质感
-- 保持微妙
+- clarifies state changes
+- reduces anxiety during loading
+- shows continuity between surfaces
+- gives controls tactility
+- stays subtle
 
-坏动效：
+Bad motion:
 
-- 无目的地循环
-- 拖延用户
-- 自我标榜
-- 掩盖糟糕的层级
+- loops without purpose
+- delays the user
+- calls attention to itself
+- hides poor hierarchy
 
-对非平凡动画尊重 `prefers-reduced-motion`。
+Respect `prefers-reduced-motion` for non-trivial animation.
 
-## 图像与图标
+## Images and Icons
 
-有提供的真实图像时就用它。
+Use real supplied imagery when available.
 
-若缺资产：
+If an asset is missing:
 
-- 用干净的占位
-- 改用字体、布局或抽象纹理
-- 保真度重要时，索要真实素材
+- use a clean placeholder
+- use typography, layout, or abstract texture instead
+- ask for real material when fidelity matters
 
-不要画繁复的假 SVG 插画，除非任务明确是插画工作。
+Do not draw elaborate fake SVG illustrations unless the assignment is explicitly illustration work.
 
-避免图标，除非它改善扫读或契合设计系统。
+Avoid iconography unless it improves scanning or matches the design system.
 
-## 源代码保真
+## Source-Code Fidelity
 
-从仓库重建或扩展 UI 时：
+When recreating or extending a UI from a repo:
 
-1. 检查仓库树
-2. 找出真正的 UI 源文件
-3. 读主题 / token / 全局样式 / 组件文件
-4. 适当处照搬精确取值
-5. 匹配间距、圆角、阴影、文案语气、密度与交互模式
-6. 之后才设计或修改
+1. inspect the repo tree
+2. identify the actual UI source files
+3. read theme/token/global style/component files
+4. lift exact values where appropriate
+5. match spacing, radii, shadows, copy tone, density, and interaction patterns
+6. only then design or modify
 
-源文件可用时，不要凭记忆构建。
+Do not build from memory when source files are available.
 
-对 GitHub URL，正确解析 owner/repo/ref/path，设计前检查相关文件。
+For GitHub URLs, parse owner/repo/ref/path correctly and inspect the relevant files before designing.
 
-## 读取文档与资产
+## Reading Documents and Assets
 
-可用时直接读 Markdown、HTML、CSS、JS、TS、JSX、TSX、JSON、SVG 与纯文本。
+Read Markdown, HTML, CSS, JS, TS, JSX, TSX, JSON, SVG, and plain text directly when available.
 
-对 DOCX/PPTX/PDF，若有可用的本地提取工具就用。若没有，请用户提供导出的文本 / 图片，或走其他可用工具路径。
+For DOCX/PPTX/PDF, use available local extraction tools if present. If not available, ask the user to provide exported text/images or use another available tool path.
 
-对草图，优先用缩略图或截图，而非原始绘图 JSON，除非 JSON 是唯一可用来源。
+For sketches, prioritize thumbnails or screenshots over raw drawing JSON unless the JSON is the only usable source.
 
-## 版权与参考模型
+## Copyright and Reference Models
 
-不要重建某公司独特的 UI、专有命令结构、品牌化界面或精确视觉识别。除非用户明确拥有该来源的权利。
+Do not recreate a company's distinctive UI, proprietary command structure, branded screens, or exact visual identity unless the user clearly has rights to that source.
 
-可以提取通用设计原则：
+It is acceptable to extract general design principles:
 
-- 密集而不杂乱
-- 命令优先的交互
-- 单色配一个强调色
-- 编辑风层级
-- 清晰的空状态
-- 强键盘可供性
+- density without clutter
+- command-first interaction
+- monochrome with one accent
+- editorial hierarchy
+- clear empty states
+- strong keyboard affordances
 
-不可克隆专有布局、照抄品牌化界面或复制受版权保护的内容。
+It is not acceptable to clone proprietary layouts, copy exact branded surfaces, or reproduce copyrighted content.
 
-使用参考时，把姿态与原则转化为原创设计。
+When using references, transform posture and principles into an original design.
 
-## 验证
+## Verification
 
-最终响应前，尽环境所能地验证。
+Before final response, verify as much as the environment allows.
 
-最低要求：
+Minimum:
 
-- 文件存在于所述路径
-- HTML 完整保存
-- 检查了明显的语法问题
+- file exists at the stated path
+- HTML is saved completely
+- obvious syntax issues are checked
 
-更好：
+Better:
 
-- 在浏览器工具中打开并检查控制台错误
-- 在主视口检查截图
-- 测试关键交互
-- 测试亮 / 暗或变体（若有）
-- 相关时测试响应式断点
+- open in a browser tool and check console errors
+- inspect screenshots at the primary viewport
+- test key interactions
+- test light/dark or variants if present
+- test responsive breakpoints if relevant
 
-若验证受环境所限，明确说出验证了什么、没验证什么。
+If verification is limited by environment, say exactly what was and was not verified.
 
-若文件实际没写出来，绝不要说「完成」。
+Never say “done” if the file was not actually written.
 
-## 最终响应格式
+## Final Response Format
 
-最终响应保持简短。
+Keep final responses short.
 
-包含：
+Include:
 
-- 制品路径
-- 包含什么
-- 验证状态
-- 下一步建议动作（若有用）
+- artifact path
+- what it contains
+- verification status
+- next suggested action, if useful
 
-示例：
+Example:
 
 ```text
 Created: /path/to/Prototype.html
@@ -631,20 +631,20 @@ Verified: file exists and opened cleanly in browser, no console errors.
 Next: pick the strongest direction and I’ll tighten copy + motion.
 ```
 
-## 可移植的开场提示词模式
+## Portable Opening Prompt Pattern
 
-把 Claude Design 风格的请求适配到 CLI/API 模式时，用这个心智翻译：
+When adapting a Claude Design style request into CLI/API mode, use this mental translation:
 
 ```text
 You are running in CLI/API mode, not hosted Claude Design. Ignore references to hosted-only tools or preview panes. Produce complete local design artifacts, usually self-contained HTML with embedded CSS/JS, and verify with available local tools before returning. Preserve the design process: gather context, define the system, produce options, avoid filler, and meet a high visual bar.
 ```
 
-## 易错点
+## Pitfalls
 
-- 不要把托管工具 schema 粘贴进 skill。它们会导致假工具调用。
-- 不要让 skill 指向一个巨大的外部提示词当作必需的运行时上下文。那会产生漂移。
-- 在去除工具管道时，不要剥离设计信条。
-- 用户已给足方向时，不要问太多。
-- 没有品牌上下文的高保真工作，不要问太少。
-- 不要产出泛化 SaaS 布局还称之为「设计过」。
-- 除非真的做了，否则不要声称浏览器验证过。
+- Do not paste hosted tool schemas into a skill. They cause fake tool calls.
+- Do not point the skill at a giant external prompt as required runtime context. That creates drift.
+- Do not strip the design doctrine while removing tool plumbing.
+- Do not over-ask when the user already gave enough direction.
+- Do not under-ask for high-fidelity work with no brand context.
+- Do not produce generic SaaS layouts and call them designed.
+- Do not claim browser verification unless it actually happened.

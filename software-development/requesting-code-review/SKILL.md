@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: "提交前代码审查时使用：安全扫描、质量闸、独立审查子代理、自动修复环。只要要在 git commit/push 前验证改动，就主动加载，即使用户没明说 review。禁止代理自审自己的活。"
+description: "Pre-commit review: security scan, quality gates, auto-fix."
 version: 2.1.0
 author: Hermes Agent (adapted from obra/superpowers + MorAlekss)
 license: MIT
@@ -11,42 +11,45 @@ metadata:
     related_skills: [subagent-driven-development, test-driven-development, github]
 ---
 
-# 提交前代码验证
+# Pre-Commit Code Verification
 
-代码落地前的自动化验证流水线。静态扫描、基线感知的质量闸、一个独立审查子代理，以及一个自动修复环。
+Automated verification pipeline before code lands. Static scans, baseline-aware
+quality gates, an independent reviewer subagent, and an auto-fix loop.
 
-**核心原则：** 任何代理都不该验证自己的活。全新上下文才能发现你漏掉的东西。
+**Core principle:** No agent should verify its own work. Fresh context finds what you miss.
 
-## When to Use（何时用）
+## When to Use
 
-- 实现完一个功能或修完 bug 后，`git commit` 或 `git push` 之前
-- 用户说 "commit"、"push"、"ship"、"done"、"verify" 或 "review before merge" 时
-- 在 git 仓库里完成一个涉及 2+ 文件改动的任务之后
-- subagent-driven-development 里每个任务之后（那两阶段审查）
+- After implementing a feature or bug fix, before `git commit` or `git push`
+- When user says "commit", "push", "ship", "done", "verify", or "review before merge"
+- After completing a task with 2+ file edits in a git repo
+- After each task in subagent-driven-development (the two-stage review)
 
-**跳过：** 纯文档改动、纯配置微调，或用户说 "skip verification" 时。
+**Skip for:** documentation-only changes, pure config tweaks, or when user says "skip verification".
 
-**本技能 vs github：** 本技能在提交前验证**你**的改动。`github` 是带行内评论审查 GitHub 上**别人**的 PR。
+**This skill vs github:** This skill verifies YOUR changes before committing.
+`github` reviews OTHER people's PRs on GitHub with inline comments.
 
-## Step 1 — Get the diff（拿 diff）
+## Step 1 — Get the diff
 
 ```bash
 git diff --cached
 ```
 
-若为空，依次试 `git diff`、再 `git diff HEAD~1 HEAD`。
+If empty, try `git diff` then `git diff HEAD~1 HEAD`.
 
-若 `git diff --cached` 为空但 `git diff` 有改动，先让用户 `git add <files>`。若仍为空，跑 `git status`——没有东西可验证。
+If `git diff --cached` is empty but `git diff` shows changes, tell the user to
+`git add <files>` first. If still empty, run `git status` — nothing to verify.
 
-若 diff 超过 15,000 字符，按文件拆：
+If the diff exceeds 15,000 characters, split by file:
 ```bash
 git diff --name-only
 git diff HEAD -- specific_file.py
 ```
 
-## Step 2 — Static security scan（静态安全扫描）
+## Step 2 — Static security scan
 
-只扫新增行。任何命中都是一个安全问题，喂给 Step 5。
+Scan added lines only. Any match is a security concern fed into Step 5.
 
 ```bash
 # Hardcoded secrets
@@ -65,11 +68,13 @@ git diff --cached | grep "^+" | grep -E "pickle\.loads?\("
 git diff --cached | grep "^+" | grep -E "execute\(f\"|\.format\(.*SELECT|\.format\(.*INSERT"
 ```
 
-## Step 3 — Baseline tests and linting（基线测试与 lint）
+## Step 3 — Baseline tests and linting
 
-探测项目语言并跑对应工具。在你改动**之前**抓取失败数作为 **baseline_failures**（stash 改动、跑、pop）。只有你的改动引入的**新**失败才挡住提交。
+Detect the project language and run the appropriate tools. Capture the failure
+count BEFORE your changes as **baseline_failures** (stash changes, run, pop).
+Only NEW failures introduced by your changes block the commit.
 
-**测试框架**（按项目文件自动探测）：
+**Test frameworks** (auto-detect by project files):
 ```bash
 # Python (pytest)
 python -m pytest --tb=no -q 2>&1 | tail -5
@@ -84,7 +89,7 @@ cargo test 2>&1 | tail -5
 go test ./... 2>&1 | tail -5
 ```
 
-**Linting 与类型检查**（装了才跑）：
+**Linting and type checking** (run only if installed):
 ```bash
 # Python
 which ruff && ruff check . 2>&1 | tail -10
@@ -101,28 +106,33 @@ cargo clippy -- -D warnings 2>&1 | tail -10
 which go && go vet ./... 2>&1 | tail -10
 ```
 
-**基线对比：** 若基线是干净的、而你的改动引入了失败，那就是回归。若基线本就有失败，只算**新**的。
+**Baseline comparison:** If baseline was clean and your changes introduce failures,
+that's a regression. If baseline already had failures, only count NEW ones.
 
-## Step 4 — Self-review checklist（自审清单）
+## Step 4 — Self-review checklist
 
-派出审查者之前的快速自查：
+Quick scan before dispatching the reviewer:
 
-- [ ] 没有硬编码的密钥、API key 或凭据
-- [ ] 对用户提供的数据做输入校验
-- [ ] SQL 查询用参数化语句
-- [ ] 文件操作校验路径（无穿越）
-- [ ] 外部调用有错误处理（try/catch）
-- [ ] 没留下调试用 print/console.log
-- [ ] 没有注释掉的代码
-- [ ] 新代码有测试（若已有测试套件）
+- [ ] No hardcoded secrets, API keys, or credentials
+- [ ] Input validation on user-provided data
+- [ ] SQL queries use parameterized statements
+- [ ] File operations validate paths (no traversal)
+- [ ] External calls have error handling (try/catch)
+- [ ] No debug print/console.log left behind
+- [ ] No commented-out code
+- [ ] New code has tests (if test suite exists)
 
-## Step 5 — Independent reviewer subagent（独立审查子代理）
+## Step 5 — Independent reviewer subagent
 
-**仅限交互式会话。** 一次性运行（`hermes chat -q`、`--oneshot`、基准测试台）里没人接裁决。而且一个全新子代理要重新付出整个系统提示加一遍仓库重读的代价：跳过 Step 5 与 7。把 Step 4 清单自己套到 diff 上，跑测试，直接去 Step 8。
+**Interactive sessions only.** In a one-shot run (`hermes chat -q`, `--oneshot`, a
+benchmark harness) there is no one to hand the verdict to and a fresh subagent re-pays
+the whole system prompt plus a repo re-read: skip Steps 5 and 7, apply the Step 4
+checklist to the diff yourself, run the tests, and go to Step 8.
 
-直接调 `delegate_task`——它在 execute_code 或脚本里**不可用**。
+Call `delegate_task` directly — it is NOT available inside execute_code or scripts.
 
-审查者**只**拿到 diff 与静态扫描结果。与实现者无共享上下文。Fail-closed：无法解析的响应 = fail。
+The reviewer gets ONLY the diff and static scan results. No shared context with
+the implementer. Fail-closed: unparseable response = fail.
 
 ```python
 delegate_task(
@@ -168,13 +178,13 @@ Return ONLY this JSON:
 )
 ```
 
-## Step 6 — Evaluate results（评估结果）
+## Step 6 — Evaluate results
 
-合并 Step 2、3、5 的结果。
+Combine results from Steps 2, 3, and 5.
 
-**全部通过：** 去 Step 8（提交）。
+**All passed:** Proceed to Step 8 (commit).
 
-**有任何失败：** 报告失败项，然后去 Step 7（自动修复）。
+**Any failures:** Report what failed, then proceed to Step 7 (auto-fix).
 
 ```
 VERIFICATION FAILED
@@ -186,11 +196,12 @@ New lint errors: [details]
 Suggestions (non-blocking): [list]
 ```
 
-## Step 7 — Auto-fix loop（自动修复环）
+## Step 7 — Auto-fix loop
 
-**最多 2 轮修复并重验。仅限交互式会话（见 Step 5）。**
+**Maximum 2 fix-and-reverify cycles. Interactive sessions only (see Step 5).**
 
-spawn 出**第三**个 agent 上下文——不是你（实现者），也不是审查者。它**只**修报告出来的问题：
+Spawn a THIRD agent context — not you (the implementer), not the reviewer.
+It fixes ONLY the reported issues:
 
 ```python
 delegate_task(
@@ -213,22 +224,23 @@ Fix each issue precisely. Describe what you changed and why.""",
 )
 ```
 
-修复 agent 完成后，重跑 Step 1-6（完整验证循环）。
-- 通过：去 Step 8
-- 失败且尝试 < 2：重复 Step 7
-- 2 次后仍失败：带上剩余问题升级给用户，并建议用 `git stash` 或 `git reset` 撤销
+After the fix agent completes, re-run Steps 1-6 (full verification cycle).
+- Passed: proceed to Step 8
+- Failed and attempts < 2: repeat Step 7
+- Failed after 2 attempts: escalate to user with the remaining issues and
+  suggest `git stash` or `git reset` to undo
 
-## Step 8 — Commit（提交）
+## Step 8 — Commit
 
-若验证通过：
+If verification passed:
 
 ```bash
 git add -A && git commit -m "[verified] <description>"
 ```
 
-`[verified]` 前缀表示有一位独立审查者批准了这次改动。
+The `[verified]` prefix indicates an independent reviewer approved this change.
 
-## Reference: Common Patterns to Flag（参考：要标出的常见模式）
+## Reference: Common Patterns to Flag
 
 ### Python
 ```python
@@ -251,21 +263,23 @@ element.innerHTML = userInput;
 element.textContent = userInput;
 ```
 
-## Integration with Other Skills（与其他技能的配合）
+## Integration with Other Skills
 
-**subagent-driven-development：** 每个任务后都跑它作为质量闸。两阶段审查（规格合规 + 代码质量）用的就是这条流水线。
+**subagent-driven-development:** Run this after EACH task as the quality gate.
+The two-stage review (spec compliance + code quality) uses this pipeline.
 
-**test-driven-development：** 这条流水线验证 TDD 纪律是否被遵守——测试存在、测试通过、无回归。
+**test-driven-development:** This pipeline verifies TDD discipline was followed —
+tests exist, tests pass, no regressions.
 
-**plan：** 验证实现是否匹配计划要求。
+**plan:** Validates implementation matches the plan requirements.
 
-## Pitfalls（坑）
+## Pitfalls
 
-- **空 diff** —— 查 `git status`，告诉用户没东西可验证
-- **不是 git 仓库** —— 跳过并告知用户
-- **大 diff（>15k 字符）** —— 按文件拆开，逐个审查
-- **delegate_task 返回非 JSON** —— 用更严的 prompt 重试一次，仍不行就当 FAIL
-- **误报** —— 若审查者标了本就有意为之的东西，在修复 prompt 里说明
-- **找不到测试框架** —— 跳过回归检查，审查者裁决照常跑
-- **lint 工具没装** —— 静默跳过该检查，不算失败
-- **自动修复引入新问题** —— 算作一次新失败，循环继续
+- **Empty diff** — check `git status`, tell user nothing to verify
+- **Not a git repo** — skip and tell user
+- **Large diff (>15k chars)** — split by file, review each separately
+- **delegate_task returns non-JSON** — retry once with stricter prompt, then treat as FAIL
+- **False positives** — if reviewer flags something intentional, note it in fix prompt
+- **No test framework found** — skip regression check, reviewer verdict still runs
+- **Lint tools not installed** — skip that check silently, don't fail
+- **Auto-fix introduces new issues** — counts as a new failure, cycle continues
