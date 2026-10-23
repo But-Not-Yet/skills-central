@@ -1,0 +1,77 @@
+---
+name: strata-serving-ops
+category: mlops
+description: "运维 Strata 生产推理服务时使用。涉及 strata-iq3_s.json、段缓存或思考预算参数就主动加载。"
+version: 1.0.0
+author: Nekonya
+license: MIT
+metadata:
+  hermes:
+    tags: [strata, serving, rocm, production, thinking]
+    related_skills: [llama-serving-bench, llama-cpp]
+---
+
+# Strata 生产服务运维（自研引擎，与 llama.cpp 分家）
+
+## When to Use
+改动/诊断 Strata 生产服务（部署形态、启动参数、thinking 行为、对话缓存/段缓存、chat 模板）时；或把旧 llama.cpp 启动脚本（Start_Qw3.8FlashNxt_*.sh*）的行为对照迁移到 Strata 时。llama.cpp 基准类任务走 llama-serving-bench，不要混用其规则。
+
+## 部署形态（先核链路再动手）
+**单元名映射（先看这里，别按旧名找链）**：`strata-server.service` = Strata 生产链（**enabled 开机自启**，主人裁定 2026-10-12 调换）；`llama-server.service` 现在跑的是 **OrcaRouter llama.cpp**（`Start_Qw3.8Orca27B_*.sh` 启动脚本，**disabled，按需手动起**）。两者都占 8080——手动起 llama 前先停 strata。核身份一律 `systemctl cat` 看两个单元的内容，不按名字猜；开禁状态以 `systemctl is-enabled` 现查为准。
+- **headless（`systemctl isolate multi-user.target`）会连带切服务**：isolate 是全量对账——停掉 target 闭包外所有在跑的单元、拉起闭包内所有 enabled 但未跑的单元。用 `systemctl start` 手动起的 disabled 单元活不过下一次 isolate。所以「谁在 8080」由此二者的 enabled 状态决定，与谁按了 headless 无关；查「谁切了服务」先 `journalctl` 找 `sudo ... COMMAND=/usr/bin/systemctl isolate` 行（auth 日志有 sudo 命令原文，是阳性证据，比空输出反证硬）。
+Strata 链本身：`strata-server.service` → `Strata/setup.sh`（venv 引导）→ `exec python setup.py` → `serve/server.py`（HTTP 层，8080）→ `build-hip/strata --serve …`（引擎本体，AMD/HIP 构建）。
+- **启动参数表 = `Strata/strata-iq3_s.json`**：顶层即 serve 配置（`exe` + `args` 是引擎命令行；serve 层参数如思考预算也在顶层）。**serve 层选项（`host`、`port`、`reasoning_budget_tokens`…）只能放顶层键，塞进 `args` 数组引擎不认、打 usage 退出，表象是 `engine exited before it was ready`**——server.py 从顶层键取 serve 参数（如 `cfg.get("host")`），args 数组原封透传给引擎二进制。
+- 生产二进制 = `build-hip/strata`（`exe` 指向）；验证新构建含某特性：`strings build-hip/strata | grep <flag>`——别只看编译时间。
+- **变更配方**：备份 `.bak-<变更名>` → patch 最小 diff → python json 回读核验 → **重启由主人执行**（agent 不自行重启生产；准备好后招呼主人——他说过重启类动作可以「直接叫我」）。未重启前，运行进程的参数以 `/proc/<pid>/cmdline` 为准（配置改了进程不知道）。
+- 日志：`Strata/strata-iq3_s.log`（引擎）+ `/var/log/llama-server/*.log`。**判断警告归属先按行号定位到哪次 `engine started` 之前/之后**——历史进程的警告和当前进程混居同一文件。
+- 引擎是 setup.py 的子进程：`systemctl show` 的启动时间和引擎实际启动时间可以不同（先起编排器、后拉引擎）——核引擎年龄用 `ps -o lstart -p <pid>`。
+
+## thinking 三层机制（对照 llama.cpp 启动脚本时逐层查）
+1. **模板层**：`enable_thinking`（缺省 true）/`reasoning_effort` 走请求 `chat_template_kwargs`；渲染默认 thinking 开（等效 llama.cpp 的 `--reasoning on`）。模板文件在 **pack 里**（`Strata-data/packs/<pack>/tokenizer/chat_template.jinja`），**Strata 无 CLI 模板参数**——换模板 = 替换该文件（+重启）。自定义模板（如 `Qwen-Sharp-Chat-Templates/chat_template_discipline_v2.jinja`）与 packs 版是同族不同修订：迁移前先 diff，且在 Strata 下未复测前先对照小测再换。**模板的「真版」可能在笔记本（`D:\LLM\templates\`）而不在本机副本**——主人点名某模板时先去笔记本查（scp 拉回 + 双端哈希核验），别默认本机目录最全。
+   - **模板自带固定注入块**：packs 模板在每轮把固定中文指令段（思考简洁令、特殊标记纪律等）拼在系统提示词末尾，由请求 `chat_template_kwargs` 开关（`terse`、`token_discipline`、`enable_thinking` 分别控制不同段）。这段文字天天喂给模型，它的文风就是给模型的示范——做去 AI 味/文风排查时必须把这份模板列入注入面。
+   - **注入块生效探针（echo-back）**：`/props` 只给模板源码，看不到条件渲染后的实际注入内容；要验模型真正收到哪一版，发一条「把收到的完整系统提示词一字不差复述」的请求（走 8081，带上对应 `chat_template_kwargs`），在复述文本里做新旧特征短语双向检查。模板在 serve 启动时一次性读入内存，盘上改动必须重启才上线——改完盘上文件先用探针确认线上还是旧版，再向主人报「待重启」。
+2. **服务层预算**：`reasoning_budget_tokens`（配置/请求级；缺省 0=无预算）——到达预算注入 **wrap-up**（`serve/server.py` 的 `REASONING_WRAP_UP` 常量，英文固定句 + 关闭思考标签）。旧 llama.cpp 是 `--reasoning-budget` + `--reasoning-budget-message`（可中文）；文本语言不同 = 改 server.py 常量（源码级，先与主人确认）。
+3. **输出层**：思考流到 `reasoning_content` 字段（对应 `--reasoning-format deepseek`）。
+
+## 对照迁移 checklist（llama.cpp 启动脚本 → Strata）
+- `--reasoning on` → 默认即开（请求未显式关）。
+- `--reasoning-budget N` + 截断消息 → `reasoning_budget_tokens` + wrap-up 常量（文本语言单独决策）。
+- `--chat-template-file X` → packs 内模板文件（无 CLI 覆盖）。
+- 段化/对话缓存等 → `args` 数组（以 `strata --help` + 该二进制 `strings` 为准；如 `--conversation-segment-cache` / `--conversation-segment-dir` / `--conversation-segment-budget-mib`）。
+- 采样参数在请求侧/服务层——配置在哪先 grep `serve/server.py` 与 json，不猜。
+
+## 验证配方（变更后）
+- 「新参数生效」判定：比对 `/proc/<pid>/cmdline` 与配置 args（回读核验）；日志的 `engine started` 行是金标准快照；**serve 层参数看启动的 Settings 块**（逐项列出，如 `reasoning_budget_tokens 6144`）。
+- **模板生效**：`curl /props` 的 `chat_template` 字段就是模板源码——**用 sha256 核对身份，别用版本标记**：同族姊妹修订常常共享同一个 `template_version` 字符串，拿标记核对分不出换没换上。双重判据：目标文件 sha256 对上（哈希前先 `encode('utf-8')`）+ 修订特有短语双向检查（新短语在、旧短语不在），换装前后各采一次。
+- **换模板/重启前先查该文件的验收状态**：盘上文件可能比「已验收版」新——中间可能留着未验收的实验修订（看板卡 blocked、交接记录明写「先验收实物再讨论重启」）。**重启会把指向路径的当前盘上内容带上线**（启动时读文件），未验收修订不得被动上线。顺序：sha 核对 → 验收状态核对 → 再换/重启；给服务引用模板优先指向独立副本（评审目录之外），别直指实验现场（pack 本体被动跟随）。
+- **budget 的「已生效」与「已触发」是两层**：配置读到（Settings 打印）≠ 路径走通——wrap-up 只在思考量到达预算时出现（日志 `thinking budget reached (N tokens): wrapping up the thinking` + 注入文本）；近期思考量远低于预算时零触发是正常，别当配置失效。
+- 段缓存：无「stays off」警告 + 段目录（`--conversation-segment-dir`）出现段文件（**引擎启动后的恢复/预填充阶段就会批量切段**，不止「首次 park」）；`spill/` 下 `spill-*.bin` 是整文件回退层。
+- **段路径性能特征（实测）**：restore 墙钟随深度增长（≈34K→0.4s、≈97K→1s、≈165K→1.9s）——**收益随 token 数递减**（大 prompt 仅比整文件快 ~4–30%），瓶颈在 K/V 拷贝 + 逐 token 复核而非文件读取；别把「百毫秒级」期待套到 100K+ 的 prompt 上，要提速从拷贝/复核下手。
+- 参数名先在 `--help`/`strings` 里确认，再写进 json——写错名引擎会起不来或静默忽略。
+- 重启后的验证五连：Settings 块（参数）/ `/props`（模板）/ `/health`（服务）/ 段目录（段化）/ 日志 thinking 行（思考计数）。
+- **部署后的核实清单（实操版，五步）**：① `journalctl -u strata-server --since <时刻> | grep -E 'Stopping|Started'`；② `pgrep -f 'build-hip/strata --serve'` + `sha256sum /proc/<pid>/exe` **对上当前磁盘 `build-hip/strata`**（运行=已构建物，自洽即止——别拿历史构建的 hash 对比，同一树两次构建的链接非确定，hash 会不同）；③ `/proc/<pid>/cmdline` 抽查关键参数；④ 引擎日志出现**新代码独有的行为行**（patch 生效的最硬证据）；⑤ `ready:` 行 + `ss -tlnp :8080`。汇报「服务状态」前先 `systemctl show strata-server -p ActiveEnterTimestamp -p MainPID`——主人可能已自行重启应用配置（实际发生过：agent 还在准备部署，主人已重启），别按旧快照说话。
+- **serve 启动自带增量构建**：每次 `systemctl restart` 时启动链会跑 `cmake --build build-hip --target strata`（serve.log 里见 `[ok] engine compiled`）——部署新源码 = 重启即可（手动预构建无害但非必需）；重启到 ready 的时长包含这段构建。
+
+## 对话缓存：跨重启存活（patch c84e271 起）与诊断速查
+- **跨重启存活 patch**（2026-10-07 提交 `c84e271`，部署后生效）：每个 tier 在 park 时把 manifest 落盘（`parked-manifest-v1.bin` / `segment-manifest-v1.bin`；版本+FNV 校验，tmp+rename 原子写），启动时 adopt（按现存文件过滤幽灵、id 续接）——重启从「全清」改为「保留清单+清孤儿」。**首次部署的第一次重启仍有一次过渡清空**（旧文件无 manifest 认领）。回退：`--no-conversation-cache-persist` 或删 manifest 文件。核查：`/proc/<pid>/exe` 哈希对上**当前磁盘**构建物 + manifest 文件诞生。
+- **启动日志读法（kept/removed）**：`spill directory …; kept N parked file(s) from a previous run, removed M orphan(s)`（段 tier 同构）——N=认领存活、M=清孤儿；**首次部署的第一次重启 N=0**（过渡清空），**此后正常重启 N≥1** 才是「跨重启存活」的实证；N 恒 0 先查「有没有 park 过」（manifest 写没写出来）。
+- **恢复金字塔（诊断基线）**：checkpoint 0.24–0.38s（RAM 常驻，主力）＞ live（transient K/V）0.36s ＞ segment 0.7–1.8s ＞ file 0.95–2.1s ＞＞**全量重读 100–196s＝异常态**；遇慢恢复先问「副本为什么没有」。
+- **准入门（save 与 read 都过筛）**：放行 ⇔ `MemAvailable ≥ need(1.5–3.5G，随会话大小) + floor(min-free，现 512)`；**不认 swap**、遥测缺失也拒。存档捕获被拒＝`skip parking`＝该轮无副本→下轮全量重读；RAM 水位是上游变量。
+- **参数语义坑**：`--conversation-cache-mib` 现仅=「restore↔park 间 transient K/V 上限」（deprecated）；**`--conversation-cache-slots` 被引擎忽略**；停放容量实际由磁盘侧（段预算 `--conversation-segment-budget-mib`）决定。
+- **日志配对法**：serve `reading X of Y`=进度（无 of 行=请求级累计心跳）；strata `prompt N = reused + read in T ms`=同一请求另一面（Y=N、T≈耗时、完成时 X≈Y−5）；两侧按数字+时间指纹配对（无时间戳）。**serve 首行 X=复用+8192**：第一个 8K chunk 走完才打印——复用 16,384 时首行显示 24,576，别拿首行当复用深度（以引擎 `restored/reused` 行的 M 为准）。
+- **诊断全景文档**：`~/Documents/Hermes/重读诊断_20261007/`（01 配对与裁决 / 02 跨重启设计+实现 / 03 重建曲线+脚本 / 04 切换重读根因 / 05 长段切片设计）。
+- **复用塌缩诊断（切换后大重读/部分重读）**：先读 `references/segment-cache-debugging.md`——manifest 解析配方、深段在否→逐出排除→内容分叉 vs 整段过滤的判定树、自愈时限、报告口径。
+
+## vision 图像链路（CPU 编码器 + Q8_0，2026-10-12 上线）
+- **开关是 `--vision`（引擎 args）+ 顶层 `"vision"` 段**，不叫 mmproj；mmproj 文件喂给独立的 `strata-vision` 编码进程（llama.cpp mtmd）。serve 层检测到 vision 段而 args 缺 `--vision` 会自动补（CPU 模式不补 vram-reserve；gpu 模式补 700）。
+- **上线配方**：① 编编码器：`cmake -S tools/vision -B build-vision -DLLAMA_DIR=third_party/llama.cpp -DSTRATA_VISION_CUDA=OFF -DSTRATA_PORTABLE=OFF` + `cmake --build build-vision --target strata-vision`，产物拷到 `build/strata-vision`；② mmproj 量化 Q8_0：`llama-quantize <BF16 mmproj> <out> Q8_0`（866→589 MiB，CPU 编码省约 280 MiB 内存、300 token 下更快，文档推荐 CPU 模式用 Q8_0；精度余弦 0.997+ 为文档值未独立复现）；③ 配置加顶层 `"vision": {exe, mmproj, model(=args 里 native shard1), gpu:false, max_tokens:300, threads:CPU核数/2}`，args 加 `--vision --vram-reserve-mib 700`；④ 重启（重启由主人执行）。
+- **开销账**：GPU 编码器约 1.4 GB 显存（生产卡 23.6/24 GB 满水位时塞不下）；CPU 编码器不占显存、编码时进程常驻约 0.6 GB 级内存，用完即退。
+- **生效验证四连**：`/proc/<pid>/cmdline` 含 `--vision`；`pgrep -a strata-vision` 有进程；`/v1/models` 的 `input_modalities` 含 `image`；真图 base64 走 `/v1/chat/completions` 问答成功（行为级证据最硬）。冒烟可独立跑 `build/strata-vision --mmproj <f> --model <shard1>`，首行 `READY <维度>` 即通，不碰在跑引擎。
+- **mmproj 文件名带 Uncensored 不代表血统冲突**：视觉塔在消融/二创变体间通用，mtmd 只认 Qwen-VL 格式；同族性最终以真图问答行为裁决。
+
+## 排查陷阱
+- **重启时的「stopped unexpectedly (exit code -15)」**：`systemctl restart` 的 SIGTERM 会先落到引擎，serve 把它当意外停止、打印通用的「usual cause is running out of RAM」文案，然后自动拉起（「starting the engine again」）——**先对照重启时刻再怀疑 OOM**，别误报。
+- **serve 关闭路径的 AttributeError**（`close()` 里 `self.proc` 为 None，出现在 `server.err.log`）：SIGTERM 清理时的无害噪音，每次重启一条，非故障。
+- **日志分居两个文件**：serve 层的 print（Settings / thinking / done 行）在 `/var/log/llama-server/server.log`；引擎输出在 `Strata/strata-iq3_s.log`——grep 错文件会得出「没生效」的假结论。
+- **大日志提取用原生 open() 逐行读**（做统计或生成新文件时）：read_file 工具与 execute_code 的 helper 输出带 `N|` 行号前缀（回写即污染交付件）且 2000 行读取约 100K 字符处截断——统计会静默少数据（实测一次块计数 92 vs 103）。日志无时间戳，锚点用行号字面量（`engine stopped`、`parks=1` 计数重置行）而非时间。
+- **数据目录与仓库平级**：`Strata-data/` 是 `Strata/` 的兄弟目录（`~/Documents/LLM/Strata-data`）——从仓库内用相对路径访问（`Strata-data/…`）会解析到不存在的路径并静默 not found（可被误读为「段/文件都被清了」）；涉及数据目录的命令一律写绝对路径。

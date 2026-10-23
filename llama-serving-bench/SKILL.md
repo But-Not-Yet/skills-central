@@ -1,0 +1,133 @@
+---
+name: llama-serving-bench
+description: 在生产机（AMD/ROCm）上基准 llama.cpp 服务、验证生产二进制身份、规划停机窗口或重建 fork 官方树时加载。同样覆盖：内存缓存失效诊断、cgroup 冷缓存编排、CUDA 崩溃、KV cache 量化选型、跨语言 token 计数、显存与宿主缓存核算。对『这个构建』下任何结论前先验它的身份。
+version: 1.0.0
+author: Nekonya
+license: MIT
+metadata:
+  hermes:
+    tags: [llama.cpp, benchmark, ROCm, production, downtime-window]
+---
+
+# llama.cpp 服务基准（生产机）
+
+## 何时使用
+
+在主人的 AMD/ROCm 生产机上基准 llama-server 服务配置（load-mode、缓存、buffers）、验证生产服务实际跑的是哪个构建树。或规划任何需要重启生产服务的测试时。覆盖二进制身份、停机窗口协议、基准卫生。
+
+## 生产二进制身份（对「这个构建」下任何结论之前先做）
+
+机器上有大量 llama-server 二进制（多个裁剪/fork 构建树）。未先钉死生产身份，禁止对「这个构建」做版本或能力声明：
+1. `systemctl show <service> -p ExecStart`，解析实际脚本，再解析它指向的实际 BIN 路径。
+2. `ps` 查看运行中进程，逐参数与脚本 cmdline 对比。运行与脚本漂移会发生（进程启动后文件里的参数被改过）。发现漂移要向主人报告，绝不悄悄「修好」。
+3. 对该精确二进制跑 `--version`，用 commit 对照该树的 `git log -1`。
+特性可用性以生产二进制自身的 `--help` 加该树源码 grep 为准，别的树的特性不算数。
+**服务名会换链**：动手前 `systemctl cat llama-server.service strata-server.service` 看哪个单元跑哪条链（现状：`llama-server` = OrcaRouter llama.cpp 脚本、`strata-server` = 老 Strata 链手动启动。详细映射在 strata-serving-ops）。看内容，不看名字。
+
+## systemd 托管与免密停启（桌面 llm 宿主机）
+
+- **单元骨架**（OrcaRouter 现行形态）：`ExecStartPre` 等 `/dev/kfd`+`renderD128` 就绪（60s 循环）、`SupplementaryGroups=render video`。`StandardOutput/Error=append:<LLM 工作目录日志>`（沿用前台运维的同一文件名，连续性优先于 /var/log 惯例）、`Restart=on-failure`+`RestartSec=30`+`OOMPolicy=continue`。`StartLimitIntervalSec/Burst`。
+- **改单元内容原地覆盖同名文件，不要 mv/改名**：enabled 状态挂在单元名上，同名覆盖 = 开关保持。改名会把 wants 符号链接指空。`systemctl set-property` 生成的 drop-in（`/etc/systemd/system.control/<unit>.d/`）同样随名字自动保留。
+- **需要 root 的改造走「一键粘贴」**。agent 把新单元写 /tmp，并配一个迁移脚本。脚本按序做：备份原单元 → `install -m 644` 装齐全部单元 → `daemon-reload` → disable/enable → 停手起实例 → `systemctl start` → 健康与模板指纹验证 → 打印结果。主人贴一行 `sudo bash /tmp/<script>.sh`。脚本必须「先装齐、后动运行实例」，这样前面任何一步失败服务都不掉线。
+- **agent 免密停启（维护类动作）**。本机 sudoers 为 agent 圈了 `systemctl stop/start llama-server.service llama-socat.service` **两参形式**（单参会落回密码路径）与 `is-active llama-server.service`。**预检技巧：对已运行服务跑 start 两参形式 = 无害空操作**。先跑它验证 sudoers 匹配，再走 stop→start 循环。避免停完才发现没有启动权限。基准测试的停机窗口协议不变（测试类重启仍由主人来跑）。
+- **手动实例交棒 systemd**：停手起实例先 TERM 宽限几秒（忙时它在等 in-flight 长任务收尾），存活则升级 SIGKILL。清场核验 = 进程空、端口空、`rocm-smi` 显存归零。显存归零才算真清场，然后 start。
+
+## 停机窗口协议（主人偏好的分工）
+
+凡需重启生产服务的测试，批量进一个停机窗口，由 agent 事先写入文件的自动化脚本驱动。主人亲自停启服务，agent 不自行重启生产。脚本把所有结果写盘（CSV + 每臂日志），主人只需说「跑完了」，agent 直接读产物文件，不需要手工粘贴。之后一起读数，胜出配置由主人亲自应用到启动脚本。
+
+生产服务状态突变（意外停止/变更）先归因再动作：`grep <时段> /var/log/auth.log` 抓 sudo 行（含 `TTY=` 与确切断停命令。交互 TTY ≈ 人操作。agent 无真实 TTY，其动作查 Hermes agent 日志），`journalctl -u <svc> --since/--until` 看启停史，再确认没有 agent lane 动过。三者齐了才下「谁干的」结论。归因未定：不宣告「不是小喵」，也不擅自重启。
+
+主人明确下令代起服务时（如换新模型上线）：用 Hermes 后台终端 + **`persist_on_release=true`** 起。普通后台会随会话生命周期清理被带走。先在小端口走 CPU（`-ngl 0`）冒烟再上生产口，验收 = 两层进程在 + `/health` 200 + 一条真实生成。给主人的观察入口 = `tail -f <日志>` 附一条过滤版 grep，agent 侧另布哨兵把 error 级行 tee 到单独文件。
+
+脚本骨架（已验证形态）：
+- 非 root（drop_caches）或生产服务未确认停止（对其端口 `pgrep` 守卫）则拒绝运行。另守卫测试端口上的残留实例（`pgrep` 测试端口，告诉主人 `kill -9`）：中途 Ctrl-C 会留下 nohup 的 server 占着 RAM/VRAM。
+- 各臂定义为 name|extra-flags 行。默认跑全部臂，参数可选子集走短窗口。
+- 从生产脚本的 exports 逐字重建测试实例环境（ROCR_VISIBLE_DEVICES、LD_LIBRARY_PATH、GGML_* 环境量）加测试端口和 `--no-webui`。除实验开关外所有参数钉死生产值，各臂只差那个实验 flag。
+- 每臂：启动前 `sync; echo 3 > /proc/sys/vm/drop_caches; sleep`（公平冷启动），计时启动到 /health 就绪，预热请求（不计时）。然后用 /completion API 的 `timings` 对象做计时探针：冷 PP 用 max_tokens=1，第二次相同调用 = 走缓存的 PP。生成探针固定 seed 和 max_tokens。测量窗口内对 server PID 采样 pidstat，前后记 MemAvailable。
+
+## 生产机在线增量构建（引擎跑着时的代码迭代）
+
+- 增量构建（几个翻译单元）峰值 ≈ 单 TU 2–4GB，动手前先 `free -m` 读 available，`ninja -j2/-j4` 削并行峰。余量撑不住就走停机窗口：哨兵盯到编译进程出现即叫主人停服务。编译+测试完再拉起（占 50GB 级 RSS 的引擎停机后全机都是构建余量）。绝不自行重启生产、绝不 kill 引擎进程。
+- 长时间内存压力后 `drop_caches` 无济于事：内核早把干净页缓存回收光了（buff/cache 只剩个位数 GB），drop 不出余量。别把它当止损手段报给主人，那会误导判断。
+- OOM 保命：给生产引擎写 `oom_score_adj=-1000`，让 OOM killer 牺牲外围进程而不是占 RSS 大头的引擎。这比任何「小心点跑」都可靠。
+- 构建进程哨兵用 `pgrep -x` 按进程名匹配（ninja/hipcc/clang/lld），脚本先写入文件再运行。cmdline 模式会自中（模式词就在哨兵自己的命令行里，或被盯服务本身就住在被盯路径下）。完整三坑与规则见 unattended-mission-planning 陷阱节。
+- `pkill -f` 杀服务同样会自中：模式匹配 agent 自己的命令行，命令自杀（症状 exit -15、后续输出全丢）。用 `[l]` 字符类起头（`pkill -f '[l]lama-server.*<port>'`）或按 PID kill。脚本起的 server 是两层，持端口的是子进程，别只杀 wrapper。
+
+## 桌面/图形会话的内存取舍
+
+主人问「关桌面/进 headless 能不能给 LLM 腾内存」「停 display manager 会不会登出」「切模式值不值」时，先读 `references/desktop-session-memory-tradeoff.md`。含 DM 自身内存的真相（几十 MB，不是大头）、停 DM 的 cgroup 级联终止机理、isolate 正确姿势、该丢/不该丢清单。以及给建议前先量的命令。要点：**腾内存省的是整个 DE 会话，不是 DM**。swap 已在地板时切模式可能收益为负，先量再答。
+
+## 宿主机内存与推理缓存调优
+
+长上下文请求 0 复用、park write failed / park 劣化日志刷屏、盘满、复用停落在 16K 网格点（装配漂移）。要把冷缓存编排进 swap 或给服务设 cgroup 内存压力时，先读 `references/host-memory-cache-tuning.md`，里面有缓存失效诊断流程。MemoryHigh 定标算术（锁页效力必须 smaps 实测，「驱动注册=硬锁」已被证伪）、thrash 指纹判别。以及本路线证伪后的应用层溢出替代方案、验证四连。引擎无关。
+
+## 宿主 OS 升级决策（LTS → LTS）
+
+主人问「要不要把生产机升到新 LTS」「升了有性能收益吗」「图形栈/驱动会怎样」时，先读 `references/os-upgrade-decision.md`。要点：**先读活体内核（`uname -r`）再谈，别从发行版号推内核**。LTS 走 HWE 时内核早就更新了。（本机 24.04.5 跑着 7.0）走厂商源的图形/计算栈常已超前于目标发行版（升级=降级）。AMD GPU 有内核级 ROCm 回退史。真实代价是 venv 断裂 + systemd 行为变 + 第三方源重配。
+
+## 构建替换 / fork 发布跟踪
+
+从活跃开发的 fork 重建生产树时，「最新」= **`release.json` 记录的当前 release**（release/base/tip/tree。它随每次发布重新生成，**版本号码可能比已推送的最新 tag 更新**：tag 会滞后，不能当唯一判据。release 提交之后的分支尖端只有文档/wip 提交）。在声明的 base 上重放补丁集（官方 `scripts/apply-all.sh` 逐块 `git am`。分支名冲突用 `RDNA_BRANCH=` 覆盖），**树哈希必须与 release.json 逐位一致才算官方树**。生产构建只用官方树，本地优化件（cache-disk 补丁等）不得混入，除非主人明确要求走本地线。完整配方与替换后的日志对比法（边际率对比、启动记账差异、消失的警告作为激活证据）在 `references/fork-release-rebuild.md`。
+
+## 基准卫生（跑前写死的预注册判据）
+
+- 淘汰标准开跑前写下，例如「解码较基线臂回退 >10% 即淘汰该臂」。读数不追溯重定义判据。
+- 冷路径与缓存路径每臂分开测。缓存复用检查（同 prompt 重发一遍、检查复用比例）兼作 load-mode 没破坏 prompt cache 的正确性检查。
+
+## CUDA 崩溃与生命周期（llama-server 专用）
+
+- **禁止短时间反复强杀 llama-server**（`taskkill /F`、`kill -9` 连发）。观察到的后果：引擎加载成功、服务起好。在处理第一个真实请求时死于 `CUDA error: illegal memory access`（崩点位于 mmq 核函数的属性装配环节）。干净恢复 = 重启整机。重启后若仍复现，排查顺序：换回已知好的启动脚本 → 关 `--fit on` 写死层数 → 降 ctx。
+- 强杀后第一次启动**必须**先把恢复验实再宣告：进程在（按端口守卫）、`/health` 200、一次真实预热请求通过。三者齐才算数。只看进程在不算：崩溃那次进程也是先活着加载完的。
+- Windows 下远程起服务：`Start-Process cmd /c xxx.bat` 分离启动后**拿不到引擎 stdout**：想要崩溃日志就得提前配好重定向（`-RedirectStandardOutput`）。别指望事后从黑窗口里捞。
+
+## KV cache 量化选型（混合注意力与大 ctx 预算）
+
+- 算 KV 占用前**必须从该模型的 config.json 读几何**（`full_attention_interval`、`num_key_value_heads`、`head_dim`、总层数），别拿同族其他模型近似。混合注意力只有全注意力层有 KV cache，层数差一倍结果差一倍。
+- KV 量化档的精度结论**不得超出官方实测覆盖范围**：needle 检索通过 ≠ 长文档 PPL 无损，更 ≠ 任务质量无损。选型优先有目标模型专属实测的档。只有精度警示数据的档（如 q4_0 的 PPL +8-12%）是次选。引用时写明官方实测只覆盖什么。
+- 跨语言比 token 成本用 `/tokenize` 端点数真 token，别用字符数：中文约 0.5–0.7 tok/字，英文约 0.25 tok/字符。字符数对比能把结论符号弄反。`/tokenize` 也可精确对比模板变体的注入成本。
+- 容量预算是减法：可用 ≈ 卡容 − 权重 − 图缓冲余量（2–3 GB 起）。量化倍率：q8_0 ≈ f16 的一半、q4 ≈ 四分之一。实例：24 GiB 卡 + ~10 GB 权重 + 256K 上下文只剩 q8_0 一档（≈8.5 GiB。f16 ≈16 GiB 出局），所以要用 `-ctk q8_0 -ctv q8_0`。
+- 大 ctx 服务的 VRAM 读数要**等负载跑过再采**。负载态分配（计算图运行期缓冲与运行时）会把占用从空闲水位抬高。实测空闲 ~23.3 GB，负载中 ~25.4 GB，总 25.75 GB。近满是这类服务的正常状态、不是泄漏。对外说「还有余量」前用负载后读数。注意 context checkpoints **不占 VRAM**：它们住在系统内存里（源码 `common_prompt_checkpoint` 为宿主 vector），别把它算进显存增长的解释。
+- 回答「显存都被什么占了」的记账法：按启动段逐项读 `buffer size` 行。逐项包括模型（ROCm0）、主 KV、RS。主 KV 启动即按整个 -c 预分配。RS 是混合 GDN 循环状态专用缓冲，纯注意力模型没有这笔。此外还有主 compute。草稿上下文也要单列（投机解码是第二套 KV+compute）。显式项合计后 ~1.5–2 GB 差额是 ROCm 运行时、计算图运行期、对齐的未逐项残差，要如实标注。用 `rocm-smi --showpids` 核进程级占用。完整条目与实例见 `references/service-memory-accounting.md`。
+- 宿主缓存旋钮：`--cache-ram`（MiB。**默认 8192**、0=关、-1=不限）与 `--cache-idle-slots`（默认开但要求 cache-ram>0。被关时有日志签名 `requires --cache-ram, disabling`）。老启动脚本可能继承模板遗产 `--cache-ram 0` 把缓存静默关掉。回答「能不能给 Cache 开 X GB」前先 grep 启动脚本现值，再给「改动+重启窗口」方案。
+- **K≠V 混合精度政策**：rdna-boosts 树对**所有模型**源码级硬拒混合 K/V（`src/llama-context.cpp` 的 `type_k != type_v` 检查。注释理由=实测混合对慢 1.7–3.6×、never smaller。这笔是速度账，非质量账）。上游只对 MLA/DeepSeek4 拒。FA 内核组合是编译期产物（`GGML_CUDA_FA_QUANTS` 默认同型对，可加 `q8_0-q4_0` 或 `"all"`。`GGML_CUDA_FA_ALL_QUANTS=ON`），configure 日志的 FlashAttention K-V type combinations 行即清单。放行=源码级解锁（env 开关保持默认语义 + 编译非对称组合 + 重建。融合路径注释自称假设 K==V，承诺效果前先侦察改动面）。支持性问题走源码/构建面证据链回答，不为演示跑加载实测。主人的质量排序：混合（K 高精+V 低精）优于对称低档。方案被禁时，给出解锁改动的工作量报价，由主人拍板。**不要拿 q4_0-q4_0 之类对称档当替代推荐**。
+
+## 吞吐读数：从引擎日志抠，别拿小探针下结论
+
+回答「这个服务 tg/pp 多少」先解析引擎日志的计时行做 token 加权统计，探针只做日志不可用时的替补：
+- llama.cpp 族日志行格式：`prompt eval time = … ms / N tokens ( … tokens per second)` = PP、`eval time = …` = TG。正则抠 TG 行必须负向后顾 `(?<!prompt )`，否则 `prompt eval time` 行被两条规则同时匹配上，TG 混进 PP 变假数。
+- Strata serve 日志行：`prompt N tokens = R reused + X read in Y ms (…), G generated in Z ms (TOK tok/s), drafts accepted …`，括号里的即该请求 TG。
+- 聚合脚本形状：逐行抽出 (tokens, tok/s)。先滤掉 tokens<20 的小请求（预热/探活会拉低均值）。均值=Σtokens/Σ(tok/s÷1000) 即 token 加权，P10/P50/P90 同过滤窗口并报。
+- 日志路径不明：`ls -l /proc/<引擎PID>/fd/2` 直接看 stderr 落点（serve 包装层的 .log 常在项目目录而非 ~/logs 惯例位置，`ls -t ~/…/*.log` 会扑空）。
+- **小探针系统性低估稳态**：几十至几百 token 的冷短请求里，投机解码接受率、专家/页缓存、prompt cache 都还没热。同机同日单发探针 16 tok/s vs 日志加权 64.6（差 4 倍），3000+ token 的长请求探针才勉强接近。拿探针宣称「服务慢」之前：先看日志分布，被主人纠正过一次这种错账。
+- 远程 Windows 的 server 日志：scp 回本地再 grep（远端 findstr 往返慢，编码错配还容易报出假的零结果），见 ssh-windows-remote-ops。
+
+## 工具陷阱（cost time once, remember forever）
+
+- `-np/--parallel` 是劈槽不是扩窗：n_ctx_slot = -c ÷ n-p，`-c 65536 -np 2` 得到两个 32768 槽，单条超长 prompt 服务必须 `-np 1`。health 200 对槽被劈半毫无察觉，生效核验以启动日志 `n_ctx_slot` 行为准。
+- 解读吞吐读数：专家层全上 CPU（-ncmoe 全层）时，瓶颈换成宿主内存带宽。GPU 利用率 20-30% 仍跑出 40 t/s 解码属正常。别按「GPU 闲置」归因。llama.cpp 新版日志有周期进度行 `n_gen = N, tg = X t/s, tg_3s = Y`，tail 日志即得实时值（tg_3s 为 3 秒瞬时窗口），不必等收尾汇总行。
+- llama-server 接 SIGTERM。若优雅清理挂起（见过：ROCm/HIP teardown 卡在 `cleaning up before exit...` 后），两次 SIGTERM 都被吞、进程存活，测试实例直接 `kill -9`。基准脚本在臂间宽限期后 SIGTERM→SIGKILL 升级。
+- 模型还在加载时 `/health` 返回 503。裸 `curl -s` 对任何 HTTP 响应都退 0，所以启动到就绪的循环必须用 `curl -sf`。症状：几秒就「就绪」，首个 completion 请求 HTTP 503。相关：lazy-mode 下加载很快完成（几十秒、RSS 很小），但就绪仍须以 /health 200 加一次成功预热为门。**但预热过 ≠ 负载健康：首条完整负载请求仍可能崩，崩了按 FAIL 终止、不重试。**
+- server 日志时间戳是 mm.ss.mmm（如 `0.35.421` = 35.4 秒），不是秒。误读会让新 server 看起来跑了几小时。用 `ps -o lstart` 核进程年龄。
+- `pidstat` 不带 `-r` 只打印 CPU 统计，只有 CPU 列。永远 `pidstat -r -p $PID 1`。代价实录：两列 CSV 静默把 %usr/%system 记成了 minflt/majflt 峰值（2026-10-03，被外部审计抓到）。带 `-r` 时 PID 后的列是 minflt/s majflt/s，Time 列可能含 AM/PM 字段，要按定位 PID 字段来解析，不用固定下标。
+- 外部审计能抓到自审漏掉的：上面的 pidstat 列 bug，还有一个过期环境量名穿过几轮评审没被发现。把收到的审计当待核声明（读 pidstat 文件自己的表头、grep 源码树），然后明确接受/拒绝。
+- 残留测试实例占着基准端口会让下一臂 bind 失败（`couldn't bind HTTP server socket`），看起来像那臂的 flag 失败其实不是。每臂清理后验证端口确实空闲（curl /health 必须拒绝），归因 FAIL 先读 server 日志尾部再怪 flag。
+- `/completion` 响应的 `timings` 键是 `prompt_n / prompt_ms / prompt_per_second / predicted_n / predicted_ms / predicted_per_second`。没有 `predicted_tokens` 也没有 `eval_count`，解析错键再配 `.get(..., 0)` 得到静默 0.0。先拿真实捕获的响应把键名查清，再写解析器。
+- 计时探针永不重试。首次失败已填了服务端 prompt cache，重试不再「冷」（见过：冷/缓存/解码时间全同、`cache_n` ≈ 整个 prompt）。每探针一次。失败就记 FAIL，不记重试数字。
+- 把多个探针的 timings 存 JSON 时，存每个探针自己的响应对象。复用循环最后 body 会让所有键相同。
+- prompt 缓存全部复用时 PP tps 无意义（prompt_n ≈ 0）。诚实的缓存指标是响应里的 `prompt_ms`（重算延迟）。CSV 列名照此标。
+- Prompt 规模：行数 × 每行词数，先对 token 量级做合理性检查再信「~4k token」的注释（见过：2400 行 × 13 词 ≈ 46k tokens）。
+- 空结果（臂 == 基线）只有在被测 flag 的激活被证明过才成立。若 flag 的成功路径静默（只有失败打 WARN），「无错误」不是激活证据。至少用其一证明激活：(a) 日志里的正面 INFO 行。(b) 对照臂的失败签名：若该 flag 的变体只在机制活着时才可能坏成那样（如 O_DIRECT 对未对齐 pread 报 EINVAL）。干净臂可证明到了同一层。(c) 为机制设计的判别探针（dio 绕过 page cache → 比较加载期 `/proc/PID/io` pgpgin 或 `/proc/vmstat` 增量）。都没有就报「无可测收益，机制激活未验证。判别实验很便宜，值得跑」。
+- 计算受限段的空 diff 对 IO 路径 flag 什么都不能验证：被测阶段是 GPU 计算受限（如 PP 几百 t/s）时。读路径改动藏在计算之下，无论激活与否 A/B 都相等。IO 旋钮要在 IO 是瓶颈的场景判（冷加载时间、缺页计数、page-cache 增量），并声明结论适用于哪个场景。
+- rdna-boosts 树的 dio 兼容性（2026-10-03）：`--load-mode dio` + `--lazy-mode on` 干净（0 错误）。但加 `--lazy-buffer-size 16G` 会在推理时刷 `llama-lazy-reader.cpp:290 pread failed: Invalid argument`（11×）。组合臂失败本身就是结果，留在矩阵里并记录失败。
+- `pgrep -f` 会匹配 llama-server 的每个线程（本机十几条同 cmdline）：当存在性守卫可以，拿去计数会误导。也别用 `pgrep -x llama-server` 当残留守卫：会抓到无关实例（LCM 2B server）挡住合法运行。按端口模式守卫。
+- rdna-boosts 树的 llama-bench 参数可用性（`--help` 验证，2026-10-03）：`-lm/--load-mode`（含 dio）和 `-lzm/--lazy-mode` 已接线。`--lazy-buffer-size` 和 `--cache-ram` 没有，需要这些 flag 的臂只能对 llama-server 实例测。也没有 `-c/--ctx-size`：llama-bench 自己算 ctx（`n_ctx = n_prompt + n_gen + n_depth`，llama-bench.cpp:1293）。传 `-c` 报 `error: invalid parameter for argument: -c` + 全量 usage（代价实录 2026-10-03：跑起来打印 usage 一秒内退出，外层输出看着像「help text」。读了 .err 才定位到真错误）。
+- 多值参数（如 `-lm none,dio`）让 llama-bench 一条命令自己跑双臂对比。`-o json` 出可解析输出。
+- llama-bench 默认值与生产不同（`-ub 512` vs 生产 2048）：不对齐 `-b/-ub/-fa/-ctk/-ctv/-t/-ngl/-ncmoe` 到生产脚本值。PP/TG 数字对 server 测量就无意义。关键：不带 `-ncmoe <生产值>`，`-ngl 99` 会把整个 90 GB 模型塞进 24.5 GB GPU，加载时报 `cudaMalloc failed: out of memory`（代价实录 2026-10-03。详细错误只在 `--verbose` 出现，普通跑的 .err 只说 "failed to load model"）。
+- 自定义 server 基准测量块要第二意见。与同加载路径的 llama-bench 裸吞吐交叉验证（脚本：项目 framework 目录的 `bench_lbm_cross.sh`，`-p 4096 -n 64 -r 1`）。两边不一致先怀疑自定义块：它有 bug 历史，llama-bench 没有。
+- 2026-10-03 交叉验证基线：llama-bench tg64 ≈ server decode_tps（23.74/23.86 vs 23.59-23.68，<1.1%），解码交叉验证通过。llama-bench pp4096（683.7，热态）vs server cold_pp（573.8）差约 19%，这个差就是 lazy 冷读 IO 成本，方向一致，不是错误。
+- `systemctl start llama-server` 约 1 秒内 exit 1 死亡，先当 VRAM 问题：systemd journal 只说 `status=1/FAILURE`。真实原因在 `/var/log/llama-server/server.err.log`（`load_tensors` 下的 `cudaMalloc failed: out of memory`）。第一嫌疑：残留测试实例还占着 VRAM（先 kill -9 再查 `pgrep -f 'llama-server.*--port'` 才重启生产）。
+- 用 bash `printf` 追加含 `%` 的文本会炸（"invalid format character"），改用 heredoc `cat >>`。
+- Agent 的 sudo 可能要密码。需要 root 的脚本按上面的停机窗口协议交给主人跑。
+- 哨兵过滤要带**已知无害行排除表**。llama-server 启动固定警告（`common_fit_params: ... n_gpu_layers already set by user to 99, abort`、`no API key is set`、端口变更 notice、`--cache-idle-slots requires --cache-ram`）会被 fail/abort 关键词误报，所以要配过滤链 `grep -E '...' | grep -vE 'failed to fit params|no API key|...'`，notify 词表只留 error/abort/OOM/illegal/assert/crash。误报一次就补一行排除，别让同一行反复消耗注意力。
+- `ps` 的 %CPU 是进程全生命周期平均，间歇负载的引擎会显示一个虚假的中间值（如「占 6 核」实为平均）。瞬时线程画像要在真实生成进行中采样（`top -H`/`pidstat -t`），请求间歇全是 0%，两帧之间不能比。

@@ -1,0 +1,9 @@
+{
+  "last_report_path": "/home/alonzo/.hermes/logs/curator/20260922-162153",
+  "last_run_at": "2026-09-22T16:21:53.180865+00:00",
+  "last_run_duration_seconds": 0.270329,
+  "last_run_summary": "auto: 5 archived; llm: skipped (consolidation off)",
+  "last_run_summary_shown_at": "2026-09-22T16:21:53.180865+00:00",
+  "paused": true,
+  "run_count": 1
+}

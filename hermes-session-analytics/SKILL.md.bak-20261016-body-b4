@@ -1,0 +1,61 @@
+---
+name: hermes-session-analytics
+description: 主人要统计本机 Hermes 的历史交互时加载：交互模式、谁何时用哪个模型、复读退化、会话轮换、时段分布、worker 各臂表现。产出带口径标注的统计报告，不是感觉叙述。
+version: 1.0.0
+author: Nekonya
+license: MIT
+metadata:
+  hermes:
+    tags: [session-history, analytics, lcm, state-db, model-attribution, chinese]
+---
+
+# 会话库行为分析（Hermes 本地存储）
+
+## When to Use / 何时使用
+
+主人要分析历史交互时：交互模式、谁在什么时候用什么模型、复读/退化、会话轮换、时段分布。worker 各臂表现。产出物是**带口径标注的统计报告**，不是感觉叙述。
+
+## 数据源地图（先钉死，别猜路径）
+
+- `~/.hermes/lcm.db`：`messages`（store_id / session_id / role / content / tool_calls / timestamp）、`metadata`（含 `compaction_telemetry:<sid>` 键的 JSON）、`summary_nodes`。原文分页用 `lcm_load_session`。大输出会溢写盘（spillover），用 read_file / execute_code 分页读，别重复请求同一数据。
+- `~/.hermes/state.db`：**sessions**（每会话权威聚合：model、billing_base_url、started_at/ended_at、message_count、tool_call_count、api_call_count、input/output/**reasoning**_tokens、source、title、profile_name）、**session_model_usage**（会话 × 模型：first_seen / last_seen / api_call_count / tokens）。
+- `~/.hermes/profiles/<profile>/state.db`：各人格（coder / red-team-auditor / researcher）自己的会话。worker 记录 `source='kanban'`。
+- 看板任务：`~/.hermes/kanban.db` 可能是 **0 字节死文件**——不要读它，用 `hermes kanban list --archived --json` 导出（含 status / started_at / completed_at / model_override / provider_override / session_id）。
+- 所有库都以只读 URI 打开：`sqlite3.connect(f'file:{p}?mode=ro', uri=True)`。
+
+## 模型归属切段（本类最容易做错的一步）
+
+- **禁止**用 `sessions.model` 给整会话贴标签：会话可中途换模型，该字段常只是最后一个模型。
+- **禁止**用 `compaction_telemetry.model` 判聊天模型——它是**摘要器**模型，与聊天模型可以不同（实测存在两者矛盾的会话）。
+- 正确做法：用 `session_model_usage` 的 `(first_seen, last_seen)` 区间做时间切段，按 `billing_base_url` 判本地/云端（`127.0.0.1` / `localhost` = 本机服务口）。系统注入的「active model changed to X via provider Y」公告做锚点校核。每条消息归到「发出时在岗」的模型。
+
+## 客观代理优先，语义正则禁止
+
+主人明确否决过用正则给消息打语义标签（误伤 + 假信号）。可用客观量：
+
+- 消息长度分布、短消息占比（≤40 字）、时段分布、会话寿命与开工间隔。
+- 工具调用频率：`tool_calls` JSON 长度 / assistant 消息数、每轮工具数（轮 = 两条主人消息之间）、与 state.db 的 `tool_call_count` 交叉核。
+- 复读：同会话内 ≥200 字 assistant 回复的**全文精确 hash** 重复率 + 相邻同文率。
+- 吞吐 / 思考：state.db 的 `output_tokens` / `reasoning_tokens` ÷ `api_call_count`。
+- **思考原文不落盘**（全库无 thinking 标记），per-message 思考长度测不了。能测的只有「服务端上报了 reasoning 的那些调用」，样本少就标待核。
+- 需要语义分类（工作负载类型）时：**人工读头部会话的首条消息**并按体量加权，不写正则。
+
+## 数据处理陷阱（每条都踩过）
+
+- **入库重复**：相邻同 `(role, content)` 行是入库伪影，统计前先折叠。不折叠会把复读率虚高（空内容的工具载体行尤其多）。
+- **时间戳是入库时刻，不是发送时刻**：主人消息与回复常同毫秒 → **响应延迟 / 回合墙钟无法从库里测**。别拿 0.0s 当结论，直接声明作废。
+- **非相邻的同文重发**（间隔数分钟、隔着十几次工具调用）才是真复读——用 store_id 间距 + 时间差判别。
+- `ended_at` 常在最后活动很久之后 → 桌面会话可横跨数天，**每小时速率会被闲置稀释**。速率类指标只用短命会话（worker）或显式声明偏差。
+- 结论**必须先按时间分层**。引擎修复前后混在一起会把引擎问题记到模型头上（同症状在云端是否出现是必要对照）。
+
+## 归因纪律（主人纠正过的方向）
+
+- 服务层故障（进程卡住、缓存破坏）与模型行为（复读、跑偏）分开陈述。
+- 会话轮换（短时间连开新会话）先查编排 / 任务切分形态（无人值守链 = 一任务一会话是设计形态）。再考虑「模型退化」假设。
+- 报告里避免「全部 / 没有任何 / 从未」这类全称：只声明实测覆盖到的面。未覆盖面显式列出（红队检察官专抓这条）。
+
+## 交付形态
+
+- 先人话结论，再上表。每个数字标口径与出处。已知局限单列一节。
+- 中间产物落 scratch 的分析目录（可复跑）。报告归档与否交主人拍板。
+- 具体 SQL / Python 配方见 `references/query-cookbook.md`。
