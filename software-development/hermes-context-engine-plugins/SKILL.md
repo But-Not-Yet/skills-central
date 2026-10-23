@@ -157,3 +157,4 @@ python3 -I -c "import sys; sys.path.insert(0,'/home/alonzo/.hermes/hermes-agent'
 ## 深度
 
 `references/tiered-kernel-map.md`：包装器插件实例（Tiered）的六面生命周期、摘要载体回插合同、后台验证器成本审计与发布清单。
+`references/host-display-order-forensics.md`：UI 消息顺序错乱的宿主侧取证路径（state.db display_order 触发器/回填/插入口）与插件/宿主归因判据，含宿主源码补丁的更新存活策略。

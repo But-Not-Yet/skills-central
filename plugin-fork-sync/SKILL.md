@@ -19,6 +19,7 @@ metadata:
 
 ## 动手前必查
 
+- **宿主源码补丁（非 fork）先确认更新机制**：读 `install-stamp.json` 的 `updateMechanism`。git checkout 的更新会 autostash 本地改动，pull 后尝试 `stash apply`；上游改同一文件时补丁留在 stash 不落地。用本地分支+提交（更新器检测到自定义分支改走 `git merge`）或补丁文件+重贴脚本，别把未提交改动留在 detached HEAD 上。
 - **上游是否已修目标问题**：读 release notes 全文再下结论，关键词计数不算——修复可能换了措辞；再 `git grep <symbol> upstream/main` 核新树实物。「没修」的结论要有 0 命中或代码实物支撑，推断级结论标「待核」。
 - **上游 schema 兼容性**：notes 里找「schema change / rollback」字样——插件级升级若声明不动存储 schema，就不需要数据迁移，这条直接决定重构/升级路线的成本评估。
 - **许可证与 PR 策略**：先开 issue 探上游意向再从 fork 分支提 PR；PR 不成且许可证允许 → 止损切自有分支大改，不为上游排队。
