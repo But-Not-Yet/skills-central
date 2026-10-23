@@ -118,10 +118,12 @@ metadata:
 - **进度把握被质疑时交「信息源×落笔时间×活体事实」对照表**：主人说「我感觉你进度把握有问题」这类话，别再辩护结论，现场重建账本——枚举每个写状态的地方（审计原文、整改卡、旧报告、代码实物、看板活体、产物文件、快照节），每行用 git author/commit date 挂上落笔时刻，再对当日活体（读码、find 产物、kanban_list 现查）；落笔之后存在触碰涉事文件的提交，即该行过期时刻。根因叙述按转录链走：谁在何时把谁的旧快照抄成了现行说法。表每一行必须带一句白话说明这行说的是什么事（见 delivery-critic-gate 人话闸），引用与时间是证据不是正文。
 - **worker 跑得久 ≠ 卡死：下「慢/卡」判断前先读它的日志**：完整 worker 日志在 `~/.hermes/kanban/logs/<task_id>.log`，逐条记录工具调用、耗时与收尾报告。代码写入型 worker 还要看 workspace 文件 mtime/新增测试：日志只有 `Session:`、心跳在、文件却在连续更新，就是在写；连续 10 分钟无新写入再按卡死处理。久跑的常见正当原因：① 全套用例本身长（大仓逐文件串行可达 ~25 分钟，单文件可到 40s）。② worker 正在做 **stash 基线比对**（见下条）。判活体看 heartbeat 连续性与日志末行的当前步骤，不看秒表。据此回复主人前先取证。把正常长跑报成错误结论，比慢本身更糟。
 - **重复循环的收尾签名与恢复**：日志末尾出现 `Response dominated by repeated text — stopping the stream mid-loop` 加 `[kanban-worker-exit] rc=1`，进程可能已成 `Zs [hermes] <defunct>`，卡却仍挂 running。处置顺序：① `hermes kanban log <id> | tail` 与 `ps -p <pid>` 取证；② `hermes kanban reclaim <id>` 放回 ready；③ 先验它倒下前是否已提交（`git log` / `git status` / 跑套件），有货就 `hermes kanban complete --force <id> --summary ... --metadata ...` 结案，别急着重跑；④ 没货或只差一小步，就开一张极小的跟进卡，卡体写死「两条命令都过就提交并结案，不许再研究 X」。重复循环多发生在提交后的自检、导入、测试顺序这类歧义上，开放式调查会再次把它送进同一圈。
+- **连败 gave_up 且崩溃 run 在工作树留了未提交半成品**：别直接 unblock 让新 run 从零重写（劳动蒸发＋可能再撞同一循环）。先 `git status`/逐文件时间戳分清哪些改动属本卡、哪些是崩溃 run 越界乱摸的，然后 `kanban_comment` 给下一个 worker 写交接评论再 unblock：①先 `git diff` 逐个读半成品，判断可用/要补，别从零重写也别盲目全收；②越界文件先 `git checkout --` 还原；③**小步提交**——每修完一条含测试跑绿就单独 commit，短回合专治长回复复读崩。再连败就把卡拆成两张更小的卡（按条目族切），单卡上下文压力是复读的根因之一。
 - **弱模型任务书要带停止条件**：机械卡写「通过即提交，不扩大调查」；否则 35B 会在 `importlib.reload`、测试顺序这类歧义上反复自证。
 - **worker 的 `reasoning_effort` 是 profile 级，不是卡级**：机械活把 coder/researcher profile 的 `reasoning_effort` 从 `xhigh` 调到 `medium`（先备份原配置）；xhigh 会让 35B 在导入/测试顺序这类歧义上反复自证。难任务要 high 就单独改配置或开 high profile，不在卡里偷偷放大。
 - **并行第二台机器时，第二张卡只做文件不相交或只读分析**：两个 worker 同时改同一仓库并各自 commit 会抢 git index；优先派只读报告卡（`workspace dir` 指文档目录、不改仓库），或给 worktree。并行前逐个核 profile/provider/模型，主会话分别验收。worker 禁用 `git stash`/`git add -A`；`git stash` 会把另一个 worker 正在改的文件卷走。
 - **「全套无回归」必须可审计**：套件里本就存在既有失败时，卡规格要写明「先 `git stash` 跑一次基线、逐文件比对」。要证明失败是既有而非本次引入。验收时抽验它给出的基线比对结论：只报「全绿」而基线里本就有红的，等于没验。反之基线一致则是合格证据，不要把既有失败算成回归。
+- **同树有在跑 worker 时给测试失败做归因取证**：用 `git stash push -u` 跑一次干净 HEAD 再立刻 `stash pop`——stash 会短窗卷走在跑 worker 的半成品，做一次就收手，别反复。别用「另开 worktree 检出旧提交跑测试」定罪：测试若经 sys.path 指向活插件目录 import，旧 worktree 里跑的仍是活树的新代码，「旧提交也红」结论无效，只有活树 stash 后的读数作数。flaky 嫌疑连跑 N 次全绿（哪怕 20 次）只降嫌疑不定罪——低频竞态证不伪，措辞用「未定罪未排除、挂观察名单」，别说「已排除」。
 
 ## 相关技能
 
