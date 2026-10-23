@@ -146,9 +146,9 @@ python3 -I -c "import sys; sys.path.insert(0,'/home/alonzo/.hermes/hermes-agent'
 - **读大型源码文件要分段读**。整文件读取的结果会被上下文管理层自动存根成一行占位符。被存根后回**原文**重读，结论不许建在存根或摘要上。
 - **同一插件可能被宿主装载两次**（通用插件系统一份 `hermes_plugins.<name>`，context-engine 目录路径一份 `_hermes_user_context_engine.<name>`）。**两份的钩子命运不同**：只有通用系统那份的 `register_hook` 真的注册；目录路径那份拿到的是 `_EngineCollector`，它继承 `plugin_loader.NoopPluginContext`，只重写 `register_context_engine` 与 `register_command`，基类里 `register_tool = register_hook = register_cli_command = register_memory_provider = _noop`。
   - 后果一：**`plugins.disabled` 只关插件，不关引擎**。`config.yaml` 的 `plugins.disabled` 命中 `gate_manifest` 后插件路径整条跳过，但 `context.engine: <name>` 仍会把同一目录当引擎装进来。此时引擎在跑、钩子全丢，两边都能在日志里看到「成功」。
-  - 后果二：**插件自己打的「hook active」日志不是证据**。`register()` 不论拿到真 ctx 还是 Noop collector 都会照打成功行；验收要看钩子的可观测产物（有心跳的契约文本、卡片文件、`api_content` 侧车里出现注入段），不看那行日志。
+  - 后果二：**插件自己打的「hook active」日志不是证据**。`register()` 不论拿到真 ctx 还是 Noop collector 都会照打成功行。实现上要数真的落进了 registry 的钩子：全部到位且 ctx 不是 noop 才打 INFO `hook active: hooks=N`；否则打 WARNING `hooks NOT registered: M/N landed`。验收仍要看钩子的可观测产物（有心跳的契约文本、卡片文件、`api_content` 侧车里出现注入段），不看日志。
   - 后果三：**包内兄弟模块必须用相对导入**。以合成命名空间装载时 `from request_probe import record` 必然 `ModuleNotFoundError`，被 fail-open 吞成 WARNING；探针/台账这类「没有数据就当作没问题」的部件，会安静地永远不跑。凡探针零样本，先 grep 它的导入失败告警，再决定「没发现问题」这句话能不能说。
-  - 模块级可变状态要假设有两份独立副本；跨副本共享走磁盘原子写，不靠模块全局。
+  - 模块级可变状态要假设有两份独立副本。**同进程内**共享走 `sys.modules` 里一个合成模块盒子（`types.ModuleType` + 一个 dict，两份副本都取到同一个对象）；跨进程才走磁盘原子写。**钩子尤其要单飞**：第一份走到 `register()` 的实例在盒子里认领所有权，第二份只打一行 INFO 说明谁拥有、不再注册。不认领的话，引擎侧 collector 一旦换成真 collector（或宿主改了装载顺序），每个钩子立刻双触发，两份去重状态互相打架——tiered 今天靠引擎侧 noop 碰巧没双发，那是侥幸不是设计。认领按角色名比对（同一角色重跑 `register()`，例如插件 reload，必须放行），不要做成一次性布尔。
 - **定位装配/顺序问题，在生命周期两端各放一个纯内存探针**：`post_llm_call` 看装配历史，`select_context` 看 wire 请求。探针只扫内存、入队，懒线程写盘；队列封顶丢最旧；默认关，fail-open。装配历史不等于 wire；回答「是否发给模型」只用 wire 探针/prompt_snapshot，不拿 post_llm 的 index 0 当证据。
 - **审查自研插件/框架前先读项目史。** 先 `git log --oneline --all`、`git tag`、`git remote -v`、测试数与审计台账，再用 commit 出现顺序区分「主干」与「后挂模块」。把后挂模块当主干，会写出方向错的路线图。
 - **区分「闸」与「导向」。** 本用户的插件设计偏好是导向：提示、路标、软注入、可恢复；硬拦只留给不可逆动作且逐项拍板。默认 fail-open、留手动恢复阀；不要用「闸」描述软机制。
