@@ -1355,14 +1355,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-06T20:35:43.571291+00:00",
     "last_reused_patch_generation": 1,
-    "last_used_at": "2026-10-23T06:03:26.608745+00:00",
-    "last_viewed_at": "2026-10-23T06:03:26.585216+00:00",
+    "last_used_at": "2026-10-24T06:08:09.378410+00:00",
+    "last_viewed_at": "2026-10-24T06:08:09.370730+00:00",
     "patch_count": 1,
     "patch_generation": 1,
     "pinned": false,
     "state": "active",
-    "use_count": 7,
-    "view_count": 7
+    "use_count": 8,
+    "view_count": 8
   },
   "qdrant-research-kb": {
     "archived_at": null,
