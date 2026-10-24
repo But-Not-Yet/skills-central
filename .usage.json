@@ -214,14 +214,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T15:13:40.428082+00:00",
     "last_reused_patch_generation": 28,
-    "last_used_at": "2026-10-23T19:00:19.001913+00:00",
-    "last_viewed_at": "2026-10-23T19:00:18.984593+00:00",
+    "last_used_at": "2026-10-23T23:48:08.654787+00:00",
+    "last_viewed_at": "2026-10-23T23:48:08.638055+00:00",
     "patch_count": 28,
     "patch_generation": 28,
     "pinned": false,
     "state": "active",
-    "use_count": 62,
-    "view_count": 62
+    "use_count": 63,
+    "view_count": 63
   },
   "devops/kanban-dispatch": {
     "archived_at": null,
@@ -772,15 +772,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T22:36:16.878551+00:00",
-    "last_reused_patch_generation": 78,
-    "last_used_at": "2026-10-23T22:34:43.928236+00:00",
-    "last_viewed_at": "2026-10-23T22:34:43.920735+00:00",
+    "last_reused_patch_generation": 80,
+    "last_used_at": "2026-10-23T23:48:08.662924+00:00",
+    "last_viewed_at": "2026-10-23T23:48:08.645919+00:00",
     "patch_count": 80,
     "patch_generation": 80,
     "pinned": false,
     "state": "active",
-    "use_count": 99,
-    "view_count": 99
+    "use_count": 100,
+    "view_count": 100
   },
   "laptop-coder-node": {
     "archived_at": null,
