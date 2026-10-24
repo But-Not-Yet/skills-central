@@ -755,16 +755,16 @@
     "created_at": "2026-10-22T20:01:20.352403+00:00",
     "created_by": null,
     "first_seen_at": null,
-    "last_patched_at": null,
+    "last_patched_at": "2026-10-24T18:29:40.158345+00:00",
     "last_reused_patch_generation": 0,
-    "last_used_at": "2026-10-22T20:01:20.358560+00:00",
-    "last_viewed_at": "2026-10-22T20:01:20.352414+00:00",
-    "patch_count": 0,
-    "patch_generation": 0,
+    "last_used_at": "2026-10-24T18:23:16.202355+00:00",
+    "last_viewed_at": "2026-10-24T18:23:16.195715+00:00",
+    "patch_count": 1,
+    "patch_generation": 1,
     "pinned": false,
     "state": "active",
-    "use_count": 1,
-    "view_count": 1
+    "use_count": 2,
+    "view_count": 2
   },
   "jupyter-live-kernel": {
     "archived_at": null,
@@ -789,14 +789,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T22:36:16.878551+00:00",
     "last_reused_patch_generation": 80,
-    "last_used_at": "2026-10-24T16:10:49.685704+00:00",
-    "last_viewed_at": "2026-10-24T16:10:49.669588+00:00",
+    "last_used_at": "2026-10-24T18:12:54.547896+00:00",
+    "last_viewed_at": "2026-10-24T18:12:54.536498+00:00",
     "patch_count": 80,
     "patch_generation": 80,
     "pinned": false,
     "state": "active",
-    "use_count": 103,
-    "view_count": 103
+    "use_count": 104,
+    "view_count": 104
   },
   "laptop-coder-node": {
     "archived_at": null,
@@ -1810,14 +1810,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-21T22:03:23.370779+00:00",
     "last_reused_patch_generation": 4,
-    "last_used_at": "2026-10-23T16:29:38.607065+00:00",
-    "last_viewed_at": "2026-10-23T16:29:38.581001+00:00",
+    "last_used_at": "2026-10-24T18:12:54.553127+00:00",
+    "last_viewed_at": "2026-10-24T18:12:54.541785+00:00",
     "patch_count": 4,
     "patch_generation": 4,
     "pinned": false,
     "state": "active",
-    "use_count": 13,
-    "view_count": 13
+    "use_count": 14,
+    "view_count": 14
   },
   "xurl": {
     "archived_at": null,
