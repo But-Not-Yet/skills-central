@@ -454,14 +454,14 @@
     "first_seen_at": null,
     "last_patched_at": null,
     "last_reused_patch_generation": 0,
-    "last_used_at": "2026-10-24T05:20:45.576198+00:00",
-    "last_viewed_at": "2026-10-24T05:20:45.568182+00:00",
+    "last_used_at": "2026-10-24T16:26:56.331295+00:00",
+    "last_viewed_at": "2026-10-24T16:26:56.323500+00:00",
     "patch_count": 0,
     "patch_generation": 0,
     "pinned": false,
     "state": "active",
-    "use_count": 3,
-    "view_count": 3
+    "use_count": 4,
+    "view_count": 4
   },
   "grounded-citations": {
     "archived_at": null,
@@ -789,14 +789,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T22:36:16.878551+00:00",
     "last_reused_patch_generation": 80,
-    "last_used_at": "2026-10-24T06:25:50.740906+00:00",
-    "last_viewed_at": "2026-10-24T06:25:50.733029+00:00",
+    "last_used_at": "2026-10-24T16:10:49.685704+00:00",
+    "last_viewed_at": "2026-10-24T16:10:49.669588+00:00",
     "patch_count": 80,
     "patch_generation": 80,
     "pinned": false,
     "state": "active",
-    "use_count": 102,
-    "view_count": 102
+    "use_count": 103,
+    "view_count": 103
   },
   "laptop-coder-node": {
     "archived_at": null,
@@ -1307,15 +1307,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-24T05:20:16.653232+00:00",
-    "last_reused_patch_generation": 19,
-    "last_used_at": "2026-10-24T05:19:19.694832+00:00",
-    "last_viewed_at": "2026-10-24T05:19:19.662998+00:00",
+    "last_reused_patch_generation": 22,
+    "last_used_at": "2026-10-24T16:10:49.693168+00:00",
+    "last_viewed_at": "2026-10-24T16:10:49.677047+00:00",
     "patch_count": 22,
     "patch_generation": 22,
     "pinned": false,
     "state": "active",
-    "use_count": 14,
-    "view_count": 14
+    "use_count": 15,
+    "view_count": 15
   },
   "powerpoint": {
     "archived_at": null,
