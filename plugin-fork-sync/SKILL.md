@@ -37,7 +37,7 @@ metadata:
 ## 同步流程
 
 1. 旧基线兜底：给**当前生产分支**打本地 tag（`git tag legacy-<ver>-private <当前分支>`），不要假定分支名是 master。
-2. 先 `git remote -v` 认清哪个是上游、哪个是自有 fork（Strata 是 `origin`=Niko1221/Strata、`fork`=But-Not-Yet/Strata；别的仓库可能是 `upstream`）。再 `git fetch <上游> --tags && git fetch <fork> --tags`（SSH 走 `~/.ssh/id_ed25519_github`，IdentitiesOnly）。fetch 完再 `git ls-remote` 对平远端头，确认 ref 真动了。
+2. 先 `git remote -v` 认清哪个是上游、哪个是自有 fork（Strata 是 `origin`=Niko1221/Strata、`fork`=But-Not-Yet/Strata；别的仓库可能是 `upstream`）。再 `git fetch <上游> --tags && git fetch <fork> --tags`（SSH 走 `~/.ssh/id_ed25519_github`，IdentitiesOnly）。fetch 完再 `git ls-remote` 对平远端头，确认 ref 真动了。**tag 引用不带 remote 前缀**：fetch 后直接写 `v<ver>`，`upstream/v<ver>` 会报 not a valid object；补丁计数基线用 `fork/main..HEAD` 这类真实存在的 ref。
 3. 先选路线，别默认 cherry-pick：
    - **长期分支带合并历史**（Strata 这类）：从当前生产分支切新分支（`git switch -c f-<ver>-prod f-<old>-prod`），把上游 tag 整树并进来（`git merge --no-ff <upstream-tag>`）。上一轮的 merge commit 就是基线。
    - **干净补丁队列**（fork/main 没有自有提交）：从 `fork/main` 切出，再逐条 `git cherry-pick -x <commit>`。
@@ -53,7 +53,9 @@ metadata:
 
 ## 自动合并后的语义复核（文本零冲突也要做）
 
-`git merge-tree` 只报文本冲突；上游新代码落进我方改动过的函数，可能编译通过但语义是死的。至少查三类：
+`git merge-tree` 只报文本冲突；上游新代码落进我方改动过的函数，可能编译通过但语义是死的。cherry-pick 全部零冲突**同样不算数**——上游重写过补丁落点的文件时三方合并照样能干净落地，复核必须做。至少查四类：
+
+- **cherry-pick 全绿后的三件套**：①逐条补丁的核心符号在新树 grep 实物；②关键补丁对上游 tag 实物核「上游是否已吸收同等语义」（`git show <tag>:<file>` 直接读落点区，别信 notes 措辞）；③补丁自带的测试文件全部定向跑一遍，唯一失败逐条定罪（多半是上游重构拆了测试锚点——按新调用图重锚、断言强度不降，见三问第 3 问）。
 
 - **上游新默认/自动定容块落进我方分支**：上游按自己的数据结构写「未给值就自动算」，我方若把默认值改成别的，这段就是死代码。合并后 grep 新符号（`auto_...`、`if (x < 0)`），显式决定停用还是改写，并在旁边写一行注释说明「本 fork 的数据结构没有这一层」，防止下轮同步把它当漂移。
 - **上游的日志解析器/监控正则对不上我方日志行**：引擎或服务改过日志格式时，上游新加的 regex 会静默读不到数（监控卡全零，不报错）。合并后拿上游 regex 逐个对我方 `fprintf` 行做一次匹配试验；对不上就改日志格式或改正则，二选一写进提交说明。
@@ -84,7 +86,7 @@ metadata:
 
 - 先跑**定向文件**（本次触碰的测试）绿了才进全套。
 - 别加仓库没装插件的参数——先用最短试跑看参数被不被认（`--timeout` 这类插件参数最常踩）。
-- 全套用 `scripts/shard_pytest.py` 按文件切成用例数均衡的 N 片，**每片独立进程串行跑**——进程退出即资源归零，这是唯一能绕过累积爆点的办法。
+- 全套用 `scripts/shard_pytest.py` 按文件切成用例数均衡的 N 片，**每片独立进程串行跑**——进程退出即资源归零，这是唯一能绕过累积爆点的办法。脚本住在**技能目录**里而非目标仓（仓内没有 `scripts/shard_pytest.py`），先 `cp <技能目录>/scripts/shard_pytest.py /tmp/` 再跑。
 - 每片输出写日志文件、结尾 `echo EXIT=$?` 由脚本自己追加：日志里有 EXIT 行=外层 bash 活过会话关闭，日志停在进度中间无 pytest 收尾行=内部 pytest 进程被单独杀。
 - 后台起跑必须 `persist_on_release=true` + `notify=true`，否则会话关闭连坐（实测 agent_close 会杀掉未 persist 的后台进程，跑到 59% 白扔）。
 - 崩溃归因三板斧：日志最后百分比 × `--collect-only` 用例总数 ≈ 用例序号 → 在收集清单里定位所属文件 → **单独跑该文件**；单跑绿 ⇒ 不是补丁撞的，是资源累积，交给分片；单跑红 ⇒ 才是真回归，先修再重跑。
