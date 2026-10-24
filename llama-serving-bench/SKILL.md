@@ -48,7 +48,10 @@ metadata:
 
 ## 生产机在线增量构建（引擎跑着时的代码迭代）
 
-- 增量构建（几个翻译单元）峰值 ≈ 单 TU 2–4GB，动手前先 `free -m` 读 available，`ninja -j2/-j4` 削并行峰。余量撑不住就走停机窗口：哨兵盯到编译进程出现即叫主人停服务。编译+测试完再拉起（占 50GB 级 RSS 的引擎停机后全机都是构建余量）。绝不自行重启生产、绝不 kill 引擎进程。
+- **默认增量，不删构建树**：主人要求「尽量增量编译」；只在 CMake 缓存本身坏了或换工具链时才清目录。复用原 `build-hip`，让已有对象继续用。
+- 增量构建峰值 ≈ 单 TU 2–4GB，动手前先 `free -m` 读 available。**available < 8GB 用 `-j1`，不要按 nproc 开并行**；8–16GB 用 `-j2`；更宽再 `-j4`。余量撑不住就走停机窗口：哨兵盯到编译进程出现即叫主人停服务。编译+测试完再拉起（占 50GB 级 RSS 的引擎停机后全机都是构建余量）。绝不自行重启生产、绝不 kill 引擎进程。
+- **`ninja -n` 在 CMake 重跑前只显示「Re-running CMake」，看不到真实待编步数**——别拿它估时间。直接起 `cmake --build build-hip -j1`，tail 日志里的 `[N/M]`；CMake 重跑后会展开全部步骤。
+- 测试目标默认关时，`cmake -S . -B build-hip -D<test-option>=ON` 只重生成构建图，已有引擎对象不重编；具体 ctest 回归流程见 `plugin-fork-sync`。
 - 长时间内存压力后 `drop_caches` 无济于事：内核早把干净页缓存回收光了（buff/cache 只剩个位数 GB），drop 不出余量。别把它当止损手段报给主人，那会误导判断。
 - OOM 保命：给生产引擎写 `oom_score_adj=-1000`，让 OOM killer 牺牲外围进程而不是占 RSS 大头的引擎。这比任何「小心点跑」都可靠。
 - 构建进程哨兵用 `pgrep -x` 按进程名匹配（ninja/hipcc/clang/lld），脚本先写入文件再运行。cmdline 模式会自中（模式词就在哨兵自己的命令行里，或被盯服务本身就住在被盯路径下）。完整三坑与规则见 unattended-mission-planning 陷阱节。

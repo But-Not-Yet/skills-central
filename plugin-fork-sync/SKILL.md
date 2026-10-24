@@ -26,12 +26,22 @@ metadata:
 - **上游 schema 兼容性**：notes 里找「schema change / rollback」字样——插件级升级若声明不动存储 schema，就不需要数据迁移，这条直接决定重构/升级路线的成本评估。
 - **许可证与 PR 策略**：先开 issue 探上游意向再从 fork 分支提 PR；PR 不成且许可证允许 → 止损切自有分支大改，不为上游排队。
 
+## 评估上游对某模型族的影响（按文件/符号，不按目录）
+
+模型族名未必是源码目录：Strata 的 qwen4exp/QSA 横跨 `src/core/layer.hpp`（`QsaState`）、`src/kernels/cuda/qsa_*.cu`、`src/prefill`、`src/program`，树里没有 `src/qwen4exp/`。按目录名或提交标题搜会给出假的「0 改动」。
+
+- 先 `git grep -l '<symbol>' <upstream>` 找真实文件，再 `git log <base>..<tag> -- <那些文件>`。
+- 分开「上游改了这块」与「改的这份在本机 arch 上跑不跑」：同一内核可能只对 gfx12/SYCL/CUDA 生效。看默认值，不只看代码存在。
+- 同时查状态结构与快照接口（如 `QsaState`、`conversation_snapshot`）有没有动；这些动了，磁盘缓存补丁才需要按语义重写。
+
 ## 同步流程
 
-1. 旧基线兜底：`git tag legacy-<ver>-private master`。
-2. `git fetch fork --tags && git fetch upstream --tags`（remote 名固定 `fork`/`upstream`，SSH 走 `~/.ssh/id_ed25519_github`，IdentitiesOnly）。
-3. 新生产分支从 `fork/main` 切出：`git checkout -b f-<ver>-prod fork/main`。
-4. 逐条 `git cherry-pick -x <commit>`；冲突时 `git checkout --ours <file>` 取上游基，再按上游新结构**手工移植我方语义**——禁止硬合旧 diff。
+1. 旧基线兜底：给**当前生产分支**打本地 tag（`git tag legacy-<ver>-private <当前分支>`），不要假定分支名是 master。
+2. 先 `git remote -v` 认清哪个是上游、哪个是自有 fork（Strata 是 `origin`=Niko1221/Strata、`fork`=But-Not-Yet/Strata；别的仓库可能是 `upstream`）。再 `git fetch <上游> --tags && git fetch <fork> --tags`（SSH 走 `~/.ssh/id_ed25519_github`，IdentitiesOnly）。fetch 完再 `git ls-remote` 对平远端头，确认 ref 真动了。
+3. 先选路线，别默认 cherry-pick：
+   - **长期分支带合并历史**（Strata 这类）：从当前生产分支切新分支（`git switch -c f-<ver>-prod f-<old>-prod`），把上游 tag 整树并进来（`git merge --no-ff <upstream-tag>`）。上一轮的 merge commit 就是基线。
+   - **干净补丁队列**（fork/main 没有自有提交）：从 `fork/main` 切出，再逐条 `git cherry-pick -x <commit>`。
+4. 冲突只改冲突块，**不要用 `git checkout --ours/--theirs` 整文件取一侧**：整文件取一侧会丢掉该文件里已经自动合并好的另一侧改动。手工替换 `<<<<<<<` 块，保留其余自动合并结果。`--ours`/`--theirs` 的方向在 merge 与 cherry-pick 下不同，先看 `git status` 确认当前操作类型。
 
 ## 冲突手工移植三问（每条冲突补丁都过）
 
@@ -47,6 +57,7 @@ metadata:
 
 - **上游新默认/自动定容块落进我方分支**：上游按自己的数据结构写「未给值就自动算」，我方若把默认值改成别的，这段就是死代码。合并后 grep 新符号（`auto_...`、`if (x < 0)`），显式决定停用还是改写，并在旁边写一行注释说明「本 fork 的数据结构没有这一层」，防止下轮同步把它当漂移。
 - **上游的日志解析器/监控正则对不上我方日志行**：引擎或服务改过日志格式时，上游新加的 regex 会静默读不到数（监控卡全零，不报错）。合并后拿上游 regex 逐个对我方 `fprintf` 行做一次匹配试验；对不上就改日志格式或改正则，二选一写进提交说明。
+- **CLI 帮助/usage 字符串**：上游改了某个 flag 的默认语义，帮助行会跟着自动合并；我方把默认值改成了别的含义时，`--help` 仍可能写着上游的「按空闲 RAM 自动定容」，与实际行为相反。合并后 grep 每个被我方改过默认值的 flag，逐条核对帮助文案。
 - **上游测试锚点**：上游重构常把测试依赖的符号或顺序拆散；自动合并的测试文件要真编译真跑，不能只看冲突标记。
 
 ## 变体：把 fork 插件内化为另一插件的内部组件
@@ -57,7 +68,17 @@ metadata:
 - **版本锚写死在包装方代码里**：一个 `FORK_ANCHOR` 字典记 upstream/fork 地址、分支、commit、version，注释说明该 commit 在哪个基线之上加了什么——下轮 fork-sync 靠它定位重植面。
 - **需要 fork 侧配合的能力改动（如补 detach 支持）提交进 fork 仓**，不塞进包装方；合入后更新 FORK_ANCHOR 的 commit。宿主 config 的 plugins.enabled 移除该条目时留一行注释指向内化模块，防将来排查注册问题时找不到插件去哪了。
 
+## 生产机增量编译（不碰运行中的引擎）
+
+生产盒上引擎常驻几十 GB，编译前先 `free -m`；可用不足 8 GB 时固定 `-j1`，`nice -n 10`，绝不并行赌内存。
+
+- 复用已有的 `build-hip`（Ninja + Release + HIP arch），不删对象、不重建配置；`build-hip/strata` 是验证产物，**不要覆盖 `engine/strata`**。
+- `ninja -n` 在 CMake 重跑前只显示 2–3 步，看不到真实工作量；直接跑构建或先 `ninja -C build-hip build.ninja`，CMake 重跑后步数才展开。
+- 后台起 `cmake --build build-hip -j1 > log 2>&1; echo EXIT=$? >> log`，配一个只读哨兵每 15–20 秒写「步数/错误数/可用内存/退出码」；构建结束再跑定向测试。哨兵用 `pgrep -f '[c]make --build ...'` 避免匹配自身。
+
 ## 全量回归（本机生产盒跑法，三次白跑的教训）
+
+**主人裁定（10-23，lcm-x 0.28.1 同步）**：万级用例的分片全量（~75 分钟）**不值得作为每次同步的门槛**——「跑这玩意没有意义」。现行验收以定向测试（本次触碰文件＋补丁自带测试）＋语义抽查＋宿主侧 shim 契约测试为准；分片全量只在改动压在压缩/回滚等高危路径且主人同意等时再跑，跑前先问。
 
 生产盒内存被常驻模型压着，大套件（万级用例）串行单进程跑**必在中途无声死掉**。规矩：
 
@@ -79,11 +100,17 @@ metadata:
 - **回归测试要能被旧代码打红（负对照）**：把修复前 commit 的 `git archive | tar -x` 到临时包，喂同一场景，看它真报出生产里那条错。只会绿的测试不算回归测试。
 - 同一套件里「同名目录遮蔽」这类环境形状也会把测试打红（见 `hermes-local-ops-troubleshooting` 的包导入条目），归因时先看失败是代码还是装载形状。
 
+### 引擎类 fork 的回归（CMake/ctest）
+
+- 引擎构建树的测试目标常默认关：先 `grep STRATA_BUILD_CONVERSATION_TESTS build-hip/CMakeCache.txt`；关着就用 `cmake -S . -B build-hip -DSTRATA_BUILD_CONVERSATION_TESTS=ON` 只加测试目标，不重编引擎对象。
+- 测试目标编出即可跑，不必等整棵引擎：`ctest --test-dir build-hip -R 'conversation|session_save' --output-on-failure`。
+- `ctest` 报 `Not Run` 是二进制还没编到，不是失败；等构建走过那个目标再补跑，别把它记成红。
+
 ## 验收与 push
 
 - `git log --oneline upstream基线..HEAD` 计数 = 补丁数（语义相近的可合成一个提交，message 写明合并了哪几条）。
 - **README/发布说明里的性能百分比在 push 前复算**：分子分母必须来自同一层。引擎 `reused` 数、serve 进度行的网格数（`reading X of Y`）、段挂载深度是三个量；混用会写出对不上的百分比。复算不过就改数，别改百分比去迁就句子。
-- 工作树零脏文件；署名必须「独立研究者」（主人署名铁律）。
+- 工作树零脏文件；署名按仓库既有身份，不临时换：Strata 公开 fork 用匿名 `But-Not-Yet`（零个人信息）；学术文档和其他仓库用「独立研究者」。两边都不带个人邮箱、不挂学校院系。
 - 定向绿 + 全分片失败名单**归因完毕**（每个失败分类：上游本来就红 / 我方补丁撞的 / 环境问题）才算绿，才 push 分支到 fork。
 - 插件类改动 push ≠ 生效：重启宿主（gateway）后验活体（进程在、插件加载、目标链路真跑过）才叫「能正常运作」。
 - **重启后必须用「重启时刻之后」的日志断言目标缺陷归零**：`systemctl show -p ActiveEnterTimestamp --value <unit>` 取时刻，只数该时刻之后的行。验收脚本要在旧进程上**全红**（它自己就是负对照），否则它的 PASS 不证明任何事。
