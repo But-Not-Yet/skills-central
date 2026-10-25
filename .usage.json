@@ -788,15 +788,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-25T03:28:20.921723+00:00",
-    "last_reused_patch_generation": 85,
-    "last_used_at": "2026-10-25T03:23:02.339481+00:00",
-    "last_viewed_at": "2026-10-25T03:23:02.330580+00:00",
+    "last_reused_patch_generation": 88,
+    "last_used_at": "2026-10-25T06:09:49.416473+00:00",
+    "last_viewed_at": "2026-10-25T06:09:49.407798+00:00",
     "patch_count": 88,
     "patch_generation": 88,
     "pinned": false,
     "state": "active",
-    "use_count": 109,
-    "view_count": 109
+    "use_count": 110,
+    "view_count": 110
   },
   "laptop-coder-node": {
     "archived_at": null,
@@ -820,15 +820,15 @@
     "created_by": "learn",
     "first_seen_at": null,
     "last_patched_at": "2026-10-25T05:54:18.635881+00:00",
-    "last_reused_patch_generation": 6,
-    "last_used_at": "2026-10-25T05:53:13.941715+00:00",
-    "last_viewed_at": "2026-10-25T05:53:13.936387+00:00",
+    "last_reused_patch_generation": 8,
+    "last_used_at": "2026-10-25T06:09:39.207193+00:00",
+    "last_viewed_at": "2026-10-25T06:09:39.199784+00:00",
     "patch_count": 8,
     "patch_generation": 8,
     "pinned": false,
     "state": "active",
-    "use_count": 9,
-    "view_count": 9
+    "use_count": 10,
+    "view_count": 10
   },
   "latex-report-enhancement-cn": {
     "archived_at": "2026-09-22T16:21:53.251058+00:00",
@@ -1228,15 +1228,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-12T21:37:10.476106+00:00",
-    "last_reused_patch_generation": 15,
-    "last_used_at": "2026-10-12T21:32:39.342727+00:00",
-    "last_viewed_at": "2026-10-12T21:32:39.316615+00:00",
+    "last_reused_patch_generation": 17,
+    "last_used_at": "2026-10-25T06:09:30.681188+00:00",
+    "last_viewed_at": "2026-10-25T06:09:30.664342+00:00",
     "patch_count": 17,
     "patch_generation": 17,
     "pinned": false,
     "state": "active",
-    "use_count": 10,
-    "view_count": 10
+    "use_count": 11,
+    "view_count": 11
   },
   "openhue": {
     "archived_at": null,
