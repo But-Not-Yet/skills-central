@@ -39,6 +39,20 @@ SSH 连不上/连错笔记本（IP 变动、VPN 断）、主人问怎么启动�
 
 模型对比与选择规则见 `references/ornith-apex-vs-lfm25.md`。
 
+## 换型：先查引擎 docs 能力地图，再谈候选
+
+- **`D:\LLM\PolyStrata\docs\` 里一个模型有专页，才算引擎真的跑过、量过。** 现有 `MODELS.md`（Qwen3.8-Flash-Next）、`GLM.md`、`DEEPSEEK.md`、`LFM.md`。`gemma4.cpp` 里有 26B-A4B 的代码但**没有 `GEMMA.md`**——代码在 ≠ 有人验证过，只能算未验证路径。**候选名单先过这道闸，过不了的不进基准比较。**
+- **llama.cpp 支持 ≠ 这个引擎支持。** flint 的 `FlintForCausalLM`、Raon 的架构在 `src/poly/` 里根本没有，HF 趋势榜上有名也没用。
+- **引擎 doc 页比 HF 模型卡可信**：`LFM.md` 给了每档量化的 RAM 需求、8 GB 笔记本上的实测 tok/s、每 token KV 字节数，还自己承认了长上下文失败案例（123K 三针只命中后两针，最远那针编造）。HF 卡不会写这些。
+- 本节点 44 G 池（12 G VRAM + 32 G RAM）的结论：Qwen3.8-Flash-Next 要 37.6 GB 且 32 GB 内存档只能跑 Coder 版（官方注明弱在非代码与非英语，主人用中文，不合适）；GLM 5.3 Flash 321B、DeepSeek V4 Flash 90.9 GB 装不下；**LFM2.5-24B-A2B 是唯一落地的**。具体数字见 `references/ornith-apex-vs-lfm25.md`。
+
+### 长上下文重复：根因与零成本先手
+
+- **根因是架构额度用完了，不是采样写错。** Ornith 是 `qwen3_5_moe`：40 层里 30 层线性注意力，状态大小固定。上下文推到十万 token 以上，固定状态被早期内容填满，近期内容的精确记忆掉下去，模型忘了自己刚说过什么，于是复读。调采样压得住表面，压不住这个。
+- **换模型之前先试 penalty，改一行重启五分钟。** `DETAILS.md` 写明 `presence_penalty` / `frequency_penalty` / `repetition_penalty` 都认，配 `penalty_last_n` 控制回看窗口（默认 64，长上下文重复要放宽到 512），三者都能直接写进 run config 的 `sampling` 块。当前 `strata-ornith-apex-i-quality.json` 只有 `temperature 0.6 / top_p 0.95 / top_k 20`，**三个 penalty 一个都没设**。
+- **判引擎支持哪些采样参数，看 `DETAILS.md` 的请求字段清单，不要看 `--help`。** `--help` 只列命令行开关；`min_p` 与三类 penalty 是请求或 config 字段，`--help` 里没有不代表不支持。
+- 压不住才说明是架构层的事，再上 LFM2.5。
+
 ## KV 量化 A/B 测法（2026-10-19 实测结案）
 - 引擎 help 只有 `--kv fp16|q8_0`，**无 k8v4**（那是 engine 0.1.25/PR#120 的功能，0.1.45 poly 没有）。
 - **KV 缓存不占显存**：poly 引擎把 KV 流进系统内存。37K token 提示词期间 nvidia-smi 峰值增量 ~0MB（fp16 和 q8_0 都一样）。所以 KV 量化省的是 RAM，不会变成「显存多装专家」。
