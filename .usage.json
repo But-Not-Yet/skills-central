@@ -788,15 +788,15 @@
     "created_by": "agent",
     "first_seen_at": null,
     "last_patched_at": "2026-10-25T00:57:57.128114+00:00",
-    "last_reused_patch_generation": 84,
-    "last_used_at": "2026-10-25T00:22:12.263506+00:00",
-    "last_viewed_at": "2026-10-25T00:22:12.248077+00:00",
+    "last_reused_patch_generation": 85,
+    "last_used_at": "2026-10-25T03:09:49.249741+00:00",
+    "last_viewed_at": "2026-10-25T03:09:49.241022+00:00",
     "patch_count": 85,
     "patch_generation": 85,
     "pinned": false,
     "state": "active",
-    "use_count": 107,
-    "view_count": 107
+    "use_count": 108,
+    "view_count": 108
   },
   "laptop-coder-node": {
     "archived_at": null,
