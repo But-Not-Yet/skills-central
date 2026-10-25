@@ -124,6 +124,7 @@ metadata:
 - **并行第二台机器时，第二张卡只做文件不相交或只读分析**：两个 worker 同时改同一仓库并各自 commit 会抢 git index；优先派只读报告卡（`workspace dir` 指文档目录、不改仓库），或给 worktree。并行前逐个核 profile/provider/模型，主会话分别验收。worker 禁用 `git stash`/`git add -A`；`git stash` 会把另一个 worker 正在改的文件卷走。
 - **「全套无回归」必须可审计**：套件里本就存在既有失败时，卡规格要写明「先 `git stash` 跑一次基线、逐文件比对」。要证明失败是既有而非本次引入。验收时抽验它给出的基线比对结论：只报「全绿」而基线里本就有红的，等于没验。反之基线一致则是合格证据，不要把既有失败算成回归。
 - **同树有在跑 worker 时给测试失败做归因取证**：用 `git stash push -u` 跑一次干净 HEAD 再立刻 `stash pop`——stash 会短窗卷走在跑 worker 的半成品，做一次就收手，别反复。别用「另开 worktree 检出旧提交跑测试」定罪：测试若经 sys.path 指向活插件目录 import，旧 worktree 里跑的仍是活树的新代码，「旧提交也红」结论无效，只有活树 stash 后的读数作数。flaky 嫌疑连跑 N 次全绿（哪怕 20 次）只降嫌疑不定罪——低频竞态证不伪，措辞用「未定罪未排除、挂观察名单」，别说「已排除」。
+- **rate_limited 连续 ≥3 次必拉错误原文定性，不许按「会自愈」放养**（10-24 实例：14 次 requeue 白烧 83 分钟）：dispatcher 把云端 402（钱包/预授权墙）误记成 rate_limited 且不记失败、不触 gave_up，于是无限循环永不 escalate——402 从第一秒起就不可能成功，重试一万次也不会自愈。查法：`grep -a "Error code: 402\|429" ~/.hermes/profiles/<profile>/logs/agent.log | tail`；OpenRouter 对流式请求按 max_tokens×模型默认输出价全额预授权（config 的 context_length 会被兜底成 max_tokens，131072×$0.60/M≈$79 单笔就超余额秒拒），修法给该 provider 段显式 max_tokens 上限或充值；同时核 key 余额（/api/v1/credits）与用量是否真在增长（usage 不动=一分钱没烧）。
 
 ## 相关技能
 

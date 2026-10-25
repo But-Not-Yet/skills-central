@@ -597,14 +597,14 @@
     "first_seen_at": null,
     "last_patched_at": "2026-10-23T15:13:46.509526+00:00",
     "last_reused_patch_generation": 43,
-    "last_used_at": "2026-10-23T15:48:22.732903+00:00",
-    "last_viewed_at": "2026-10-23T15:48:22.727411+00:00",
+    "last_used_at": "2026-10-25T00:22:12.271968+00:00",
+    "last_viewed_at": "2026-10-25T00:22:12.256312+00:00",
     "patch_count": 43,
     "patch_generation": 43,
     "pinned": false,
     "state": "active",
-    "use_count": 63,
-    "view_count": 63
+    "use_count": 64,
+    "view_count": 64
   },
   "hermes-memory-providers": {
     "archived_at": null,
@@ -787,16 +787,16 @@
     "created_at": "2026-10-07T20:27:18.328156+00:00",
     "created_by": "agent",
     "first_seen_at": null,
-    "last_patched_at": "2026-10-24T22:45:55.493267+00:00",
-    "last_reused_patch_generation": 80,
-    "last_used_at": "2026-10-24T22:41:47.339761+00:00",
-    "last_viewed_at": "2026-10-24T22:41:47.324009+00:00",
-    "patch_count": 83,
-    "patch_generation": 83,
+    "last_patched_at": "2026-10-25T00:18:49.617414+00:00",
+    "last_reused_patch_generation": 84,
+    "last_used_at": "2026-10-25T00:22:12.263506+00:00",
+    "last_viewed_at": "2026-10-25T00:22:12.248077+00:00",
+    "patch_count": 84,
+    "patch_generation": 84,
     "pinned": false,
     "state": "active",
-    "use_count": 105,
-    "view_count": 105
+    "use_count": 107,
+    "view_count": 107
   },
   "laptop-coder-node": {
     "archived_at": null,
