@@ -787,16 +787,16 @@
     "created_at": "2026-10-07T20:27:18.328156+00:00",
     "created_by": "agent",
     "first_seen_at": null,
-    "last_patched_at": "2026-10-25T00:57:57.128114+00:00",
+    "last_patched_at": "2026-10-25T03:28:20.921723+00:00",
     "last_reused_patch_generation": 85,
-    "last_used_at": "2026-10-25T03:09:49.249741+00:00",
-    "last_viewed_at": "2026-10-25T03:09:49.241022+00:00",
-    "patch_count": 85,
-    "patch_generation": 85,
+    "last_used_at": "2026-10-25T03:23:02.339481+00:00",
+    "last_viewed_at": "2026-10-25T03:23:02.330580+00:00",
+    "patch_count": 88,
+    "patch_generation": 88,
     "pinned": false,
     "state": "active",
-    "use_count": 108,
-    "view_count": 108
+    "use_count": 109,
+    "view_count": 109
   },
   "laptop-coder-node": {
     "archived_at": null,
